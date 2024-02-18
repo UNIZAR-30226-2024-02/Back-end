@@ -1,0 +1,63 @@
+@startuml
+actor Player
+Player -> FrontEnd : ClickEmpezarPartidaButton()
+FrontEnd -> FrontEnd : GoNuevaPartida()
+Player -> FrontEnd : SetPrivadaOPublica(privacidad : boolean)
+Player -> FrontEnd : SetNumMaxJugadores(num : integer)
+Player -> FrontEnd : ClickSendButton()
+FrontEnd -> BackEnd : POSTNuevaPartida(privacidad, num)
+database DB
+BackEnd -> BackEnd : GeneratePassword() : pass
+BackEnd -> DB : InsertPartida(privacidad, num, notIniciada, notTerminada, null, null, pass Estado{//TODO})
+DB --> BackEnd : res
+alt [res]
+	BackEnd -> FrontEnd : Exito(partida)
+	FrontEnd -> FrontEnd : MostrarContraseña(partida.contraseña)
+	note right
+	Servidor lanza un hilo en el cual 
+	espera a que se unan 'num' jugadores 
+	O el jugador pulse Iniciar / Cancelar
+	end note
+	opt [cancel]
+		Player -> FrontEnd : ClickCancelButton()
+		FrontEnd -> BackEnd : PUTDeletePartida(partida)
+		BackEnd -> DB : DeletePartida(partida)
+		DB --> BackEnd : done
+		note right
+		A partir de ahora se omitirán todos los checkError de la base de datos
+		supongo que se hará siempre que haya una consulta, que esta pueda fallar
+		y lanzar los típicos mensajes de fatal error
+		end note
+		BackEnd -> FrontEnd : partidaCancelada()
+		BackEnd -> BackEnd : NotificarJugadoresPartidaCancelada(partida.jugadores)
+		FrontEnd -> FrontEnd : GoToMainMenu()
+	end
+	opt [empezar]
+		opt [pulsa]
+			Player -> FrontEnd : ClickStartButton()
+		end
+		note left
+		La partida empezará si el jugador pulsa Start
+		o si el número de jugadores == max
+		end note
+		FrontEnd -> BackEnd : PUTStartPartida(partida)
+		BackEnd->BackEnd : checkUsers(partida.Players) : minimo
+		alt [minimo] 
+			BackEnd -> DB : StartPartida(partida)
+			DB --> BackEnd : done
+			BackEnd -> FrontEnd : EmpiezaPartida(partida)
+			BackEnd -> BackEnd : NotificarJugadoresPartidIiniciada(partida.jugadores)
+			FrontEnd -> FrontEnd : GoToPartida() 
+			note left : cargar mapa etc
+		else
+			BackEnd->FrontEnd : SendError("No puede empezar la partida sin mínmo 2 jugadores") 
+			FrontEnd -> FrontEnd : ShowError()
+			end
+	end
+	
+else
+	BackEnd -> FrontEnd : FatalError(504, "Internal error")
+	FrontEnd -> FrontEnd : MostrarError()
+	end
+
+@enduml

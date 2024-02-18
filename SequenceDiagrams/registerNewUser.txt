@@ -1,0 +1,32 @@
+@startuml
+actor Player
+Player -> FrontEnd : ClickRegisterButton()
+FrontEnd -> FrontEnd : GoToRegister()
+Player -> FrontEnd : SetEmail(email : string)
+Player -> FrontEnd : SetUsername(username : string)
+Player -> FrontEnd : SetSexo(sexo : boolean)
+Player -> FrontEnd : SetFechaNacimiento(fecha : Date)
+Player -> FrontEnd : SetNacionalidad(nacionalidad : enum)
+Player -> FrontEnd : SetPassword(pass : string)
+Player -> FrontEnd : SetRePassword(pass : string)
+Player -> FrontEnd : ClickSendButton()
+FrontEnd -> BackEnd : POSTNewUser(email, username sexo, fecha, nacionalidad, pass)
+BackEnd -> BackEnd : CheckParametros()
+database DB
+alt success 
+	BackEnd -> DB : insertUser(email, sexo, fecha, nacionalidad, pass)
+	DB --> BackEnd : res 
+	alt [res]
+		BackEnd -> FrontEnd : Succes()
+		FrontEnd -> FrontEnd : GoToMainMenu()
+	else 
+		DB --> BackEnd : no ok
+		BackEnd -> FrontEnd : FatalError(500, "error interno")
+		FrontEnd -> FrontEnd : showError()
+		end
+else
+	BackEnd -> FrontEnd: FatalError(400, "parámetros inválidos))
+	FrontEnd -> FrontEnd : showError()
+	end
+
+@enduml

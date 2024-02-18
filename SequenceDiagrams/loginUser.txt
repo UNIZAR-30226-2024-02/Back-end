@@ -1,0 +1,20 @@
+@startuml
+actor Player
+Player -> FrontEnd : ClickLoginButton()
+FrontEnd -> FrontEnd : GoToLogin()
+Player -> FrontEnd : SetEmailOrUserName(emailOrUserName : string)
+Player -> FrontEnd : SetPassword(pass : string)
+Player -> FrontEnd : ClickSendButton()
+FrontEnd -> BackEnd : GETLogin(emailOrUserName, pass)
+database DB
+BackEnd -> DB : login(emailOrUserName, pass)
+DB --> BackEnd : res
+alt [res]
+	BackEnd -> FrontEnd : Exito(Player)
+	FrontEnd -> FrontEnd : GoToMainMenu()
+else
+	BackEnd -> FrontEnd : FatalError(404, "Credenciales incorrectas")
+	FrontEnd -> FrontEnd : MostrarError()
+	end
+
+@enduml
