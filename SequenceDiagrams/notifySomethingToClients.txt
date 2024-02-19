@@ -1,0 +1,19 @@
+@startuml
+note over BackEnd
+Este diagrama genérico
+representa el caso en el que
+un evento ocurrido en el backend
+(ya sea porque otro front end le 
+envía un evento, o la BD) genera
+que el back end tenga que avisar a
+varios clientes, por ejemplo: 
+un usuario conquista un territorio,
+la partida comienza, termina...
+end note 
+BackEnd -> BackEnd : getImplicadosEnActividad()
+BackEnd -> FrontEnd1 : notifySomething()
+BackEnd -> FrontEnd2 : notifySomething()
+BackEnd -> FrontEnd3 : notifySomething()
+BackEnd -> FrontEnd4 : notifySomething()
+BackEnd -> FrontEnd5 : notifySomething()
+@enduml

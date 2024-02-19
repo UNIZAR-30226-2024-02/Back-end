@@ -1,0 +1,87 @@
+@startuml
+actor Player
+participant FrontEnd
+BackEnd -> FrontEnd : TuTurno(EstadoPartida)
+FrontEnd -> FrontEnd : muestraMnsajeTurno()
+loop EstadoPartida.TurnoX.Bonificaciones > 0
+Player -> FrontEnd : CogeTropaExtra()
+FrontEnd -> FrontEnd : ApuntaTropaExtra() 
+note left of FrontEnd : ¿interaccion con backend?
+end
+FrontEnd -> FrontEnd : MostrarMensajeNumTropas()
+Player -> FrontEnd : numTropasAColocar(num : int) 
+FrontEnd -> FrontEnd : MostrarMensajeDecideTerritorio()
+note over FrontEnd, BackEnd: Etapa 1, Colocar tropas
+loop i..num 
+Player -> FrontEnd : colocarTropa(EstadoPartida.Territorio) 
+FrontEnd -> FrontEnd : checkTerritorio(EstadoPartida, EstadoPartida.Territorio, Player) : controla
+	alt !controla
+		FrontEnd -> FrontEnd : MostrarMensajeErrorTerritorioNoEsMio()
+		note over FrontEnd : not i++
+	else 
+		FrontEnd -> FrontEnd : ActualizarVista()
+		note over FrontEnd : i++
+	end
+end
+note over FrontEnd,BackEnd 
+¿Avisar back end? 
+Etapa 2, atacar
+end note
+FrontEnd -> FrontEnd : MostrarMensajeDeseaAtacar()
+Player -> FrontEnd : MandarVoluntad(quiereAtacar: boolean)
+loop quiereAtacar
+FrontEnd -> FrontEnd : MostrarMensajeInicioAtaque()
+FrontEnd -> FrontEnd : MostrarMensajeEligeTerritorios()
+note over Player : jugador elige 2 territorios (suyo y enemigo)
+Player -> FrontEnd : Territorios(t1 : Territorio, t2 : Territorio)
+note over FrontEnd : t1 = suyo, t2 != suyo && t1 contiguo t2 (checks)
+FrontEnd -> FrontEnd : MostrarMensajeEligeNumTropas()
+Player -> FrontEnd : numTropas(num : integer) 
+note over FrontEnd : num<3 && num >0 (checks)
+note over FrontEnd : allTerritoriosPlayer.tropas > 0 (checks)
+FrontEnd -> BackEnd : Ataque(EstadoPartida)
+group ref [notifySomethingToClients]
+	BackEnd -> BackEnd : notify..
+end
+FrontEnd2 -> BackEnd : ColocaTropas(num : int, ) 
+group ref [notifySomethingToClients]
+	BackEnd -> BackEnd : notify..
+	BackEnd -> FrontEnd : ColocaTropas(num : int, t: Territorio) 
+end
+Player -> FrontEnd : lanzaDado()
+FrontEnd -> FrontEnd : random.Range(1,6) : res
+FrontEnd -> FrontEnd : muestraResultado(res)
+FrontEnd -> BackEnd : dadoAtacante(res)
+group ref [notifySomethingToClients]
+	BackEnd -> BackEnd : notify..
+end
+FrontEnd2 -> BackEnd : dadoDefensor(res2)
+BackEnd -> BackEnd : CalculaResultado(res, res2)
+BackEnd -> BackEnd : UpdateState(EstadoPartida)
+group ref [notifySomethingToClients]
+	BackEnd -> BackEnd : notify..
+	BackEnd -> FrontEnd : NotificaResultado(EstadoPartida)
+end
+FrontEnd -> FrontEnd : MostrarMensajeDeseaAtacar()
+Player -> FrontEnd : MandarVoluntad(quiereAtacar: boolean)
+end
+note over FrontEnd, BackEnd 
+Etapa 3, maniobras
+end note
+FrontEnd -> FrontEnd : MostrarMensajeDeseaManiobrar()
+Player -> FrontEnd : enviaDeseo(deseo) 
+opt deseo 
+	Player -> FrontEnd : moverTropas(tropas, origen, destino) 
+	note over FrontEnd : checkeo ok 
+end
+FrontEnd -> FrontEnd : compruebaEstado(EstadoPartida) : puedeCogerCarta
+opt puedeCogerCarta
+	FrontEnd -> FrontEnd : MostrarMensajeCogeCarta()
+	Player -> FrontEnd : CogeCarta()
+	FrontEnd -> FrontEnd : Random.range(1..X) 
+end
+FrontEnd -> BackEnd : actualizaEstado(EstadoPartida) 
+group ref [notifySomethingToClients]
+	BackEnd -> BackEnd : notify..
+end
+@enduml
