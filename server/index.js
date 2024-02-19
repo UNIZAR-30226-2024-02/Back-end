@@ -1,6 +1,10 @@
 const express = require('express');
+const connectDB = require('./config/db');
 
 const app = express();
+
+// db connection
+connectDB();
 
 // ruta prueba principal
 app.get('/', (req, res) => {
