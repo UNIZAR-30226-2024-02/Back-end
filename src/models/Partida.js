@@ -1,13 +1,13 @@
 const mongoose = require("mongoose");
 
 const TerritorioSchema = mongoose.Schema({
-    Nombre: [{ type: String }],
+    Nombre: { type: String },
     Frontera: [{ type: String }],
     Tropas: { type: Number, required: true, default: 0 }
 });
 
 const CartaSchema = mongoose.Schema({
-    Territorio: [{ type: String }],
+    Territorio: { type: String },
     Tropas: { type: Number, required: true, default: 0 }
 });
 
