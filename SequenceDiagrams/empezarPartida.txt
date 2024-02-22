@@ -33,20 +33,14 @@ alt [res]
 		FrontEnd -> FrontEnd : GoToMainMenu()
 	end
 	opt [empezar]
-		opt [pulsa]
-			Player -> FrontEnd : ClickStartButton()
-		end
-		note left
-		La partida empezará si el jugador pulsa Start
-		o si el número de jugadores == max
-		end note
+		Player -> FrontEnd : ClickStartButton()
 		FrontEnd -> BackEnd : PUTStartPartida(partida)
 		BackEnd->BackEnd : checkUsers(partida.Players) : minimo
 		alt [minimo] 
 			BackEnd -> DB : StartPartida(partida)
 			DB --> BackEnd : done
 			BackEnd -> FrontEnd : EmpiezaPartida(partida)
-			BackEnd -> BackEnd : NotificarJugadoresPartidIiniciada(partida.jugadores)
+			BackEnd -> BackEnd : NotificarJugadoresPartidaIniciada(partida.jugadores)
 			FrontEnd -> FrontEnd : GoToPartida() 
 			note left : cargar mapa etc
 		else

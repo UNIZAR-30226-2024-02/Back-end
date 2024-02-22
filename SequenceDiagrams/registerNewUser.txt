@@ -4,9 +4,6 @@ Player -> FrontEnd : ClickRegisterButton()
 FrontEnd -> FrontEnd : GoToRegister()
 Player -> FrontEnd : SetEmail(email : string)
 Player -> FrontEnd : SetUsername(username : string)
-Player -> FrontEnd : SetSexo(sexo : boolean)
-Player -> FrontEnd : SetFechaNacimiento(fecha : Date)
-Player -> FrontEnd : SetNacionalidad(nacionalidad : enum)
 Player -> FrontEnd : SetPassword(pass : string)
 Player -> FrontEnd : SetRePassword(pass : string)
 Player -> FrontEnd : ClickSendButton()
@@ -28,5 +25,4 @@ else
 	BackEnd -> FrontEnd: FatalError(400, "parámetros inválidos))
 	FrontEnd -> FrontEnd : showError()
 	end
-
 @enduml
