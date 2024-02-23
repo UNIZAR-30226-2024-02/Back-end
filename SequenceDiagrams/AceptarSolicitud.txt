@@ -1,0 +1,32 @@
+@startuml
+actor Player
+Player -> FrontEnd : ClickAmigos()
+FrontEnd -> FrontEnd : GoToAmigos()
+Player -> FrontEnd : ClickSolicitudes()
+Player -> FrontEnd : GoToSolicitudes()
+FrontEnd -> BackEnd : GETSolicitudes(Player)
+BackEnd -> FrontEnd : ObtenerSolicitudes(Player)
+database DB
+DB --> BackEnd: List<Solicitudes>
+BackEnd --> FrontEnd : List<Solicitudes>
+alt List<Solicitudes>.length() > 0 
+	FrontEnd -> FrontEnd : MuestraMEnsaje("Tienes solicitudes pendientes")
+	loop quiereAceptarORechazarSolicitud
+		alt quiere aceptar
+			Player -> FrontEnd : aceptarSolicitud(i) 
+			note left : i € 0, List<Solicitudes>.length()-1
+			FrontEnd -> FrontEnd : apuntaAceptacion(list[i])
+		else quiere rechazar
+			Player -> FrontEnd : aceptarSolicitud(i)
+			FrontEnd -> FrontEnd : apuntaRechazo(list[i])
+		end
+	end
+	FrontEnd -> BackEnd : EnviaCambios(list, player) 
+	BackEnd -> DB : ActualizaSolicitudes(list, player)
+	
+else	
+	FrontEnd -> FrontEnd : MuestraMensaje("No tienes solicitudes pendientes")
+end
+
+
+@enduml

@@ -1,0 +1,28 @@
+@startuml
+actor Player
+Player -> FrontEnd : ClickAmigos()
+FrontEnd -> FrontEnd : GoToAmigos()
+Player -> FrontEnd : ClickAñadirAmigos)
+Player -> FrontEnd : GoToAñadirAmigos()
+Player -> FrontEnd : SetNombreUsuarioOrEmail(s : string)
+FrontEnd -> BackEnd : PUTBuscarJugador(s)
+database DB
+BackEnd -> DB : existeJugador(s)
+DB --> BackEnd : ok 
+alt ok 
+	BackEnd -> FrontEnd : Exito(j)
+	FrontEnd -> FrontEnd : MuestraJugador(j)
+	Player -> FrontEnd : PulsaAñadir(j)
+	FrontEnd -> BackEnd : NuevaSolicitud(Player, j) 
+	BackEnd -> DB : NuevaSolicitud(Player, j) 
+	opt j está conectado
+		BackEnd -> FrontEnd2 : NuevaSolicitud(Player) 
+	end 
+	
+else
+	BackEnd -> FrontEnd : FatalError(404)
+	FrontEnd -> FrontEnd: MuestraMensajeUsuarioNoExiste()
+
+end
+
+@enduml

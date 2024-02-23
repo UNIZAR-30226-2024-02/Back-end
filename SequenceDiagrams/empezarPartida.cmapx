@@ -1,7 +1,6 @@
 <map id="empezarPartida_map" name="empezarPartida_map">
 <area shape="rect" id="id1" href="res" title="res" alt="" coords="86,399,105,413"/>
-<area shape="rect" id="id2" href="pulsa" title="pulsa" alt="" coords="110,859,140,873"/>
-<area shape="rect" id="id3" href="cancel" title="cancel" alt="" coords="110,524,145,538"/>
-<area shape="rect" id="id4" href="minimo" title="minimo" alt="" coords="270,995,312,1009"/>
-<area shape="rect" id="id5" href="empezar" title="empezar" alt="" coords="100,834,149,847"/>
+<area shape="rect" id="id2" href="cancel" title="cancel" alt="" coords="100,524,135,538"/>
+<area shape="rect" id="id3" href="minimo" title="minimo" alt="" coords="260,963,302,977"/>
+<area shape="rect" id="id4" href="empezar" title="empezar" alt="" coords="100,834,149,847"/>
 </map>
