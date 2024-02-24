@@ -29,7 +29,7 @@ const JugadorSchema = mongoose.Schema({
 });
 
 const ChatSchema = mongoose.Schema({
-    Chat : { type: mongoose.Schema.Types.ObjectId, ref: 'Chat }
+    Chat : { type: mongoose.Schema.Types.ObjectId, ref: 'Chat' }
 });
 
 const PartidaSchema = mongoose.Schema({
@@ -38,8 +38,8 @@ const PartidaSchema = mongoose.Schema({
     Terminada: { type: Boolean, required: true, default: false },
     fechaInicio: { type: Date, required: true, immutable: true },
     fechaFin: { type: Date, required: true, immutable: true },
-    privacidad { type Boolean, required: true, default: false}, 
-    password { type String, required: false},
+    privacidad: { type: Boolean, required: true, default: false}, 
+    password: { type: String, required: false},
     Ganador: {
         type: {
             type: String,
