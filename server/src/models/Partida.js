@@ -1,4 +1,5 @@
-const mongoose = require("mongoose");
+const mongoose = require("mongoose")
+const Chat = require("./Chat")
 
 const TerritorioSchema = mongoose.Schema({
     Nombre: { type: String },
@@ -28,18 +29,14 @@ const JugadorSchema = mongoose.Schema({
     Turno: { type: Number, required: true }
 });
 
-const ChatSchema = mongoose.Schema({
-    Chat : { type: mongoose.Schema.Types.ObjectId, ref: 'Chat }
-});
-
 const PartidaSchema = mongoose.Schema({
     Nombre: { type: String, required: true },
     Iniciada: { type: Boolean, required: true, default: false },
     Terminada: { type: Boolean, required: true, default: false },
     fechaInicio: { type: Date, required: true, immutable: true },
     fechaFin: { type: Date, required: true, immutable: true },
-    privacidad { type Boolean, required: true, default: false}, 
-    password { type String, required: false},
+    Public: { type: Boolean, required: true, default: false}, 
+    Password: { type: String, required: false},
     Ganador: {
         type: {
             type: String,
