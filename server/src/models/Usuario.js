@@ -4,84 +4,83 @@ const Chat = require("./Chat")
 const Partida = require("./Partida")
 
 new UsuarioSchema = mongoose.Schema({
-  idUsuario: {type: String, require: true, unique: true, lowercase: true},
-  Pass: {type: String, require: true},
-  Correo: {type: String, require: true, inmutable: true, unique: true, lowercase: true},
-  fNacimiento: {type: Date, require: true, inmutable: true},
-  Nacionalidad: {type: String, require: true, inmutable: true},
-  Sexo: {type: String, require: true, inmutable: true},
-  Elo: {type: Number, require: true, default: 1000},
-  Puntos: {type: Number, require: true, default: 0},
+  idUsuario: {type: String, required: true, unique: true, lowercase: true},
+  pass: {type: String, required: true},
+  correo: {type: String, required: true, inmutable: true, unique: true, lowercase: true},
+  fNacimiento: {type: Date, required: true, inmutable: true},
+  nacionalidad: {type: String, required: true, inmutable: true},
+  elo: {type: Number, required: true, default: 1000},
+  puntos: {type: Number, required: true, default: 0},
 
-  Chats: {
+  chats: {
     type: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Chat'
     }]
   },
 
-  Amigos: {
+  amigos: {
     type: [{
       type: String,
       ref: 'Usuario.idUsuario'
     }],
     default: [],
-    require: true
+    required: true
   },
 
-  Solicitudes: {
+  solicitudes: {
     type: [{
       type: String,
       ref: 'Usuario.idUsuario'
     }],
     default: [],
-    require: true
+    required: true
   },
 
-  Partidas: {
+  partidas: {
     type: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Partida'
     }],
     default: [],
-    require: true
+    required: true
   },
   
-  // Meter aqui tambien por parte de quien se recibe la invitaicon
-  Invitaciones: {
+  // Meter aqui tambien por parte de quien se recibe la invitaicon (?)
+  invitaciones: {
     type: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Partida'
     }],
     default: [],
-    require: true
+    required: true
   }, 
 
-  Skins: {
+  skins: {
     type: [{
       type: String,
       ref: 'Skin.idSkin'
     }],
     default: [],   // Añadir aqui idSkin de avatar y fichas predeterminados
-    require: true
+    required: true
   },
 
-  Avatar: {
+  avatar: {
     type: {
       type: String,
       ref: 'Skin.idSkin'
     },
     default: '',     // idSkin del avatar predeterminado 
-    require : true
+    required : true
   },
 
-  Fichas: {
+  setFichas: {
     type: {
       type: String,
       ref: 'Skin.idSkin'
     },
     default: '',     // idSkin del set de fichas predeterminado
-    require : true
+    required : true
   }
 })
 

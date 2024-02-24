@@ -20,12 +20,13 @@ const ContinenteSchema = mongoose.Schema({
 const JugadorSchema = mongoose.Schema({
     Usuario: {
         type: {
-            type: String,
-            ref: 'Usuario.idUsuario'
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Usuario',
+            required: true
         },
     },
-    Territorios: [{ type: TerritorioSchema }],
-    Cartas: [{ type: CartaSchema }],
+    Territorios: [{ type: TerritorioSchema, default: [] }],
+    Cartas: [{ type: CartaSchema , default: []}],
     Turno: { type: Number, required: true }
 });
 
@@ -39,8 +40,8 @@ const PartidaSchema = mongoose.Schema({
     Password: { type: String, required: false},
     Ganador: {
         type: {
-            type: String,
-            ref: 'Usuario.idUsuario'
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Usuario',
         },
     },
     Turno: { type: Number, required: true, default: 0 },

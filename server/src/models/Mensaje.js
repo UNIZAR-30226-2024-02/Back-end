@@ -1,14 +1,15 @@
-const mongoose = require("mongoose")
-const Usuario = require("./Usuario")
+const mongoose = require("mongoose");
+const Usuario = require("./Usuario");
 
-new MensajeSchema = mongoose.Schema({
-  Texto: {type: String, require:true, default:""},
+const MensajeSchema = mongoose.Schema({
+  Texto: { type: String, required: true, default: "" },
   idUsuario: {
-    type: String,
-    ref: 'Usuario.idUsuario',
-    require: true
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Usuario',
+    required: true
   },
-  Timestamp: {type: String, default: () => Date.now(), require: true}
-})
+  Timestamp: { type: Date, default: () => Date.now(), required: true } // Cambiado a Date para el timestamp
+});
 
-module.exports = mongoose.model("Mensaje", MensajeSchema)
+module.exports = mongoose.model("Mensaje", MensajeSchema);
+
