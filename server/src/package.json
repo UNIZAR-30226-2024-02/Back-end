@@ -10,7 +10,8 @@
   "author": "UNIZAR-30226-2024-02",
   "license": "MIT",
   "devDependencies": {
-    "nodemon": "^3.0.3"
+    "nodemon": "^3.0.3",
+    "supertest": "^6.3.4"
   },
   "dependencies": {
     "dotenv": "^16.4.4",
