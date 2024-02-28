@@ -2,15 +2,17 @@
 const supertest = require('supertest');
 const { app, startApp, close } = require('../app');
 
+
 const request = supertest(app);
 
 beforeAll(async () => {
     await startApp();
 });
 
-afterAll(async () => {
-   
+afterAll((done) => {
+  close().then(() => done());
 });
+
 
 describe('Prueba inicial', () => {
     it('debería responder correctamente en la ruta principal', async () => {
