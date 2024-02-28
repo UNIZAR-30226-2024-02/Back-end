@@ -16,14 +16,14 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '20.11.0' 
+        node-version: '20.11.0'
 
     - name: Install Dependencies
       run: |
-      cd server/src 
-      npm install
+        cd server/src 
+        npm install
 
     - name: Build and Test
       run: |
-      cd server/src 
-      npm run dev
+        cd server/src 
+        npm run dev
