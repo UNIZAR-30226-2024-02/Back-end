@@ -1,14 +1,21 @@
-// compile.test.js
+// app.test.js
+const supertest = require('supertest');
+const { app, startApp, close } = require('../app');
 
-const { execSync } = require('child_process');
+const request = supertest(app);
 
-test('Compilación del backend', () => {
-  try {
-    console.log('Iniciando la compilación del backend...');
-    execSync('npm run dev', { cwd: 'server/src', stdio: 'inherit' });
-    console.log('La compilación del backend se realizó correctamente.');
-  } catch (error) {
-    console.error(`Error durante la compilación del backend: ${error.message}`);
-    throw error;
-  }
+beforeAll(async () => {
+    await startApp();
+});
+
+afterAll(async () => {
+   
+});
+
+describe('Prueba inicial', () => {
+    it('debería responder correctamente en la ruta principal', async () => {
+        const response = await request.get('/');
+        expect(response.status).toBe(200);
+        expect(response.text).toBe('Todo funciona bien');
+    });
 });

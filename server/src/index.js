@@ -1,34 +1,16 @@
-const express = require('express');
-const connectDB = require('./config/db');
-const registerRoutes = require('./routes/register');
+// server.js
+const { app, startApp } = require('./app');
 
-const app = express();
+const PORT = process.env.PORT || 4000;
 
-// parse application/x-www-form-urlencoded
-app.use(express.urlencoded({ extended: false }))
-     
-// parse application/json
-app.use(express.json())
-
-// db connection
-async function startApp() {
+(async () => {
     try {
-        await connectDB();
+        await startApp();
+        app.listen(PORT, () => {
+            console.log(`Servidor escuchando en el puerto ${PORT}`);
+        });
     } catch (error) {
-        console.error('Error conexión BBDD', error);
+        console.error('Error al iniciar la aplicación:', error);
+        process.exit(1);
     }
-}
-
-// Rutas
-app.use('/register', registerRoutes);
-
-// ruta prueba principal
-app.get('/', (req, res) => {
-    res.send('Todo funciona bien');
-})
-
-
-startApp();
-app.listen(4000, () => {
-    console.log('todo piola xD');
-})
+})();
