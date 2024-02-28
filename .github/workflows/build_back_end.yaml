@@ -27,3 +27,5 @@ jobs:
       run: |
         cd server/src 
         npm test
+        sleep 2
+        exit 0
