@@ -8,8 +8,8 @@ router.post('/', async (req, res) => {
   console.log('El registro tira')
   console.log(req.body)
   try {
-      const { username, password, email } = req.body
-      await crearUsuario(username, password, email)
+      const { idUsuario, pass, correo } = req.body;
+      await crearUsuario(idUsuario, pass, correo)
       console.log('Usuario registrado exitosamente')
       res.status(201).json({ message: 'Usuario registrado exitosamente' })
   } catch (error) {

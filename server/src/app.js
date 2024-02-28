@@ -1,12 +1,13 @@
 const express = require('express');
 const {connectDB, disconnectDB} = require('./config/db');
 const registerRoutes = require('./routes/register');
+const loginRoutes = require('./routes/login');
 
 const app = express();
 
 // parse application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: false }))
-     
+
 // parse application/json
 app.use(express.json())
 
@@ -47,6 +48,7 @@ function close() {
 
 // Rutas
 app.use('/register', registerRoutes);
+app.use('/login', loginRoutes);
 
 // ruta prueba principal
 app.get('/', (req, res) => {
