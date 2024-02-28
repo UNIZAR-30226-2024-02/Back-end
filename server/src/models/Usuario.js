@@ -3,12 +3,10 @@ const Skin = require("./Skin")
 const Chat = require("./Chat")
 const Partida = require("./Partida")
 
-new UsuarioSchema = mongoose.Schema({
+const UsuarioSchema = new mongoose.Schema({
   idUsuario: {type: String, required: true, unique: true, lowercase: true},
   pass: {type: String, required: true},
   correo: {type: String, required: true, inmutable: true, unique: true, lowercase: true},
-  fNacimiento: {type: Date, required: true, inmutable: true},
-  nacionalidad: {type: String, required: true, inmutable: true},
   elo: {type: Number, required: true, default: 1000},
   puntos: {type: Number, required: true, default: 0},
 
@@ -24,8 +22,8 @@ new UsuarioSchema = mongoose.Schema({
       type: String,
       ref: 'Usuario.idUsuario'
     }],
-    default: [],
-    required: true
+    //default: [null],
+    //require: true
   },
 
   solicitudes: {
@@ -33,8 +31,8 @@ new UsuarioSchema = mongoose.Schema({
       type: String,
       ref: 'Usuario.idUsuario'
     }],
-    default: [],
-    required: true
+    //default: null,
+    //require: true
   },
 
   partidas: {
@@ -42,8 +40,8 @@ new UsuarioSchema = mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Partida'
     }],
-    default: [],
-    required: true
+    //default: null,
+    //require: true
   },
   
   // Meter aqui tambien por parte de quien se recibe la invitaicon (?)
@@ -52,8 +50,8 @@ new UsuarioSchema = mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Partida'
     }],
-    default: [],
-    required: true
+    //default: null,
+    //require: true
   }, 
 
   skins: {
@@ -61,8 +59,8 @@ new UsuarioSchema = mongoose.Schema({
       type: String,
       ref: 'Skin.idSkin'
     }],
-    default: [],   // Añadir aqui idSkin de avatar y fichas predeterminados
-    required: true
+    //default: ['12', '1'],   // Añadir aqui idSkin de avatar y fichas predeterminados
+    //require: true
   },
 
   avatar: {
@@ -70,8 +68,8 @@ new UsuarioSchema = mongoose.Schema({
       type: String,
       ref: 'Skin.idSkin'
     },
-    default: '',     // idSkin del avatar predeterminado 
-    required : true
+    //default: "122",     // idSkin del avatar predeterminado 
+    //require : true
   },
 
   setFichas: {
@@ -79,8 +77,8 @@ new UsuarioSchema = mongoose.Schema({
       type: String,
       ref: 'Skin.idSkin'
     },
-    default: '',     // idSkin del set de fichas predeterminado
-    required : true
+    //default: '1',     // idSkin del set de fichas predeterminado
+    //require : true
   }
 })
 

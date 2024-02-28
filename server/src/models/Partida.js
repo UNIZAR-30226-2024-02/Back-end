@@ -47,7 +47,7 @@ const PartidaSchema = mongoose.Schema({
     turno: { type: Number, required: true, default: 0 },
     jugadores: [{ type: JugadorSchema }],
     mapa: [{ type: ContinenteSchema }], 
-    chat: { type: ChatSchema }
+    chat: { type: Chat.schema }
 });
 
 module.exports = mongoose.model("Partida", PartidaSchema);
