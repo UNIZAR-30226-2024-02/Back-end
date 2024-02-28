@@ -26,7 +26,4 @@ jobs:
     - name: Build and Test
       run: |
         cd server/src 
-        npm run dev
-        sleep 10
-    - name: Check build status
-      run: echo "Build successful. Continuing with the workflow."
+        npm test
