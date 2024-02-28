@@ -1,0 +1,29 @@
+name: Build and Test Backend
+
+on:
+  push:
+    branches:
+      - main  # Los push que se hagan sobre main deben compilar
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20.11.0' 
+
+    - name: Install Dependencies
+      run: |
+      cd server/src 
+      npm install
+
+    - name: Build and Test
+      run: |
+      cd server/src 
+      npm run dev
