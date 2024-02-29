@@ -5,8 +5,9 @@ const Partida = require("./Partida")
 
 const UsuarioSchema = new mongoose.Schema({
   idUsuario: {type: String, required: true, unique: true, lowercase: true},
-  pass: {type: String, required: true},
+  password: {type: String, required: true},
   correo: {type: String, required: true, inmutable: true, unique: true, lowercase: true},
+  info: {type: String},
   elo: {type: Number, required: true, default: 1000},
   puntos: {type: Number, required: true, default: 0},
 

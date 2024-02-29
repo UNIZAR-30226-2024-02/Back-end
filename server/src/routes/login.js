@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const login = require('../queries/login');
+const { login } = require('../controllers/usuarioController');
 const jwt = require('jsonwebtoken');
 
 // petición post desde <url>/register desencadena esta acción
@@ -11,13 +11,13 @@ router.post('/', async (req, res) => {
   try {
       const { id, password } = req.body
       if (id.includes("@")){
-        email = id
-        username = null
+        idUsuario = null
+        correo = id
       } else{
-        email = null
-        username = id
+        idUsuario = id
+        correo = null
       }
-      const succ = await login(username, password, email)
+      const succ = await login(idUsuario, password, correo)
       if (succ.valid) {
         const token = jwt.sign({ idUsuario: succ.idUsuario }, 'claveSecreta', { expiresIn: '1h' });
         res.status(200).json({ message: 'Login correcto', token })

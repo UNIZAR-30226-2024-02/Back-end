@@ -1,7 +1,8 @@
 const express = require('express');
 const {connectDB, disconnectDB} = require('./config/db');
-const registerRoutes = require('./routes/register');
-const loginRoutes = require('./routes/login');
+const registerRouter = require('./routes/register');
+const loginRouter = require('./routes/login');
+const rankingRouter = require('./routes/ranking');
 
 const app = express();
 
@@ -47,8 +48,9 @@ function close() {
 
 
 // Rutas
-app.use('/register', registerRoutes);
-app.use('/login', loginRoutes);
+app.use('/register', registerRouter);
+app.use('/login', loginRouter);
+app.use('/ranking', rankingRouter);
 
 // ruta prueba principal
 app.get('/', (req, res) => {
