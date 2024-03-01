@@ -23,8 +23,8 @@ const UsuarioSchema = new mongoose.Schema({
       type: String,
       ref: 'Usuario.idUsuario'
     }],
-    //default: [null],
-    //require: true
+    default: [],
+    require: true
   },
 
   solicitudes: {
@@ -32,8 +32,8 @@ const UsuarioSchema = new mongoose.Schema({
       type: String,
       ref: 'Usuario.idUsuario'
     }],
-    //default: null,
-    //require: true
+    default: [],
+    require: true
   },
 
   partidas: {
@@ -41,18 +41,19 @@ const UsuarioSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Partida'
     }],
-    //default: null,
-    //require: true
+    default: [],
+    require: true
   },
   
   // Meter aqui tambien por parte de quien se recibe la invitaicon (?)
   invitaciones: {
     type: [{
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Partida'
+      ref: 'Partida',
+      ref: 'Usuario.idUsuario'
     }],
-    //default: null,
-    //require: true
+    default: [],
+    require: true
   }, 
 
   skins: {
@@ -79,7 +80,7 @@ const UsuarioSchema = new mongoose.Schema({
       ref: 'Skin.idSkin'
     },
     //default: '1',     // idSkin del set de fichas predeterminado
-    //require : true
+    //require: true
   }
 })
 

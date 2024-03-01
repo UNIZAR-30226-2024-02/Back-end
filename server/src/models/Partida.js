@@ -35,7 +35,7 @@ const PartidaSchema = mongoose.Schema({
     iniciada: { type: Boolean, required: true, default: false },
     terminada: { type: Boolean, required: true, default: false },
     fechaInicio: { type: Date, required: true, immutable: true },
-    fechaFin: { type: Date, required: true, immutable: true },
+    fechaFin: { type: Date}, // no la pondria como requerida, una partida puede no haber acabado
     publica: { type: Boolean, required: true, default: false}, 
     password: { type: String, required: false},
     ganador: {
