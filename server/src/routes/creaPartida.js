@@ -9,19 +9,25 @@ router.post('/', async (req, res) => {
   console.log('El crear partida tira')
   console.log(req.body)
   try {
-        const {privacidad, user, num, nombre, password } = req.body
-        //*** */ Estaría bien meter esto a una función ya que lo utilizarmeos mucho ***/
-        const token = req.headers['authorization']; // CREO que se almacena aquí 
-        if (!token) {
-            return res.status(401).json({ mensaje: 'Token no proporcionado' }); // front redirects to login
+      let {privacidad, user, num, nombre, password } = req.body
+      //*** */ Estaría bien meter esto a una función ya que lo utilizarmeos mucho ***/
+      const token = req.headers['authorization']; // CREO que se almacena aquí 
+      if (!token) {
+          return res.status(401).json({ mensaje: 'Token no proporcionado o inválido' }); // front redirects to login
+      }
+      console.log(token)
+      try{
+        const decoded = jwt.verify(token, 'claveSecreta');
+        if(decoded.idUsuario != user.idUsuario){ // el usuario debe ser el mismo 
+          return res.status(401).json({ mensaje: 'Token no proporcionado o inválido' })
         }
-        jwt.verify(token, SECRET_KEY, (error, usuario) => {
-            if (error) {
-            return res.status(403).json({ mensaje: 'Token no válido' }); // front redirects to login, el usuario no debe saber la causa
-            }
-        });
-    
-      if(privacidad){
+        console.log(decoded)
+      } catch(error){
+        return res.status(401).json({ mensaje: 'Token no proporcionado o inválido' })
+      }
+      /// fin función
+  
+      if(!privacidad){
         password=null; // por si acaso xd
       }
     

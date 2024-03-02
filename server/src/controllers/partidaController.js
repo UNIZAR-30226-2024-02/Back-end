@@ -1,4 +1,4 @@
-const Usuario = require('../models/Partida');
+const Partida = require('../models/Partida');
 
 
 // privacidad --> boolean 1 privada 0 pública
@@ -7,7 +7,7 @@ const Usuario = require('../models/Partida');
 // nombre -> nombre de la partida
 // password -> contraseña de la partida, en caso de ser privada
 async function crearPartida(privacidad, user, num, nombre, password) {
-    console.log(privacidad, user, num)
+    console.log(privacidad, user, num, nombre, password)
     fechaInicio = new Date(); // se supone q esto coge la fecha actual
     const nuevaPartida = new Partida({ nombre: nombre, 
                                        iniciada: false, 

@@ -3,6 +3,7 @@ const {connectDB, disconnectDB} = require('./config/db');
 const registerRouter = require('./routes/register');
 const loginRouter = require('./routes/login');
 const rankingRouter = require('./routes/ranking');
+const nuevaPartidaRouter = require('./routes/creaPartida');
 
 const app = express();
 
@@ -51,6 +52,7 @@ function close() {
 app.use('/register', registerRouter);
 app.use('/login', loginRouter);
 app.use('/ranking', rankingRouter);
+app.use('/nuevaPartida', nuevaPartidaRouter);
 
 // ruta prueba principal
 app.get('/', (req, res) => {
