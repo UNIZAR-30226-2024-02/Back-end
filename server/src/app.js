@@ -4,6 +4,7 @@ const registerRouter = require('./routes/register');
 const loginRouter = require('./routes/login');
 const rankingRouter = require('./routes/ranking');
 const nuevaPartidaRouter = require('./routes/creaPartida');
+const obtenerPartidasRouter = require('./routes/getPublicas');
 
 const app = express();
 
@@ -53,6 +54,7 @@ app.use('/register', registerRouter);
 app.use('/login', loginRouter);
 app.use('/ranking', rankingRouter);
 app.use('/nuevaPartida', nuevaPartidaRouter);
+app.use('/partidas', obtenerPartidasRouter);
 
 // ruta prueba principal
 app.get('/', (req, res) => {

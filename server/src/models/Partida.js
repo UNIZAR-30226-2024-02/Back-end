@@ -50,4 +50,7 @@ const PartidaSchema = mongoose.Schema({
     chat: { type: Chat.schema }
 });
 
-module.exports = mongoose.model("Partida", PartidaSchema);
+module.exports = {
+    Partida: mongoose.model("Partida", PartidaSchema),
+    Jugador: mongoose.model("Jugador", JugadorSchema)
+};

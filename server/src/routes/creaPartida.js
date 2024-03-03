@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const { crearPartida } = require('../controllers/partidaController');
-const jwt = require('jsonwebtoken');
+const obtenerUsuarioDesdeToken = require('../auth/auth');
 
 // petición post desde <url>/register desencadena esta acción
 // los parámetros van en el body de la request
@@ -9,25 +9,14 @@ router.post('/', async (req, res) => {
   console.log('El crear partida tira')
   console.log(req.body)
   try {
-      let {privacidad, user, num, nombre, password } = req.body
-      //*** */ Estaría bien meter esto a una función ya que lo utilizarmeos mucho ***/
-      const token = req.headers['authorization']; // CREO que se almacena aquí 
-      if (!token) {
-          return res.status(401).json({ mensaje: 'Token no proporcionado o inválido' }); // front redirects to login
-      }
-      console.log(token)
-      try{
-        const decoded = jwt.verify(token, 'claveSecreta');
-        if(decoded.idUsuario != user.idUsuario){ // el usuario debe ser el mismo 
-          return res.status(401).json({ mensaje: 'Token no proporcionado o inválido' })
-        }
-        console.log(decoded)
-      } catch(error){
+      let {privacidad, num, nombre, password } = req.body
+      
+      const token = req.headers['authorization'];
+      const user = obtenerUsuarioDesdeToken(token)
+      if(!user)
         return res.status(401).json({ mensaje: 'Token no proporcionado o inválido' })
-      }
-      /// fin función
   
-      if(!privacidad){
+      if(!privacidad){ // if es publica
         password=null; // por si acaso xd
       }
     
