@@ -5,7 +5,7 @@ const loginRouter = require('./routes/login');
 const rankingRouter = require('./routes/ranking');
 const nuevaPartidaRouter = require('./routes/creaPartida');
 const obtenerPartidasRouter = require('./routes/getPublicas');
-const nuevaSolicitudRouter = require('./routes/enviarSolicitud');
+const solicitudRouter = require('./routes/solicitud');
 
 const app = express();
 
@@ -56,7 +56,7 @@ app.use('/login', loginRouter);
 app.use('/ranking', rankingRouter);
 app.use('/nuevaPartida', nuevaPartidaRouter);
 app.use('/partidas', obtenerPartidasRouter);
-app.use('/nuevaSolicitud', nuevaSolicitudRouter);
+app.use('/solicitud', solicitudRouter);
 
 // ruta prueba principal
 app.get('/', (req, res) => {
