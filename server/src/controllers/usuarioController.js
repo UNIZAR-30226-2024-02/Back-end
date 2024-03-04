@@ -20,8 +20,15 @@ async function login(idUsuario, password, correo) {
 }
 
 async function getUsuariosByRanking() {
-    return await Usuario.find().sort({ "elo": -1 });
+    try {
+        const usuarios = await Usuario.find().sort({ "elo": -1 }).select("idUsuario elo");
+        return usuarios;
+    } catch (error) {
+        console.error("Error al obtener usuarios por ranking:", error);
+        throw error;
+    }
 }
+
 
 module.exports = {
     crearUsuario,
