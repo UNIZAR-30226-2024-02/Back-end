@@ -19,17 +19,8 @@ async function login(idUsuario, password, correo) {
     return { valid: existingUser && existingUser.password === password, idUsuario: existingUser && existingUser.idUsuario }
 }
 
-async function enviarSolicitud(idUsuario, idDestino) {
+async function crearAmistad(idUsuario, idDestino) {
     try {
-        // Verificar que el usuario de destino existe
-        const usuarioDestino = await Usuario.findOne({ idUsuario: idDestino })
-        if (!usuarioDestino) {
-            console.log('Usuario no encontrado.')
-            return false // No existe -> no podemos añadirlo a la lista de amigos :(
-        }
-
-        // Buscar al usuario de origen por idUsuario
-        const usuarioOrigen = await Usuario.findOne({ idUsuario })
 
         // Verificar que no es sí mismo (soledad)
         if (idUsuario === idDestino) {
@@ -37,17 +28,33 @@ async function enviarSolicitud(idUsuario, idDestino) {
             return false
         }
 
+        // Verificar que el usuario de destino existe
+        const usuarioDestino = await Usuario.findOne({ idUsuario: idDestino })
+        console.log(idDestino)
+        if (!usuarioDestino) {
+            console.log('Usuario no encontrado.')
+            return false
+        }
+
         // ¿Verificar que no está bloqueado?
 
         // Verificar que no esté en la lista de amigos
-        if (usuarioOrigen.amigos.includes(idDestino)) {
+        if (usuarioDestino.amigos.includes(idUsuario)) {
             console.log('Ya está en tu lista de amigos.')
             return false
         }
 
-        // Verificar que no exista una solicitud de usuarioDestino
+        // Verificar que no exista ya una solicitud
+        if (usuarioDestino.solicitudes.includes(idUsuario)) {
+            console.log('Ya has enviado una solicitud previa a este usuario.')
+            return false
+        }
+
+        // Buscar al usuario de origen por idUsuario
+        const usuarioOrigen = await Usuario.findOne({ idUsuario })
+
+        // Si existe una solicitud de idDestino, pasa de solicitud a amigos para ambos
         if (usuarioOrigen.solicitudes.includes(idDestino)) {
-            // por alguna razón, hay que hacerlo a mano...
             var index = usuarioOrigen.solicitudes.indexOf(idDestino)
             usuarioOrigen.solicitudes.splice(index, 1)
 
@@ -57,13 +64,9 @@ async function enviarSolicitud(idUsuario, idDestino) {
             console.log(usuarioDestino)
             await usuarioOrigen.save()
             await usuarioDestino.save()
+            console.log(`Tenías solicitud de ${idDestino} y ahora está en tu lista de amigos.`)
+            // Notificar al usuario destino si está conectado
             return true
-        }
-
-        // Verificar que no exista ya una solicitud
-        if (usuarioDestino.solicitudes.includes(usuarioOrigen.idUsuario)) {
-            console.log('Ya has enviado una solicitud previa a este usuario.')
-            return false
         }
 
         // Añadir la solicitud al usuario destino
@@ -72,10 +75,79 @@ async function enviarSolicitud(idUsuario, idDestino) {
 
         // Notificar al usuario destino si está conectado
 
-        console.log(`Solicitud enviada de ${idUsuario} a ${usuarioDestino.idUsuario}`)
-        return true // Añadido, ya tienes una solicitud de amistad pendiente, ahora solo falta que te acepten :(
+        console.log(`Solicitud enviada de ${idUsuario} a ${idDestino}`)
+        return true
     } catch (error) {
-        console.error('Error al enviar la solicitud:', error.message)
+        console.error('Error al crear la amistad:', error.message)
+        return false
+    }
+}
+
+async function cancelarAmistad(idUsuario, idDestino) {
+    try {
+
+        // Verificar que no es sí mismo
+        if (idUsuario === idDestino) {
+            console.log('No puedes autocancelarte.')
+            return false
+        }
+
+        // Verificar que el usuario de destino existe
+        const usuarioDestino = await Usuario.findOne({ idUsuario: idDestino })
+        console.log(idDestino)
+        if (!usuarioDestino) {
+            console.log('Usuario no encontrado.')
+            return false
+        }
+
+        // ¿Verificar que no está bloqueado?
+
+        // Si enviaste una solicitud, se cancela
+        if (usuarioDestino.solicitudes.includes(idUsuario)) {
+            var index = usuarioDestino.solicitudes.indexOf(idUsuario)
+            usuarioDestino.solicitudes.splice(index, 1)
+            console.log(usuarioDestino)
+            await usuarioDestino.save()
+            console.log('Solicitud de amistad cancelada.')
+            // Notificar al usuario destino si está conectado
+            return true
+        }
+
+        // Buscar al usuario de origen por idUsuario
+        const usuarioOrigen = await Usuario.findOne({ idUsuario })
+
+        // Si existe una solicitud de idDestino, se cancela
+        if (usuarioOrigen.solicitudes.includes(idDestino)) {
+            var index = usuarioOrigen.solicitudes.indexOf(idDestino)
+            usuarioOrigen.solicitudes.splice(index, 1)
+            console.log(usuarioOrigen)
+            await usuarioOrigen.save()
+            console.log('Solicitud de amistad cancelada.')
+            // Notificar al usuario destino si está conectado
+            return true
+        }
+
+        // Si está en la lista de amigos, se borran mutuamente
+        if (usuarioDestino.amigos.includes(idUsuario)) {
+            var index = usuarioOrigen.amigos.indexOf(idDestino)
+            usuarioOrigen.amigos.splice(index, 1)
+            console.log(usuarioOrigen)
+
+            var index = usuarioDestino.amigos.indexOf(idUsuario)
+            usuarioDestino.amigos.splice(index, 1)
+            console.log(usuarioDestino)
+
+            await usuarioOrigen.save()
+            await usuarioDestino.save()
+            console.log(`${usuarioDestino.idUsuario} ya no está en tu lista de amigos.`)
+            // Notificar al usuario destino si está conectado
+            return true
+        }
+
+        console.log(`No existe ninguna relación entre ${idUsuario} y ${idDestino}`)
+        return false
+    } catch (error) {
+        console.error('Error al cancelar la amistad:', error.message)
         return false
     }
 }
@@ -88,5 +160,6 @@ module.exports = {
     crearUsuario,
     login,
     getUsuariosByRanking,
-    enviarSolicitud
+    crearAmistad,
+    cancelarAmistad
 };
