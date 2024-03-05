@@ -39,10 +39,11 @@ async function crearPartida(privacidad, user, num, nombre, password) {
                                        }); 
 
     // Si existe una partida con el mismo nombre y la misma password, que no haya terminado -> no podremos crearla (?)
-    const partidaExistente = await Partida.findOne({ nombre: nombre, terminada: false, password: password });
+    const partidaExistente = await Partida.findOne({ nombre: nombre, terminada: false });
     if(partidaExistente)
-        throw new Error('Ya hay una partida en curso con estas credenciales.')
+        return false
     await nuevaPartida.save()
+    return true
 }
 
 

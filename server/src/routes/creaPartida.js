@@ -10,7 +10,7 @@ router.post('/', async (req, res) => {
   console.log(req.body)
   try {
       let {privacidad, num, nombre, password } = req.body
-      
+      console.log("HOLAs1")
       const token = req.headers['authorization'];
       const user = obtenerUsuarioDesdeToken(token)
       if(!user)
@@ -19,12 +19,13 @@ router.post('/', async (req, res) => {
       if(!privacidad){ // if es publica
         password=null; // por si acaso xd
       }
-    
+      console.log("HOLAs")
       const succ = await crearPartida(privacidad, user, num, nombre, password)
-      if (succ.valid) {
+      console.log("HOLAs3")
+      if (succ) {
         res.status(200).json({ message: 'Partida inició correctamente' })
       } else {
-        res.status(404).json({ message: 'Fatal error' })
+        res.status(404).json({ message: '¡Ya existe una partida con estas credenciales!' })
       }
   } catch (error) {
       console.log(error.message)

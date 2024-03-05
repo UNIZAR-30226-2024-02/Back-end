@@ -1,7 +1,7 @@
 const supertest = require('supertest');
 const { app, startApp, close } = require('../app');
 const Usuario = require('../models/Usuario'); 
-
+const Partida = require('../models/Partida'); 
 
 const request = supertest(app);
 
@@ -13,7 +13,7 @@ afterAll((done) => {
   close().then(() => done());
 });
 
-
+let authToken;
 describe('Prueba inicial', () => {
     it('debería responder correctamente en la ruta principal', async () => {
         const response = await request.get('/');
@@ -96,6 +96,8 @@ describe('Registro de usuario y posterior login', () => {
 
             expect(response.status).toBe(200);
             expect(response.body).toHaveProperty('message', 'Login correcto');
+        authToken = response.body.token;
+        console.log(authToken)
     });
 
     it('debería permitir a un usuario existente loggearse con su email', async () => {
@@ -141,6 +143,33 @@ describe('Registro de usuario y posterior login', () => {
 
             expect(response.status).toBe(403);
             expect(response.body).toHaveProperty('error');
+    });
+
+    it('debería permitir crear una nueva partida pública', async () => {
+        const caracteres = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        const longitud = 124; 
+        let nombrePartida = 'partida_';
+
+        for (let i = 0; i < longitud; i++) {
+            const indiceAleatorio = Math.floor(Math.random() * caracteres.length);
+            nombrePartida += caracteres[indiceAleatorio];
+        }
+        const partida = {
+            privacidad: false,
+            num: 4,
+            nombre: nombrePartida,
+            password: null
+        };
+        console.log(authToken)
+        console.log("Caballo")
+        const response = await request
+            .post('/nuevaPartida')
+            .send(partida)
+            .set('Authorization', `${authToken}`) // Incluye el token de acceso en el encabezado
+            .set('Accept', 'application/json');
+
+            expect(response.status).toBe(200);
+            expect(response.body).toHaveProperty('message', 'Partida inició correctamente');
     });
 });
 
