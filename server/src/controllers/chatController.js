@@ -8,6 +8,19 @@ const Mensaje = require('../models/Mensaje');
 // usuarios -> usuarios que se añadirán al chat si es creado con éxito
 async function crearChat(nombreChat, idUsuario, usuarios) {
     try {
+
+        // si ya existe un chat con ese nombre, y al menos alguno de los usuarios, no se puede crear el chat
+        // es poco transparente (podemos hacer ataques y mirar en qué chats está un usuario) pero no se me ocurre
+        // nada mejor
+        const chatExistente = await Chat.findOne({
+          nombreChat: nombreChat,
+          usuarios: { $in: [idUsuario, ...usuarios] }
+        });
+
+        if (chatExistente) {
+          throw new Error('Ya existe un chat con ese nombre y al menos uno de los usuarios.');
+        }
+
         const usuariosExistentes = await Usuario.find({ idUsuario: { $in: [idUsuario, ...usuarios] } }, 'idUsuario');
 
         // se podría hacer que se añadan todos excepto ese, por ejemplo. Esto igual es un poco drástico
@@ -18,11 +31,12 @@ async function crearChat(nombreChat, idUsuario, usuarios) {
         console.log(nombreChat);
         console.log(usuariosExistentes)
         // se crea el chat con el nombre del chat especiificado
-        // interesante comprobar que no exista un chat ya con este nombre?
-        const nuevoChat = new Chat({nombreChat});
+        const todosLosUsuarios = [...usuarios, idUsuario];
+
+        const nuevoChat = new Chat({nombreChat, usuarios: todosLosUsuarios});
+        console.log(nuevoChat)
         await nuevoChat.save()
 
-        
         // para cada usuario, le unimos al chat
         await Usuario.updateMany(
           { idUsuario: { $in: [idUsuario, ...usuarios] } },
@@ -43,7 +57,10 @@ async function crearChat(nombreChat, idUsuario, usuarios) {
 // El usuario idUsuario abandonará el chat nombreChat
 async function salirDeChat(nombreChat, idUsuario) {
   try {
-    const chatExistente = await Chat.findOne({ nombreChat });
+
+    // para salir del chat -> el chat ha de existir y el usuario debe estar en él
+    const chatExistente = await Chat.findOne({ nombreChat, usuarios: { $elemMatch: { $eq: idUsuario } } });
+
 
     if (!chatExistente) {
       throw new Error('El chat no existe.');
@@ -60,8 +77,17 @@ async function salirDeChat(nombreChat, idUsuario) {
       throw new Error('El usuario no estaba en el chat o la actualización no tuvo éxito.');
     }
 
-    // TODO: Si el usuario es el último del chat, borrarlo
-    // ...
+    await Chat.updateOne( // quito al usuario del chat
+      { _id: chatExistente._id },
+      { $pull: { usuarios: idUsuario } }
+    );
+
+    // Si el usuario es el último del chat, borrarlo
+    if (chatExistente.usuarios.length === 0) {
+      // Eliminar el chat si el usuario es el último
+      await Chat.deleteOne({ _id: chatExistente._id });
+      console.log('Chat eliminado porque el usuario era el último en el chat.');
+    }
 
     console.log('Usuario salió del chat exitosamente');
   } catch (error) {
@@ -99,6 +125,7 @@ async function enviarMensaje(idUsuario, nombreChat, textoMensaje) {
     chat.mensajes.push(nuevoMensaje);
 
     await chat.save();
+    //TODO avisar a todos los participantes del nuevo mensaje
 
     console.log('Mensaje enviado con éxito');
   } catch (error) {

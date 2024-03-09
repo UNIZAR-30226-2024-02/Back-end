@@ -25,7 +25,7 @@ router.post('/crearChat', async (req, res) => {
         res.status(201).json({ chat: nuevoChat });
     } catch (error) {
         console.error('Error al crear el chat:', error.message);
-        res.status(500).json({ error: 'Error interno del servidor' });
+        res.status(500).json({ error: error.message });
     }
 });
 
@@ -44,7 +44,7 @@ router.post('/salirDeChat', async (req, res) => {
         res.status(200).json({ mensaje: 'Usuario salió del chat exitosamente' });
     } catch (error) {
         console.error('Error al salir del chat:', error.message);
-        res.status(500).json({ error: 'Error interno del servidor' });
+        res.status(500).json({ error: error.message });
     }
 });
 
@@ -64,7 +64,7 @@ router.post('/enviarMensaje', async (req, res) => {
         res.status(200).json({ mensaje: 'Mensaje enviado con éxito' });
     } catch (error) {
         console.error('Error al enviar el mensaje:', error.message);
-        res.status(500).json({ error: 'Error interno del servidor' });
+        res.status(500).json({ error: error.message });
     }
 });
 
