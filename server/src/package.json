@@ -10,6 +10,7 @@
   "author": "UNIZAR-30226-2024-02",
   "license": "MIT",
   "devDependencies": {
+    "@types/express": "^4.17.21",
     "nodemon": "^3.0.3",
     "supertest": "^6.3.4"
   },
