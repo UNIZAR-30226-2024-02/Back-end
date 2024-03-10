@@ -116,13 +116,13 @@ async function cancelarAmistad(idUsuario, idDestino) {
         // Buscar al usuario de origen por idUsuario
         const usuarioOrigen = await Usuario.findOne({ idUsuario })
 
-        // Si existe una solicitud de idDestino, se cancela
+        // Si existe una solicitud de idDestino, se rechaza
         if (usuarioOrigen.solicitudes.includes(idDestino)) {
             var index = usuarioOrigen.solicitudes.indexOf(idDestino)
             usuarioOrigen.solicitudes.splice(index, 1)
             console.log(usuarioOrigen)
             await usuarioOrigen.save()
-            console.log('Solicitud de amistad cancelada.')
+            console.log('Solicitud de amistad rechazada.')
             // Notificar al usuario destino si está conectado
             return true
         }

@@ -13,7 +13,8 @@ afterAll((done) => {
   close().then(() => done());
 });
 
-let authToken;
+let authTokenPerro;
+let authTokenPig;
 describe('Prueba inicial', () => {
     it('debería responder correctamente en la ruta principal', async () => {
         const response = await request.get('/');
@@ -24,42 +25,42 @@ describe('Prueba inicial', () => {
 
 describe('Registro de usuario y posterior login', () => {
     // Elimina el usuario existente si existe
-    beforeAll(async () => {
-        const usuarioExistente = {
-            idUsuario: 'perro_sanxe',
-            password: 'soy_traidor_lovePigdemon',
-            correo: 'perro@psoe.es',
-        };
+    const perro = {
+        idUsuario: 'perro_sanxe',
+        password: 'soy_traidor_lovePigdemon',
+        correo: 'perro@psoe.es',
+    };
+    const pig = {
+        idUsuario: 'pigdemon',
+        password: 'tengo_miedo_de_la_poli',
+        correo: 'pig@demon.es',
+    };
 
-        await Usuario.deleteOne({ idUsuario: usuarioExistente.idUsuario });
+    beforeAll(async () => {
+        await Usuario.deleteOne({ idUsuario: perro.idUsuario });
+        await Usuario.deleteOne({ idUsuario: pig.idUsuario });
     });
 
     it('debería registrar un nuevo usuario', async () => {
-        const nuevoUsuario = {
-            idUsuario: 'perro_sanxe',
-            password: 'soy_traidor_lovePigdemon',
-            correo: 'perro@psoe.es',
-        };
-
-        const response = await request
+        const responsePerro = await request
             .post('/register')
-            .send(nuevoUsuario)
+            .send(perro)
             .set('Accept', 'application/json');
-        expect(response.status).toBe(201);
-        expect(response.body).toHaveProperty('message', 'Usuario registrado exitosamente');
+        expect(responsePerro.status).toBe(201);
+        expect(responsePerro.body).toHaveProperty('message', 'Usuario registrado exitosamente');
+        const responsePig = await request
+            .post('/register')
+            .send(pig)
+            .set('Accept', 'application/json');
+        expect(responsePig.status).toBe(201);
+        expect(responsePig.body).toHaveProperty('message', 'Usuario registrado exitosamente');
     });
 
     it('debería devolver un error si el usuario ya existe, por su id', async () => {
-        const usuarioExistente = {
-            idUsuario: 'perro_sanxe',
-            password: 'soy_traidor_lovePigdemon',
-            correo: 'pigdemonaprision@psoe.es',
-        };
-
         // Intenta registrar el mismo usuario nuevamente (debería fallar)
         const response = await request
             .post('/register')
-            .send(usuarioExistente)
+            .send(perro)
             .set('Accept', 'application/json');
 
         expect(response.status).toBe(400);
@@ -96,14 +97,14 @@ describe('Registro de usuario y posterior login', () => {
 
             expect(response.status).toBe(200);
             expect(response.body).toHaveProperty('message', 'Login correcto');
-        authToken = response.body.token;
-        console.log(authToken)
+        authTokenPerro = response.body.token;
+        console.log(authTokenPerro)
     });
 
     it('debería permitir a un usuario existente loggearse con su email', async () => {
         const usuarioExistente = {
-            id: 'perro@psoe.es',
-            password: 'soy_traidor_lovePigdemon'
+            id: 'pig@demon.es',
+            password: 'tengo_miedo_de_la_poli'
         };
 
         const response = await request
@@ -113,6 +114,8 @@ describe('Registro de usuario y posterior login', () => {
 
             expect(response.status).toBe(200);
             expect(response.body).toHaveProperty('message', 'Login correcto');
+        authTokenPig = response.body.token;
+        console.log(authTokenPig)
     });
 
     it('debería fallar login de usuario inexistente', async () => {
@@ -160,12 +163,12 @@ describe('Registro de usuario y posterior login', () => {
             nombre: nombrePartida,
             password: null
         };
-        console.log(authToken)
+        console.log(authTokenPerro)
         console.log("Caballo")
         const response = await request
             .post('/nuevaPartida')
             .send(partida)
-            .set('Authorization', `${authToken}`) // Incluye el token de acceso en el encabezado
+            .set('Authorization', `${authTokenPerro}`) // Incluye el token de acceso en la cabecera
             .set('Accept', 'application/json');
 
             expect(response.status).toBe(200);
@@ -173,4 +176,177 @@ describe('Registro de usuario y posterior login', () => {
     });
 });
 
+describe('Sistema de amistad', () => {
+    it('debería fallar la amistad con sí mismo', async () => {
+        const amorVerdadero = {
+            idDestino: "perro_sanxe"
+        };
+        {
+            const response = await request
+                .post('/amistad')
+                .send(amorVerdadero)
+                .set('Authorization', `${authTokenPerro}`) // Incluye el token de acceso en la cabecera
+                .set('Accept', 'application/json');
+    
+                expect(response.status).toBe(400);
+                expect(response.body).toHaveProperty('message', 'Error al crear amistad');
+        }
+        {
+            const response = await request
+                .delete('/amistad/perro_sanxe')
+                .set('Authorization', `${authTokenPerro}`) // Incluye el token de acceso en la cabecera
+                .set('Accept', 'application/json');
+    
+                expect(response.status).toBe(400);
+                expect(response.body).toHaveProperty('message', 'Error al cancelar amistad');
+        }
+    });
 
+    it('debería fallar la amistad imaginaria', async () => {
+        const amorImposible = {
+            idDestino: "Abascal"
+        };
+        {
+            const response = await request
+                .post('/amistad')
+                .send(amorImposible)
+                .set('Authorization', `${authTokenPerro}`) // Incluye el token de acceso en la cabecera
+                .set('Accept', 'application/json');
+
+                expect(response.status).toBe(400);
+                expect(response.body).toHaveProperty('message', 'Error al crear amistad');
+        }
+        {
+            const response = await request
+                .delete('/amistad/Abascal')
+                .set('Authorization', `${authTokenPerro}`) // Incluye el token de acceso en la cabecera
+                .set('Accept', 'application/json');
+    
+                expect(response.status).toBe(400);
+                expect(response.body).toHaveProperty('message', 'Error al cancelar amistad');
+        }
+    });
+
+    it('debería permitir enviar solicitud de amistad', async () => {
+        const amorVerdadero = {
+            idDestino: "pigdemon"
+        };
+        const response = await request
+            .post('/amistad')
+            .send(amorVerdadero)
+            .set('Authorization', `${authTokenPerro}`) // Incluye el token de acceso en la cabecera
+            .set('Accept', 'application/json');
+
+            expect(response.status).toBe(200);
+            expect(response.body).toHaveProperty('message', 'Creación de amistad correcta');
+    });
+
+    it('debería fallar repetir solicitud de amistad', async () => {
+        const amorVerdadero = {
+            idDestino: "pigdemon"
+        };
+        const response = await request
+            .post('/amistad')
+            .send(amorVerdadero)
+            .set('Authorization', `${authTokenPerro}`) // Incluye el token de acceso en la cabecera
+            .set('Accept', 'application/json');
+
+            expect(response.status).toBe(400);
+            expect(response.body).toHaveProperty('message', 'Error al crear amistad');
+    });
+
+    it('debería permitir cancelar solicitud de amistad', async () => {
+        const response = await request
+            .delete('/amistad/pigdemon')
+            .set('Authorization', `${authTokenPerro}`) // Incluye el token de acceso en la cabecera
+            .set('Accept', 'application/json');
+
+            expect(response.status).toBe(200);
+            expect(response.body).toHaveProperty('message', 'Cancelación de amistad correcta');
+    });
+
+    it('debería permitir rechazar solicitud de amistad', async () => {
+        { // enviar solicitud
+            const amorVerdadero = {
+                idDestino: "pigdemon"
+            };
+            const response = await request
+                .post('/amistad')
+                .send(amorVerdadero)
+                .set('Authorization', `${authTokenPerro}`) // Incluye el token de acceso en la cabecera
+                .set('Accept', 'application/json');
+    
+                expect(response.status).toBe(200);
+                expect(response.body).toHaveProperty('message', 'Creación de amistad correcta');
+        }
+        const response = await request
+            .delete('/amistad/perro_sanxe')
+            .set('Authorization', `${authTokenPig}`) // Incluye el token de acceso en la cabecera
+            .set('Accept', 'application/json');
+
+            expect(response.status).toBe(200);
+            expect(response.body).toHaveProperty('message', 'Cancelación de amistad correcta');
+    });
+
+    it('debería permitir crear amistad', async () => {
+        { // enviar solicitud
+            const amorVerdadero = {
+                idDestino: "pigdemon"
+            };
+            const response = await request
+                .post('/amistad')
+                .send(amorVerdadero)
+                .set('Authorization', `${authTokenPerro}`) // Incluye el token de acceso en la cabecera
+                .set('Accept', 'application/json');
+    
+                expect(response.status).toBe(200);
+                expect(response.body).toHaveProperty('message', 'Creación de amistad correcta');
+        }
+        // aceptar solicitud
+        const amorVerdadero = {
+            idDestino: "perro_sanxe"
+        };
+        const response = await request
+            .post('/amistad')
+            .send(amorVerdadero)
+            .set('Authorization', `${authTokenPig}`) // Incluye el token de acceso en la cabecera
+            .set('Accept', 'application/json');
+
+            expect(response.status).toBe(200);
+            expect(response.body).toHaveProperty('message', 'Creación de amistad correcta');
+    });
+
+    it('debería fallar enviar solicitud a amistad', async () => {
+        const amorVerdadero = {
+            idDestino: "pigdemon"
+        };
+        const response = await request
+            .post('/amistad')
+            .send(amorVerdadero)
+            .set('Authorization', `${authTokenPerro}`) // Incluye el token de acceso en la cabecera
+            .set('Accept', 'application/json');
+
+            expect(response.status).toBe(400);
+            expect(response.body).toHaveProperty('message', 'Error al crear amistad');
+    });
+
+    it('debería permitir borrar amistad', async () => {
+        const response = await request
+            .delete('/amistad/perro_sanxe')
+            .set('Authorization', `${authTokenPig}`) // Incluye el token de acceso en la cabecera
+            .set('Accept', 'application/json');
+
+            expect(response.status).toBe(200);
+            expect(response.body).toHaveProperty('message', 'Cancelación de amistad correcta');
+    });
+
+    it('debería fallar cancelar amistad inexistente', async () => {
+        const response = await request
+            .delete('/amistad/perro_sanxe')
+            .set('Authorization', `${authTokenPig}`) // Incluye el token de acceso en la cabecera
+            .set('Accept', 'application/json');
+
+            expect(response.status).toBe(400);
+            expect(response.body).toHaveProperty('message', 'Error al cancelar amistad');
+    });
+});
