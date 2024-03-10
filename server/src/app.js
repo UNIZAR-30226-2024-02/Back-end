@@ -7,6 +7,7 @@ const nuevaPartidaRouter = require('./routes/creaPartida');
 const obtenerPartidasRouter = require('./routes/getPublicas');
 const amistadRouter = require('./routes/amistad');
 const tiendaRouter = require('./routes/tienda');
+const chatRouter = require('./routes/chats')
 
 const app = express();
 
@@ -59,6 +60,7 @@ app.use('/nuevaPartida', nuevaPartidaRouter);
 app.use('/partidas', obtenerPartidasRouter);
 app.use('/amistad', amistadRouter);
 app.use('/tienda', tiendaRouter);
+app.use('/chats', chatRouter)
 
 // ruta prueba principal
 app.get('/', (req, res) => {
