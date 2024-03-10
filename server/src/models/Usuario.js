@@ -81,6 +81,15 @@ const UsuarioSchema = new mongoose.Schema({
     },
     //default: '1',     // idSkin del set de fichas predeterminado
     //require: true
+  },
+
+  terreno: {
+    type: {
+      type: String,
+      ref: 'Skin.idSkin'
+    },
+    //default: '1',     // idSkin del set de fichas predeterminado
+    //require: true
   }
 })
 

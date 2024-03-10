@@ -1,4 +1,5 @@
 const Usuario = require('../models/Usuario');
+const Skin = require('../models/Skin');
 
 async function crearUsuario(idUsuario, password, correo) {
     console.log(idUsuario, password, correo)
@@ -162,11 +163,100 @@ async function getUsuariosByRanking() {
     }
 }
 
+// obtiene las skins que tiene equipadas el usuario
+
+async function getSkinsEquipadasByUsuario(idUsuario) {
+    try {
+        const usuario = await Usuario.findOne({ idUsuario });
+      
+        if (!usuario) {
+            throw new Error('Usuario no encontrado');
+        }
+  
+        const terreno = usuario.terreno;
+        const setFichas = usuario.setFichas;
+        const avatar = usuario.avatar;
+  
+        return { terreno, setFichas, avatar };
+    } catch (error) {
+        console.error('Error al obtener skins equipadas:', error.message);
+        throw error;
+    }
+}
+
+// obtiene las skins en propiedad que tiene el usuario
+async function getSkinsEnPropiedadByUsuario(idUsuario){
+    try {
+        const usuario = await Usuario.findOne({ idUsuario });
+      
+        if (!usuario) {
+            throw new Error('Usuario no encontrado');
+        }
+  
+        const skins = usuario.skins;
+  
+        return skins
+    } catch (error) {
+        console.error('Error al obtener skins equipadas:', error.message);
+        throw error;
+    }
+}
+
+// modifica la skin equipada del usuario
+async function setSkinEquipada(idUsuario, idSkin) {
+    try {
+      const usuario = await Usuario.findOne({ idUsuario });
+    
+      if (!usuario) {
+        throw new Error('Usuario no encontrado');
+      }
+  
+      const tieneSkin = usuario.skins.includes(idSkin); // tiene la skin
+  
+      if (!tieneSkin) {
+        throw new Error('El usuario no tiene la skin especificada');
+      }
+  
+      const skin = await Skin.findOne({ idSkin }); 
+  
+      if (!skin) { // esto no debería suceder nunca a menos que haya hackeado la abse de datos
+        throw new Error('Skin no encontrada en la base de datos');
+      }
+  
+      const tipoSkin = skin.tipo;
+  
+      switch (tipoSkin) {
+        case 'Avatar': // hacerlo case insensitive?? 
+          usuario.avatar = idSkin;
+          break;
+        case 'SetFichas':
+          usuario.setFichas = idSkin;
+          break;
+        case 'Terreno':
+          usuario.terreno = idSkin;
+          break;
+        default:
+          throw new Error('Tipo de skin no reconocido');
+      }
+  
+      // Guarda los cambios en el usuario
+      await usuario.save();
+  
+      console.log(`Skin equipada con éxito para el usuario ${idUsuario}.`);
+    } catch (error) {
+      console.error('Error al establecer la skin equipada:', error.message);
+      throw error;
+    }
+  }
+  
 
 module.exports = {
     crearUsuario,
     login,
     getUsuariosByRanking,
     crearAmistad,
-    cancelarAmistad
+    cancelarAmistad,
+    getSkinsEquipadasByUsuario,
+    getSkinsEnPropiedadByUsuario,
+    setSkinEquipada
 };

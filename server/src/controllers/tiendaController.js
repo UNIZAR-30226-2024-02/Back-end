@@ -57,7 +57,7 @@ const comprarSkin = async (skinId, userId) => {
       if(usuario.skins.includes(skin)){ // si ya la tiene no le dejamos comprarla de nuevo
         return false;
       }
-      usuario.skins.push(skin); // se la damos 
+      usuario.skins.push(skin.idSkin); // se la damos 
       usuario.puntos -= skin.precio; // y le cobramos 
       
       await usuario.save();
