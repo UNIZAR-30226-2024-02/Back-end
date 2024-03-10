@@ -148,10 +148,13 @@ describe('Registro de usuario y posterior login', () => {
             expect(response.body).toHaveProperty('error');
     });
 
+});
+
+let nombrePartida = 'partida_';
+describe('Creación de partidas', () => {
     it('debería permitir crear una nueva partida pública', async () => {
         const caracteres = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        const longitud = 124; 
-        let nombrePartida = 'partida_';
+        const longitud = 256; 
 
         for (let i = 0; i < longitud; i++) {
             const indiceAleatorio = Math.floor(Math.random() * caracteres.length);
@@ -174,7 +177,47 @@ describe('Registro de usuario y posterior login', () => {
             expect(response.status).toBe(200);
             expect(response.body).toHaveProperty('message', 'Partida inició correctamente');
     });
+
+    it('debería fallar crear una nueva partida ya existente', async () => {
+        const partida = {
+            privacidad: false,
+            num: 4,
+            nombre: nombrePartida,
+            password: null
+        };
+
+        const response = await request
+            .post('/nuevaPartida')
+            .send(partida)
+            .set('Authorization', `${authTokenPerro}`) // Incluye el token de acceso en la cabecera
+            .set('Accept', 'application/json');
+
+            expect(response.status).toBe(404);
+    });
+
+    it('debería estar la nueva partida entre las listadas', async () => {
+        const partida = {
+            privacidad: false,
+            num: 4,
+            nombre: nombrePartida,
+            password: null
+        };
+
+        const response = await request
+            .get('/partidas')
+            .set('Authorization', `${authTokenPerro}`) // Incluye el token de acceso en la cabecera
+            .set('Accept', 'application/json');
+
+        expect(response.status).toBe(201);
+        const partidas = response.body;
+        const contienePartida = partidas.some(partidaEnLista => { // busco que esté la nueva partida en las listadas
+            return partidaEnLista.nombre === partida.nombre;
+        });
+
+        expect(contienePartida).toBe(true);
+    });
 });
+
 
 describe('Sistema de amistad', () => {
     it('debería fallar la amistad con sí mismo', async () => {
@@ -349,4 +392,12 @@ describe('Sistema de amistad', () => {
             expect(response.status).toBe(400);
             expect(response.body).toHaveProperty('message', 'Error al cancelar amistad');
     });
+});
+
+describe('Tienda', () => {
+    
+});
+
+describe('Chat', () => {
+    
 });

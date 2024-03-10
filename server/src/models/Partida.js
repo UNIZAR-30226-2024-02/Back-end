@@ -1,23 +1,23 @@
 const mongoose = require("mongoose")
 const Chat = require("./Chat")
 
-const TerritorioSchema = mongoose.Schema({
+const TerritorioSchema = new mongoose.Schema({
     nombre: { type: String },
     frontera: [{ type: String }],
     tropas: { type: Number, required: true, default: 0 }
 });
 
-const CartaSchema = mongoose.Schema({
+const CartaSchema = new mongoose.Schema({
     territorio: { type: String },
     tropas: { type: Number, required: true, default: 0 }
 });
 
-const ContinenteSchema = mongoose.Schema({
+const ContinenteSchema = new mongoose.Schema({
     territorios: [{ type: TerritorioSchema }],
     valor: { type: Number, required: true }
 });
 
-const JugadorSchema = mongoose.Schema({
+const JugadorSchema = new mongoose.Schema({
     usuario: {
         type: {
             type: mongoose.Schema.Types.ObjectId,
@@ -30,7 +30,7 @@ const JugadorSchema = mongoose.Schema({
     turno: { type: Number, required: true }
 });
 
-const PartidaSchema = mongoose.Schema({
+const PartidaSchema = new mongoose.Schema({
     nombre: { type: String, required: true },
     iniciada: { type: Boolean, required: true, default: false },
     terminada: { type: Boolean, required: true, default: false },
