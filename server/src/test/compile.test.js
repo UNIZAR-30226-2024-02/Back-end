@@ -214,6 +214,7 @@ describe('Creación de partidas', () => {
         });
 
         expect(contienePartida).toBe(true);
+    });
 });
 
 
@@ -406,7 +407,7 @@ describe('Chat', () => {
         const response = await request
             .post('/chats/crearChat')
             .send(chat)
-            .set('Authorization', `${authToken}`) // Incluye el token de acceso en el encabezado
+            .set('Authorization', `${authTokenPerro}`) // Incluye el token de acceso en el encabezado
             .set('Accept', 'application/json');
 
             expect(response.status).toBe(201);
@@ -420,7 +421,7 @@ describe('Chat', () => {
         const response = await request
             .post('/chats/crearChat')
             .send(chat)
-            .set('Authorization', `${authToken}`) // Incluye el token de acceso en el encabezado
+            .set('Authorization', `${authTokenPerro}`) // Incluye el token de acceso en el encabezado
             .set('Accept', 'application/json');
 
             expect(response.status).toBe(500);
@@ -435,7 +436,7 @@ describe('Chat', () => {
         const response = await request
             .post('/chats/crearChat')
             .send(chat)
-            .set('Authorization', `${authToken}`) // Incluye el token de acceso en el encabezado
+            .set('Authorization', `${authTokenPerro}`) // Incluye el token de acceso en el encabezado
             .set('Accept', 'application/json');
 
             expect(response.status).toBe(500);
@@ -449,7 +450,7 @@ describe('Chat', () => {
         const response = await request
             .post('/chats/enviarMensaje')
             .send(peticion)
-            .set('Authorization', `${authToken}`) // Incluye el token de acceso en el encabezado
+            .set('Authorization', `${authTokenPerro}`) // Incluye el token de acceso en el encabezado
             .set('Accept', 'application/json');
 
             expect(response.status).toBe(200);
@@ -464,7 +465,7 @@ describe('Chat', () => {
         const response = await request
             .post('/chats/enviarMensaje')
             .send(peticion)
-            .set('Authorization', `${authToken}`) // Incluye el token de acceso en el encabezado
+            .set('Authorization', `${authTokenPerro}`) // Incluye el token de acceso en el encabezado
             .set('Accept', 'application/json');
 
             expect(response.status).toBe(500);
@@ -477,7 +478,7 @@ describe('Chat', () => {
         const response = await request
             .post('/chats/salirDeChat')
             .send(peticion)
-            .set('Authorization', `${authToken}`) // Incluye el token de acceso en el encabezado
+            .set('Authorization', `${authTokenPerro}`) // Incluye el token de acceso en el encabezado
             .set('Accept', 'application/json');
 
             expect(response.status).toBe(200);
@@ -491,7 +492,7 @@ describe('Chat', () => {
         const response = await request
             .post('/chats/salirDeChat')
             .send(peticion)
-            .set('Authorization', `${authToken}`) // Incluye el token de acceso en el encabezado
+            .set('Authorization', `${authTokenPerro}`) // Incluye el token de acceso en el encabezado
             .set('Accept', 'application/json');
 
             expect(response.status).toBe(500);
