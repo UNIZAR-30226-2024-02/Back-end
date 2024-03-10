@@ -3,6 +3,7 @@ require('dotenv').config({ path: '../.env' });
 
 async function connectDB() {
     try {
+	console.log(process.env.DB_MONGO);
         await mongoose.connect(process.env.DB_MONGO);
         console.log('Successful connection');
     } catch (err) {
