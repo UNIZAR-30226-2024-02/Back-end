@@ -39,10 +39,11 @@ router.post('/comprar', async(req, res) => {
   try {
     const { idSkin } = req.body; // el usuario solo nos pasa la id de la skin que desea adquirir
     const resul = await comprarSkin(idSkin, user);
+    console.log("hola")
     if(resul)
       res.status(200).json({ mensaje: 'Skin adquirida correctamente!' });
     else 
-    res.status(400).json({ mensaje: 'No tienes suficiente dinero!' });
+      res.status(400).json({ mensaje: 'No tienes suficiente dinero!' });
   } catch (error) {
       res.status(500).json({ mensaje: 'Error al obtener skins de la tienda' });
   }

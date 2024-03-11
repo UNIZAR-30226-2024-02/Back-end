@@ -59,37 +59,33 @@ const UsuarioSchema = new mongoose.Schema({
   skins: {
     type: [{
       type: String,
-      ref: 'Skin.idSkin'
+      ref: 'Skin.idSkin',
     }],
-    //default: ['12', '1'],   // Añadir aqui idSkin de avatar y fichas predeterminados
-    //require: true
+    default: ['exampleSkin', 'exampleSkin2', 'exampleSkin3']
   },
 
   avatar: {
     type: {
       type: String,
-      ref: 'Skin.idSkin'
+      ref: 'Skin.idSkin',
+      default: 'exampleSkin'
     },
-    //default: "122",     // idSkin del avatar predeterminado 
-    //require : true
   },
 
   setFichas: {
     type: {
       type: String,
-      ref: 'Skin.idSkin'
+      ref: 'Skin.idSkin',
+      default: 'exampleSkin2'
     },
-    //default: '1',     // idSkin del set de fichas predeterminado
-    //require: true
   },
 
   terreno: {
     type: {
       type: String,
-      ref: 'Skin.idSkin'
+      ref: 'Skin.idSkin',
+      default: 'exampleSkin3'
     },
-    //default: '1',     // idSkin del set de fichas predeterminado
-    //require: true
   }
 })
 

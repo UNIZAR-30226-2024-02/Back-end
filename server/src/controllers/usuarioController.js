@@ -172,10 +172,10 @@ async function getSkinsEquipadasByUsuario(idUsuario) {
         if (!usuario) {
             throw new Error('Usuario no encontrado');
         }
-  
-        const terreno = usuario.terreno;
-        const setFichas = usuario.setFichas;
-        const avatar = usuario.avatar;
+        const terreno = await Skin.findOne({ idSkin: new RegExp(usuario.terreno.type, 'i') });
+        const setFichas = await Skin.findOne({ idSkin: new RegExp(usuario.setFichas.type, 'i') });
+        const avatar = await Skin.findOne({ idSkin: new RegExp(usuario.avatar.type, 'i') });
+        
   
         return { terreno, setFichas, avatar };
     } catch (error) {
@@ -185,22 +185,34 @@ async function getSkinsEquipadasByUsuario(idUsuario) {
 }
 
 // obtiene las skins en propiedad que tiene el usuario
-async function getSkinsEnPropiedadByUsuario(idUsuario){
+async function getSkinsEnPropiedadByUsuario(idUsuario) {
     try {
         const usuario = await Usuario.findOne({ idUsuario });
-      
+
         if (!usuario) {
             throw new Error('Usuario no encontrado');
         }
-  
-        const skins = usuario.skins;
-  
-        return skins
+
+        const idSkins = usuario.skins;
+        let skinsEncontradas = [];
+
+        for (const idskin of idSkins) {
+            try {
+                const tipoRegex = new RegExp(idskin, 'i');
+                const skin = await Skin.findOne({ idSkin: tipoRegex });
+                skinsEncontradas.push(skin);
+            } catch (error) {
+                console.error('Error al obtener la skin:', error.message);
+            }
+        }
+
+        return skinsEncontradas;
     } catch (error) {
         console.error('Error al obtener skins equipadas:', error.message);
         throw error;
     }
 }
+
 
 // modifica la skin equipada del usuario
 async function setSkinEquipada(idUsuario, idSkin) {
@@ -224,23 +236,21 @@ async function setSkinEquipada(idUsuario, idSkin) {
       }
   
       const tipoSkin = skin.tipo;
-      console.log(skin.tipo)
-  
       // TODO: Mirar bien el type missmatching y qué pasa si un usuario carece del campo avatar (quizá al registgrarse deba incializarses)
       switch (tipoSkin) {
         case 'Avatar': // hacerlo case insensitive?? 
-          usuario.avatar = skin;
+          usuario.avatar = {type: skin.idSkin};
           break;
         case 'SetFichas':
-          usuario.setFichas = idSkin;
+          usuario.setFichas = {type: skin.idSkin};
+          console.log(usuario.setFichas)
           break;
         case 'Terreno':
-          usuario.terreno = idSkin;
+          usuario.terreno = {type: skin.idSkin};
           break;
         default:
           throw new Error('Tipo de skin no reconocido');
       }
-      console.log(usuario)
       await usuario.save();
   
       console.log(`Skin equipada con éxito para el usuario ${idUsuario}.`);
