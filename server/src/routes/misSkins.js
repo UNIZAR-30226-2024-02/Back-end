@@ -36,6 +36,24 @@ router.get('/enPropiedad', async(req, res) => {
         console.log(error.message)
         res.status(400).json({ error: error.message })
       }
-  })
+})
+
+// req.body {skinAEquipar: idSkin}
+router.post('/equipar', async(req, res) => {
+  const token = req.headers['authorization'];
+  const user = obtenerUsuarioDesdeToken(token)
+  if(!user)
+    return res.status(401).json({ mensaje: 'Token no proporcionado o inválido' })
+
+  try {
+      const {skinAEquipar} = req.body; 
+      await setSkinEquipada(user, skinAEquipar)
+      res.status(201).json({message: 'La skin se ha equipado con éxito'})
+  
+    } catch (error) {
+      console.log(error.message)
+      res.status(400).json({ error: error.message })
+    }
+})
 
 module.exports = router

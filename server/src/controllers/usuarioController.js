@@ -210,24 +210,26 @@ async function setSkinEquipada(idUsuario, idSkin) {
       if (!usuario) {
         throw new Error('Usuario no encontrado');
       }
-  
+
       const tieneSkin = usuario.skins.includes(idSkin); // tiene la skin
   
       if (!tieneSkin) {
         throw new Error('El usuario no tiene la skin especificada');
       }
-  
-      const skin = await Skin.findOne({ idSkin }); 
+      const tipoRegex = new RegExp(idSkin, 'i');
+      const skin = await Skin.findOne({ idSkin: tipoRegex });
   
       if (!skin) { // esto no debería suceder nunca a menos que haya hackeado la abse de datos
         throw new Error('Skin no encontrada en la base de datos');
       }
   
       const tipoSkin = skin.tipo;
+      console.log(skin.tipo)
   
+      // TODO: Mirar bien el type missmatching y qué pasa si un usuario carece del campo avatar (quizá al registgrarse deba incializarses)
       switch (tipoSkin) {
         case 'Avatar': // hacerlo case insensitive?? 
-          usuario.avatar = idSkin;
+          usuario.avatar = skin;
           break;
         case 'SetFichas':
           usuario.setFichas = idSkin;
@@ -238,8 +240,7 @@ async function setSkinEquipada(idUsuario, idSkin) {
         default:
           throw new Error('Tipo de skin no reconocido');
       }
-  
-      // Guarda los cambios en el usuario
+      console.log(usuario)
       await usuario.save();
   
       console.log(`Skin equipada con éxito para el usuario ${idUsuario}.`);
@@ -247,7 +248,7 @@ async function setSkinEquipada(idUsuario, idSkin) {
       console.error('Error al establecer la skin equipada:', error.message);
       throw error;
     }
-  }
+}
   
 
 module.exports = {
