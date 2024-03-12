@@ -9,6 +9,7 @@ const amistadRouter = require('./routes/amistad');
 const tiendaRouter = require('./routes/tienda');
 const chatRouter = require('./routes/chats')
 const misSkinsRouter = require('./routes/misSkins')
+const cors = require('cors');
 
 const app = express();
 
@@ -52,7 +53,7 @@ function close() {
     });
 }
 
-
+app.use(cors());  // Habilita CORS
 // Rutas
 app.use('/register', registerRouter);
 app.use('/login', loginRouter);
