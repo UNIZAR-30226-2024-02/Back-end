@@ -1,4 +1,7 @@
 # Backend
+## Estado del repositorio
+![Build and Test](https://github.com/UNIZAR-30226-2024-02/Back-end/actions/workflows/build_back_end.yaml)
+
 ## Requisitos Previos
 Antes de comenzar, asegúrate de tener instaladas las siguientes herramientas:
 
