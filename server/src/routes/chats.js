@@ -3,7 +3,10 @@ const router = express.Router();
 const {
   crearChat,
   salirDeChat,
-  enviarMensaje
+  enviarMensaje,
+  listarChats,
+  getMensajes,
+  getParticipantes
 } = require('../controllers/chatController'); 
 const obtenerUsuarioDesdeToken = require('../auth/auth')
 
@@ -63,7 +66,58 @@ router.post('/enviarMensaje', async (req, res) => {
         await enviarMensaje(user, nombreChat, textoMensaje);
         res.status(200).json({ mensaje: 'Mensaje enviado con éxito' });
     } catch (error) {
+        console.error('Error al obtener los chats:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// OJO HAY QUE PASAR EL OID DEL CHAT, NO SU NOMBRE -> facilita la gestion xd
+router.post('/obtenerMensajes', async (req, res) => {
+    const token = req.headers['authorization']
+    const user = obtenerUsuarioDesdeToken(token)
+
+    if (!user)
+        return res.status(401).json({ mensaje: 'Token no proporcionado o inválido' }) 
+    
+    const { OIDChat } = req.body;
+    try {
+        const msgs = await getMensajes(user, OIDChat)
+        res.status(200).json({ mensaje: 'Correcto!',  msgs});
+    } catch (error) {
+        console.error('Error al obtener los mensajes del chat:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.get('/listar', async (req, res) => {
+    const token = req.headers['authorization']
+    const user = obtenerUsuarioDesdeToken(token)
+
+    if (!user)
+        return res.status(401).json({ mensaje: 'Token no proporcionado o inválido' })  
+    try {
+        const chats = await listarChats(user)
+        res.status(200).json({ mensaje: 'Correcto!',  chats});
+    } catch (error) {
         console.error('Error al enviar el mensaje:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// OJO HAY QUE PASAR EL OID DEL CHAT, NO SU NOMBRE -> facilita la gestion xd
+router.post('/obtenerParticipantes', async (req, res) => {
+    const token = req.headers['authorization']
+    const user = obtenerUsuarioDesdeToken(token)
+
+    if (!user)
+        return res.status(401).json({ mensaje: 'Token no proporcionado o inválido' }) 
+    
+    const { OIDChat } = req.body;
+    try {
+        const par = await getParticipantes(OIDChat)
+        res.status(200).json({ mensaje: 'Correcto!',  par});
+    } catch (error) {
+        console.error('Error al obtener los participantes del chat:', error.message);
         res.status(500).json({ error: error.message });
     }
 });

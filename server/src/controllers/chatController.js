@@ -134,8 +134,68 @@ async function enviarMensaje(idUsuario, nombreChat, textoMensaje) {
   }
 }
 
+async function listarChats(idUsuario) {
+  try {
+    const usuario = await Usuario.findOne({ idUsuario }); // obtengo usuario y su OID
+    if (!usuario) {
+      throw new Error('Usuario no encontrado');
+    }
+
+    const nombresChats = [];
+
+    for (let chatId of usuario.chats) {
+      const chat = await Chat.findById(chatId);
+      if (chat && chat.usuarios.includes(idUsuario)) {
+        nombresChats.push({nombre: chat.nombreChat, oid: chatId});
+      }
+    }
+
+    return nombresChats;
+    
+  } catch (error) {
+    console.error('Error al obtener chats:', error.message);
+    throw error;
+  }
+}
+
+// chatId es el OID 
+async function getMensajes(idUsuario, chatId){
+  try {
+    const chat = await Chat.findById(chatId).populate('mensajes');
+    if (!chat) {
+      throw new Error('Chat no encontrado');
+    }
+
+    return chat.mensajes;
+  } catch (error) {
+    console.error('Error al obtener mensajes del chat:', error.message);
+    throw error;
+  }
+  
+}
+
+// Obtiene todos los participantes de un chat
+async function getParticipantes(chatId){
+  try {
+    const chat = await Chat.findById(chatId);
+    if (!chat) {
+      throw new Error('Chat no encontrado');
+    }
+
+    return chat.usuarios;
+  } catch (error) {
+    console.error('Error al obtener participantes del chat:', error.message);
+    throw error;
+  }
+}
+
+
+
 module.exports = {
     crearChat,
     salirDeChat,
-    enviarMensaje
+    enviarMensaje,
+    listarChats, 
+    getMensajes,
+    getParticipantes
 };
