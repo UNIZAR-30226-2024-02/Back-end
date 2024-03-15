@@ -54,7 +54,7 @@ const comprarSkin = async (skinId, userId) => {
     // usuario y skin existen, y el usuario tiene $$ para comprarla (no prestamos dinero, no somos judíos #noalausura)
     if (usuario && skin && usuario.puntos >= skin.precio) {
       
-      if(usuario.skins.includes(skin)){ // si ya la tiene no le dejamos comprarla de nuevo
+      if(usuario.skins.includes(skin.idSkin)){ // si ya la tiene no le dejamos comprarla de nuevo
         return false;
       }
       usuario.skins.push(skin.idSkin); // se la damos 
