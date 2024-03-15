@@ -400,7 +400,16 @@ describe('Tienda', () => {
 describe('Chat', () => {
     it('debería permitir crear un chat', async () => {
         await Chat.deleteOne({ nombreChat: 'PruebaChatTests777' })
+        const usuario = await Usuario.findOne({idUsuario: "a"}); 
+        const usuario2 = await Usuario.findOne({idUsuario: "b"});
+
+        // Set chats to empty and save
+        usuario.chats = [];
+        usuario2.chats = [];
+        await usuario.save();
+        await usuario2.save();
         const chat = {
+            _id: "caballo",
             nombreChat: "PruebaChatTests777",
             usuarios: ['a', 'b']
         }
@@ -415,6 +424,7 @@ describe('Chat', () => {
 
     it('debería fallar crear un chat ya existente', async () => {
         const chat = {
+            _id: "caballo",
             nombreChat: "PruebaChatTests777",
             usuarios: ['a', 'b']
         }
