@@ -54,13 +54,11 @@ async function crearChat(nombreChat, idUsuario, usuarios) {
       }
 }
 
-// El usuario idUsuario abandonará el chat nombreChat
-async function salirDeChat(nombreChat, idUsuario) {
+// El usuario idUsuario abandonará el chat OIDChat (chat_id)
+async function salirDeChat(OIDChat, idUsuario) {
   try {
 
-    // para salir del chat -> el chat ha de existir y el usuario debe estar en él
-    const chatExistente = await Chat.findOne({ nombreChat, usuarios: { $elemMatch: { $eq: idUsuario } } });
-
+    const chatExistente = await Chat.findById(OIDChat); // lo busco por su oid
 
     if (!chatExistente) {
       throw new Error('El chat no existe.');
@@ -96,18 +94,18 @@ async function salirDeChat(nombreChat, idUsuario) {
   }
 }
 
-// El usuario idUsuario envía un Mensaje al chat nombreChat
+// El usuario idUsuario envía un Mensaje al chat OID
 // idUsuario: idUsuario del usuario que envía el mensaje
 // textoMensaje: el mensaje, en texto plano 
-// nombreChat: nombre del chat destino (o el OID?)
-async function enviarMensaje(idUsuario, nombreChat, textoMensaje) {
+// OID: OID del chat destino 
+async function enviarMensaje(idUsuario, OIDChat, textoMensaje) {
   try {
     const usuario = await Usuario.findOne({ idUsuario }); // obtengo usuario y su OID
     if (!usuario) {
       throw new Error('Usuario no encontrado');
     }
 
-    const chat = await Chat.findOne({ nombreChat }); // obtengo chat y su OID
+    const chat = await Chat.findById(OIDChat);
     if (!chat) {
       throw new Error('Chat no encontrado');
     }

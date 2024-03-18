@@ -32,7 +32,7 @@ router.post('/crearChat', async (req, res) => {
     }
 });
 
-// Se necesita {nombreChat}, el usuario de infiere del token de acceso
+// Se necesita {OID}, el usuario de infiere del token de acceso
 router.post('/salirDeChat', async (req, res) => {
     const token = req.headers['authorization']
         const user = obtenerUsuarioDesdeToken(token)
@@ -40,10 +40,10 @@ router.post('/salirDeChat', async (req, res) => {
         if (!user)
             return res.status(401).json({ mensaje: 'Token no proporcionado o inválido' })  
 
-    const { nombreChat } = req.body;
+    const { OID } = req.body;
 
     try {
-        await salirDeChat(nombreChat, user);
+        await salirDeChat(OID, user);
         res.status(200).json({ mensaje: 'Usuario salió del chat exitosamente' });
     } catch (error) {
         console.error('Error al salir del chat:', error.message);
@@ -52,7 +52,7 @@ router.post('/salirDeChat', async (req, res) => {
 });
 
 // Ruta para que un usuario envíe un mensaje al chat
-// se necesita {nombrechat, texto} --> usuario viene del access token
+// se necesita {OID, texto} --> usuario viene del access token
 router.post('/enviarMensaje', async (req, res) => {
     const token = req.headers['authorization']
     const user = obtenerUsuarioDesdeToken(token)
@@ -60,10 +60,10 @@ router.post('/enviarMensaje', async (req, res) => {
     if (!user)
         return res.status(401).json({ mensaje: 'Token no proporcionado o inválido' })  
 
-    const { nombreChat, textoMensaje } = req.body;
+    const { OID, textoMensaje } = req.body;
 
     try {
-        await enviarMensaje(user, nombreChat, textoMensaje);
+        await enviarMensaje(user, OID, textoMensaje);
         res.status(200).json({ mensaje: 'Mensaje enviado con éxito' });
     } catch (error) {
         console.error('Error al obtener los chats:', error.message);

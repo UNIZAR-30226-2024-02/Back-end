@@ -421,7 +421,6 @@ describe('Chat', () => {
 
     it('debería fallar crear un chat ya existente', async () => {
         const chat = {
-            _id: "caballo",
             nombreChat: "PruebaChatTests777",
             usuarios: ['a', 'b']
         }
@@ -450,8 +449,9 @@ describe('Chat', () => {
     });
 
     it('debería permitir enviar un mensaje a un chat', async () => {
+        const chat = await Chat.findOne({nombreChat: "PruebaChatTests777"});
         const peticion = {
-            nombreChat: "PruebaChatTests777",
+            OID: chat._id,
             textoMensaje: 'Hola! Este juego me gusta mucho :3'
         }
         const response = await request
@@ -466,7 +466,7 @@ describe('Chat', () => {
 
     it('debería fallar enviar un mensaje a un chat en el que no esta el usuario', async () => {
         const peticion = {
-            nombreChat: "PruebaChatTests1488",
+            OID: "1234",
             textoMensaje: 'Hola! Este juego me gusta mucho :3'
         }
         const response = await request
@@ -479,8 +479,9 @@ describe('Chat', () => {
     });
 
     it('debería permitir abandonar un chat', async () => {
+        const chat = await Chat.findOne({nombreChat: "PruebaChatTests777"});
         const peticion = {
-            nombreChat: "PruebaChatTests777",
+            OID: chat._id,
         }
         const response = await request
             .post('/chats/salirDeChat')
