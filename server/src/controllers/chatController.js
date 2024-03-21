@@ -21,17 +21,31 @@ async function crearChat(nombreChat, idUsuario, usuarios) {
           throw new Error('Ya existe un chat con ese nombre y al menos uno de los usuarios.');
         }
 
+        //Para comprobrar si son amigos necesito el usuario unico
+        const miusuario = await Usuario.findOne({ idUsuario: idUsuario });
+
         const usuariosExistentes = await Usuario.find({ idUsuario: { $in: [idUsuario, ...usuarios] } }, 'idUsuario');
 
+        let amigosexistentes = [];
+        for (let usuario of usuariosExistentes) {
+          if(miusuario.amigos.includes(usuario.idUsuario)){
+            amigosexistentes.push(usuario.idUsuario)
+          }
+        
+        }
+
+        /*
         // se podría hacer que se añadan todos excepto ese, por ejemplo. Esto igual es un poco drástico
         // pero de momento lo dejo así (TODO)
         if (usuariosExistentes.length !== usuarios.length + 1) {
             throw new Error('Al menos uno de los usuarios no existe en la base de datos.');
         }
+        */
+
         console.log(nombreChat);
-        console.log(usuariosExistentes)
+        console.log(amigosexistentes);
         // se crea el chat con el nombre del chat especiificado
-        const todosLosUsuarios = [...usuarios, idUsuario];
+        const todosLosUsuarios = [...amigosexistentes, idUsuario];
 
         const nuevoChat = new Chat({nombreChat, usuarios: todosLosUsuarios});
         console.log(nuevoChat)
