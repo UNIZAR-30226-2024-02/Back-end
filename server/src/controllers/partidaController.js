@@ -60,7 +60,36 @@ async function getPartidasDisponibles() {
     }
 }
 
+async function iniciarPartida(nombrePartida, password) {
+    try {
+        const partida = await Partida.findOne({ nombre: nombrePartida, password: password });
+        if (!partida) {
+            throw new Error('La partida no existe.');
+        }
+        if (partida.iniciada) {
+            throw new Error('La partida ya ha sido iniciada.');
+        }
+        if (partida.terminada) {
+            throw new Error('La partida ya ha terminado.');
+        }
+        if (partida.jugadores.length < 2) {
+            throw new Error('La partida necesita al menos 2 jugadores para comenzar.');
+        }
+        if (partida.jugadores.length > 5) {
+            throw new Error('La partida no puede tener más de 5 jugadores.');
+        }
+        partida.iniciada = true;
+        await partida.save();
+        // Inicializar la partida
+        return true;
+      } catch (error) {
+        console.error('Error al iniciar la partida:', error);
+        throw error;
+      }
+}
+
 module.exports = {
     crearPartida, 
-    getPartidasDisponibles
+    getPartidasDisponibles,
+    iniciarPartida
 };

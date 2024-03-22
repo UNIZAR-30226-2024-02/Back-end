@@ -215,6 +215,61 @@ describe('Creación de partidas', () => {
 
         expect(contienePartida).toBe(true);
     });
+    it('deberia fallar iniciar una partida sin jugadores', async () => {
+        const response = await request
+            .post('/partidas/iniciarpartida')
+            .send({nombrePartida: nombrePartida, password: null})
+            .set('Authorization', `${authTokenPerro}`)
+            .set('Accept', 'application/json');
+        expect(response.status).toBe(500);
+    });
+    it('deberia iniciar una partida no iniciada', async () => {
+        const usuario = await Usuario.findOne({idUsuario: "perro_sanxe"});
+        const usuario2 = await Usuario.findOne({idUsuario: "pigdemon"});
+        const jugador1 = {
+            usuario: {
+              type: usuario._id, // Asegúrate de que sea un ObjectId válido
+              ref: 'Usuario'
+            },
+            turno: 1
+          };
+        
+        const jugador2 = {
+            usuario: {
+                type: usuario2._id, // Asegúrate de que sea un ObjectId válido
+                ref: 'Usuario'
+            },
+            turno: 2
+        };
+
+        const jugador = await Partida.Jugador.create(jugador1);
+        const jugador2c = await Partida.Jugador.create(jugador2);
+        jugador.save();
+        jugador2c.save();
+        const jugadores = [jugador, jugador2c];
+
+        const partida = await Partida.Partida.findOne({nombre: nombrePartida});
+        expect(partida).not.toBeNull();
+        partida.jugadores = jugadores;
+        partida.save();
+        
+        const response = await request
+            .post('/partidas/iniciarpartida')
+            .send({nombrePartida: nombrePartida, password: null})
+            .set('Authorization', `${authTokenPerro}`)
+            .set('Accept', 'application/json');
+
+        expect(response.status).toBe(200);
+        expect(response.body).toHaveProperty('message', 'Partida iniciada correctamente');
+    });
+    it('deberia fallar iniciar una partida ya iniciada', async () => {
+        const response = await request
+            .post('/partidas/iniciarpartida')
+            .send({nombrePartida: nombrePartida, password: null})
+            .set('Authorization', `${authTokenPerro}`)
+            .set('Accept', 'application/json');
+        expect(response.status).toBe(500);
+    });
 });
 
 
