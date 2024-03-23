@@ -81,6 +81,18 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) => {
     const clientIp = socket.handshake.address; // Obtener la dirección IP del cliente
     console.log(`Usuario con IP ${clientIp} conectado`); // Registrar la IP del cliente
+    
+    socket.on('login', (userId) => {
+        socket.join(userId);
+        console.log(`Usuario ${userId} se ha unido al juego`);
+        console.log(`IP del cliente: ${clientIp}`);
+    });
+
+    socket.on('logout', (userId) => {
+        socket.leave(userId);
+        console.log(`Usuario ${userId} se ha desconectado del juego`);
+        console.log(`IP del cliente: ${clientIp}`);
+    });
 
     socket.on('joinGame', (gameId) => {
         socket.join(gameId);
@@ -89,12 +101,13 @@ io.on('connection', (socket) => {
     });
 
     socket.on('friendRequest', (data) => {
-        io.to(data.userId).emit('friendRequest', data.notification);
+        io.to(data.userId).emit('friendRequest', data.notification, data.userId);
         console.log(`Notificación de solicitud de amistad enviada a ${data.userId}`);
         console.log(`IP del cliente: ${clientIp}`);
     });
 
     socket.on('disconnectGame', (gameId) => {
+        socket.leave(gameId); // con esto debería dejar de recibir notificaciones de la partida
         console.log(`Usuario desconectado de la partida ${gameId}`);
         console.log(`IP del cliente: ${clientIp}`);
     });
@@ -106,9 +119,14 @@ function notifyGame(gameId, notification) {
     console.log(`Notificación de juego enviada a la partida ${gameId}`);
 }
 
-setTimeout(() => {
-    notifyGame('game123', 'Mensaje de notificación para los usuarios de la partida');
-}, 5000);
+setInterval(() => {
+    notifyGame('game123', '¡Bienvenidos a la partida game123!');
+}, 10000);
+
+setInterval(() => {
+    notifyGame('caballo', 'caballo');
+}, 15000);
+
 
 
 module.exports = { app, startApp, close };
