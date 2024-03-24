@@ -27,4 +27,4 @@ jobs:
     - name: Build and Test
       run: |
         cd server/src 
-        npm run test:*
+        ./unitTestLinux.sh
