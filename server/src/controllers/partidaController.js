@@ -54,12 +54,15 @@ async function invite(user, idPartida) {
       return false
     }
 
+    // usuario existe? no es sí mismo?
+
     if (partida.jugadores.includes(user)) {
       console.log('Ya está en esta partida.')
       return false
     }
 
     // comprobar que esté ya invitado?
+
     partida.invitados???.push(user)
     await partida.save()
 
@@ -78,6 +81,8 @@ async function join(user, idPartida, password) {
       console.log('La partida no existe.')
       return false
     }
+
+    // usuario existe?
 
     if (partida.jugadores.length >= 8) { // número mágico, falta la declaración de constantes
       console.log('La partida está llena.')
