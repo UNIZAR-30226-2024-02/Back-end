@@ -218,6 +218,29 @@ describe('Creación de partidas', () => {
 });
 
 
+// Se expandirá cuando se implemente el módulo de unirse a partida
+// PARA QUE ESTOS TESTS FUNCIONEN, PERRO SANXE TIENE QUE TENER AL MENOS UNA PARTIDA Y PIGDEMON NINGUNA
+describe('Históricos', () => {
+    it('debería obtener el histórico de un usuario', async () => {
+        const response = await request
+            .get('/partidas/historico')
+            .set('Authorization', `${authTokenPerro}`) // Incluye el token de acceso en la cabecera
+            .set('Accept', 'application/json');
+
+            expect(response.status).toBe(200);
+    });
+
+    it('debería distinguir correctamente el histórico de un usuario', async () => {
+        const response = await request
+            .get('/partidas/historico')
+            .set('Authorization', `${authTokenPig}`) // Incluye el token de acceso en la cabecera
+            .set('Accept', 'application/json');
+
+            expect(response.status).toBe(204);
+    });
+});
+
+
 describe('Sistema de amistad', () => {
     it('debería fallar la amistad con sí mismo', async () => {
         const amorVerdadero = {

@@ -1,7 +1,6 @@
 const {Partida, Jugador} = require('../models/Partida');
 const Usuario = require('../models/Usuario');
 
-
 // privacidad --> boolean 1 privada 0 pública
 // user -> Usuario que crea la partida (su nombre)
 // num -> Número mínimo/máximo de usuarios
@@ -46,7 +45,6 @@ async function crearPartida(privacidad, user, num, nombre, password) {
     return true
 }
 
-
 // Devuelve las partidas públicas que no han empezado ni terminado
 // (es decir, están en espera de jugadores)
 async function getPartidasDisponibles() {
@@ -60,7 +58,22 @@ async function getPartidasDisponibles() {
     }
 }
 
+// Obtiene las partidas terminadas por usuario
+async function getHistorico(user) {
+  try {
+      // Query arrays: https://www.mongodb.com/docs/manual/tutorial/query-array-of-documents/
+      // Query operators: https://www.mongodb.com/docs/manual/reference/operator/query/
+      const historico = await Partida.find({ terminada: true, "jugadores.usuario": { $eq: user } });
+
+      return historico;
+  } catch (error) {
+      console.error("Error al obtener partidas disponibles:", error);
+      throw error;
+  }
+}
+
 module.exports = {
     crearPartida, 
-    getPartidasDisponibles
+    getPartidasDisponibles,
+    getHistorico
 };
