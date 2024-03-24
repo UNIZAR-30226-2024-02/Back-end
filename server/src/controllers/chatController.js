@@ -21,17 +21,29 @@ async function crearChat(nombreChat, idUsuario, usuarios) {
           throw new Error('Ya existe un chat con ese nombre y al menos uno de los usuarios.');
         }
 
-        const usuariosExistentes = await Usuario.find({ idUsuario: { $in: [idUsuario, ...usuarios] } }, 'idUsuario');
+        //Para comprobrar si son amigos necesito el usuario unico
+        const miusuario = await Usuario.findOne({ idUsuario: idUsuario });
 
-        // se podría hacer que se añadan todos excepto ese, por ejemplo. Esto igual es un poco drástico
-        // pero de momento lo dejo así (TODO)
-        if (usuariosExistentes.length !== usuarios.length + 1) {
-            throw new Error('Al menos uno de los usuarios no existe en la base de datos.');
+        const usuariosExistentes = await Usuario.find({ idUsuario: { $in: [idUsuario, ...usuarios] } }, 'idUsuario');
+        let idUsuariosExistentes = usuariosExistentes.map(usuario => usuario.idUsuario);
+
+        let amigosexistentes = [];
+        let noexistentes = [];
+
+        for (let usuario of usuarios) {
+          if(!idUsuariosExistentes.includes(usuario) || !miusuario.amigos.includes(usuario)){
+            noexistentes.push(usuario)
+          }
+          else if(miusuario.amigos.includes(usuario)){
+            amigosexistentes.push(usuario)
+          }
+
         }
+
         console.log(nombreChat);
-        console.log(usuariosExistentes)
+        console.log(amigosexistentes);
         // se crea el chat con el nombre del chat especiificado
-        const todosLosUsuarios = [...usuarios, idUsuario];
+        const todosLosUsuarios = [...amigosexistentes, idUsuario];
 
         const nuevoChat = new Chat({nombreChat, usuarios: todosLosUsuarios});
         console.log(nuevoChat)
@@ -42,12 +54,21 @@ async function crearChat(nombreChat, idUsuario, usuarios) {
           { idUsuario: { $in: [idUsuario, ...usuarios] } },
           { $push: { chats: nuevoChat._id } }
         );
-        
+        let mensaje
+
+        // si hay usuarios que no son amigos o no existen, se notifica en el mensaje, sino es OK
+        if (noexistentes.length > 0) {
+          mensaje = 'No se ha añadido a ' + noexistentes.join(', ') + ' porque no son tus amigos/ no existen';
+        }
+        else {
+          mensaje = 'OK';
+        }
+        let retValue = {chat: nuevoChat, message: mensaje};
         // TODO
         // Notificar ALL Usuario u IN usuarios
         // TODO
 
-        return nuevoChat;
+        return retValue;
       } catch (error) {
         console.error('Error al crear el chat:', error);
         throw error;

@@ -25,7 +25,8 @@ router.post('/crearChat', async (req, res) => {
 
     try {
         const nuevoChat = await crearChat(nombreChat, user, usuarios);
-        res.status(201).json({ chat: nuevoChat });
+        //la funcion ya me devuelve el JSON creado con el mensaje adecuado
+        res.status(201).json(nuevoChat);
     } catch (error) {
         console.error('Error al crear el chat:', error.message);
         res.status(500).json({ error: error.message });

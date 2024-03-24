@@ -422,12 +422,17 @@ describe('Chat', () => {
         await Chat.deleteOne({ nombreChat: 'PruebaChatTests777' })
         const usuario = await Usuario.findOne({idUsuario: "a"}); 
         const usuario2 = await Usuario.findOne({idUsuario: "b"});
+        const perro = await Usuario.findOne({idUsuario: "perro_sanxe"});
 
+        // Set amigos de perro
+        perro.amigos = ['a', 'b'];
+        perro.chats = [];
         // Set chats to empty and save
         usuario.chats = [];
         usuario2.chats = [];
         await usuario.save();
         await usuario2.save();
+        await perro.save();
         const chat = {
             _id: "caballo",
             nombreChat: "PruebaChatTests777",
@@ -440,6 +445,7 @@ describe('Chat', () => {
             .set('Accept', 'application/json');
 
             expect(response.status).toBe(201);
+            expect(response.body).toHaveProperty('message', 'OK');
     });
 
     it('debería fallar crear un chat ya existente', async () => {
@@ -455,7 +461,7 @@ describe('Chat', () => {
 
             expect(response.status).toBe(500);
     });
-
+    /*
     it('debería fallar crear un chat con un usuario inexistente', async () => {
         await Chat.deleteOne({ nombreChat: 'PruebaChatTests7778' })
         const chat = {
@@ -470,7 +476,7 @@ describe('Chat', () => {
 
             expect(response.status).toBe(500);
     });
-
+    */
     it('debería permitir enviar un mensaje a un chat', async () => {
         const chat = await Chat.findOne({nombreChat: "PruebaChatTests777"});
         const peticion = {
@@ -528,7 +534,27 @@ describe('Chat', () => {
 
             expect(response.status).toBe(500);
     });
+    it('deberia permitir crear chat con un usuario no existente y un existente', async () => {
+        await Chat.deleteOne({ nombreChat: 'PruebaChatTests7778' })
+        const usuario = await Usuario.findOne({idUsuario: "a"});
+        usuario.chats = [];
+        await usuario.save();
+        const noexistentes = ['noExistoNiExistire', 'noExistoNiExistireXD']
+        const chat = {
+            nombreChat: "PruebaChatTests7778",
+            usuarios: ['noExistoNiExistire', 'noExistoNiExistireXD', 'a']
+        }
+        const response = await request
+            .post('/chats/crearChat')
+            .send(chat)
+            .set('Authorization', `${authTokenPerro}`) // Incluye el token de acceso en el encabezado
+            .set('Accept', 'application/json');
 
+            expect(response.status).toBe(201);
+            expect(response.body).toHaveProperty('message', 'No se ha añadido a ' + noexistentes.join(', ') + ' porque no son tus amigos/ no existen');
+    });
+
+});
     describe('GestionSkins', () => {
         it('debería funcionar listar skins en propiedad para usuario nuevo', async () => {
             const response = await request
@@ -607,7 +633,7 @@ describe('Chat', () => {
                 expect(response.status).toBe(400);
         });
     });
-});
+
 
 describe('Tienda', () => {
     it('should list skins sorted by precio, filtered by precioMin, precioMax, and tipo avatar', async () => {
