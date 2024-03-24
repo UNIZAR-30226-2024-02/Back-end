@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main  # Los push que se hagan sobre main deben compilar
+      - reestructuración-tests
 
 jobs:
   build:
@@ -26,4 +27,8 @@ jobs:
     - name: Build and Test
       run: |
         cd server/src 
-        npm test
+        npm run test:compile
+        npm run test:registro
+        npm run test:partida
+        npm run test:skins
+        npm run test:tienda
