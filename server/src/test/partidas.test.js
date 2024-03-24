@@ -108,6 +108,21 @@ describe('Creación de partidas', () => {
     });
 });
 
+describe('Creación de partidas', () => {
+    it('debería fallar unirse a una partida no existente', async () => {
+        const credenciales = {
+            idPartida: "65e4959ee5a6319da368bd15",
+            password: null
+        };
+        const response = await request
+            .get('/nuevaPartida/join')
+            .send(credenciales)
+            .set('Authorization', `${authTokenPerro}`) // Incluye el token de acceso en la cabecera
+            .set('Accept', 'application/json');
+        expect(response.status).toBe(400)
+    })
+})
+
 // Se expandirá cuando se implemente el módulo de unirse a partida
 // PARA QUE ESTOS TESTS FUNCIONEN, PERRO SANXE TIENE QUE TENER AL MENOS UNA PARTIDA Y PIGDEMON NINGUNA
 // Este test por deifinición, tal y como está, no sirve para nada, un test que no verifica las precodinciones no tiene sentido
