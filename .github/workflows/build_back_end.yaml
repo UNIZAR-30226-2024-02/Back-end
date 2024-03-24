@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main  # Los push que se hagan sobre main deben compilar
-      - reestructuración-tests
 
 jobs:
   build:
