@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd Test
+cd test
 
 for file in *; do
     if [ -f "$file" ] && [ -x "$file" ]; then
