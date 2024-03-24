@@ -27,5 +27,4 @@ jobs:
     - name: Build and Test
       run: |
         cd server/src 
-        chmod u+x unitTestLinux.sh
-        ./unitTestLinux.sh
+        npm run test:all
