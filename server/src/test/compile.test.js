@@ -19,7 +19,7 @@ let authTokenPig;
 describe('Prueba inicial', () => {
     it('debería responder correctamente en la ruta principal', async () => {
         const response = await request.get('/');
-        expect(response.status).toBe(200);
+        expect(response.status).toBe(300);
         expect(response.text).toBe('Todo funciona bien');
     });
 });
