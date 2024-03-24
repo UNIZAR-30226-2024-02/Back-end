@@ -27,8 +27,4 @@ jobs:
     - name: Build and Test
       run: |
         cd server/src 
-        npm run test:compile
-        npm run test:registro
-        npm run test:partida
-        npm run test:skins
-        npm run test:tienda
+        npm run test:*
