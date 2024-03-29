@@ -1,17 +1,18 @@
 const supertest = require('supertest');
 const { app, startApp, close } = require('../app');
 const Usuario = require('../models/Usuario'); 
-const Partida = require('../models/Partida'); 
+const { Partida } = require('../models/Partida'); 
 const Chat = require('../models/Chat')
 
 const request = supertest(app);
 
 let authTokenPerro;
 let authTokenPig;
+let nombrePartida;
 
 beforeAll(async () => {
     await startApp();
-
+    nombrePartida = 'Caballo77712VivaCristoRey';
     const perro = {
         id: 'perro_sanxe',
         password: 'soy_traidor_lovePigdemon'
@@ -42,16 +43,11 @@ afterAll((done) => {
 });
 
 
-let nombrePartida = 'partida_';
 describe('Creación de partidas', () => {
     it('debería permitir crear una nueva partida pública', async () => {
-        const caracteres = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        const longitud = 256; 
-
-        for (let i = 0; i < longitud; i++) {
-            const indiceAleatorio = Math.floor(Math.random() * caracteres.length);
-            nombrePartida += caracteres[indiceAleatorio];
-        }
+        const existente = Partida.findOne({nombre: nombrePartida});
+        if(existente) await Partida.deleteOne({nombre: nombrePartida}); // Borro la partida si ya existe
+        
         const partida = {
             privacidad: false,
             num: 4,
