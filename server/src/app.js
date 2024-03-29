@@ -1,5 +1,5 @@
 const express = require('express');
-const {connectDB, disconnectDB} = require('./config/db');
+const { connectDB, disconnectDB } = require('./config/db');
 const registerRouter = require('./routes/register');
 const loginRouter = require('./routes/login');
 const rankingRouter = require('./routes/ranking');
@@ -11,15 +11,10 @@ const chatRouter = require('./routes/chats')
 const misSkinsRouter = require('./routes/misSkins')
 const cors = require('cors');
 const http = require('http');
+const setupSocket = require('./sockets/sockets');
 
 const app = express();
 const server = http.createServer(app);
-const io = require("socket.io")(server, {
-    cors: {
-      origin: "http://localhost:4200",
-      methods: ["GET", "POST"]
-    }
-  });
 
 // parse application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: false }))
@@ -78,55 +73,7 @@ app.get('/', (req, res) => {
     res.send('Todo funciona bien');
 })
 
-io.on('connection', (socket) => {
-    const clientIp = socket.handshake.address; // Obtener la dirección IP del cliente
-    console.log(`Usuario con IP ${clientIp} conectado`); // Registrar la IP del cliente
-    
-    socket.on('login', (userId) => {
-        socket.join(userId);
-        console.log(`Usuario ${userId} se ha unido al juego`);
-        console.log(`IP del cliente: ${clientIp}`);
-    });
-
-    socket.on('logout', (userId) => {
-        socket.leave(userId);
-        console.log(`Usuario ${userId} se ha desconectado del juego`);
-        console.log(`IP del cliente: ${clientIp}`);
-    });
-
-    socket.on('joinGame', (gameId) => {
-        socket.join(gameId);
-        console.log(`Usuario se unió a la partida ${gameId}`);
-        console.log(`IP del cliente: ${clientIp}`);
-    });
-
-    socket.on('friendRequest', (data) => {
-        io.to(data.userId).emit('friendRequest', data.notification, data.userId);
-        console.log(`Notificación de solicitud de amistad enviada a ${data.userId}`);
-        console.log(`IP del cliente: ${clientIp}`);
-    });
-
-    socket.on('disconnectGame', (gameId) => {
-        socket.leave(gameId); // con esto debería dejar de recibir notificaciones de la partida
-        console.log(`Usuario desconectado de la partida ${gameId}`);
-        console.log(`IP del cliente: ${clientIp}`);
-    });
-
-});
-
-function notifyGame(gameId, notification) {
-    io.to(gameId).emit('gameNotification', notification);
-    console.log(`Notificación de juego enviada a la partida ${gameId}`);
-}
-
-setInterval(() => {
-    notifyGame('game123', '¡Bienvenidos a la partida game123!');
-}, 10000);
-
-setInterval(() => {
-    notifyGame('caballo', 'caballo');
-}, 15000);
-
-
+// Configurar socket.io
+setupSocket(server);
 
 module.exports = { app, startApp, close };
