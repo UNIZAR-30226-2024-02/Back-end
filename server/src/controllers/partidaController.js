@@ -61,12 +61,15 @@ async function invite(user, idPartida) {
       return false
     }
 
-    // comprobar que esté ya invitado?
+    if (user.invitaciones.includes(idPartida)) {
+      console.log('Ya está invitado a esa partida.')
+      return false
+    }
 
-    partida.invitados???.push(user)
+    user.invitados.push(idPartida)
     await partida.save()
 
-    return partida
+    return true
   } catch (error) {
     console.error("Error al unir a partida:", error)
     throw error;
@@ -76,13 +79,21 @@ async function invite(user, idPartida) {
 // Une el usuario a la partida
 async function join(user, idPartida, password) {
   try {
+    var usuarioUnir = await Usuario.findOne({ idUsuario: user })
+
     partida = await Partida.findById(idPartida)
     if (!partida) {
       console.log('La partida no existe.')
+
+      // Eliminar la invitación si la partida no existe.
+      var index = usuarioUnir.invitaciones.indexOf(idDestino)
+      usuarioUnir.invitaciones.splice(index, 1)
+      await usuarioUnir.save()
+
       return false
     }
 
-    // usuario existe?
+    // COMPROBAR SI LA PARTIDA ESTÁ EMPEZADA?
 
     if (partida.jugadores.length >= 8) { // número mágico, falta la declaración de constantes
       console.log('La partida está llena.')
@@ -94,17 +105,26 @@ async function join(user, idPartida, password) {
       return false
     }
 
-    if (!partida.publica) {
-      if (partida.password != password) { // se podría hacer la password null para las públicas
-        console.log('Contraseña incorrecta.')
-        return false
-      }
+    if (usuarioUnir.invitaciones.includes(idPartida)) {
+      // Eliminar la invitación.
+      var index = usuarioUnir.invitaciones.indexOf(idDestino)
+      usuarioUnir.invitaciones.splice(index, 1)
+      await usuarioUnir.save()
+
+      partida.jugadores.push(user)
+      await partida.save()
+      return true
+    }
+
+    if (partida.password && partida.password != password) { // Si tiene contraseña, deben coincidir. Si le pasas una contraseña cuando es pública, no la comprueba.
+      console.log('Contraseña incorrecta.')
+      return false
     }
 
     partida.jugadores.push(user)
     await partida.save()
 
-    return partida
+    return true
   } catch (error) {
     console.error("Error al unir a partida:", error)
     throw error;
