@@ -26,4 +26,4 @@ jobs:
     - name: Build and Test
       run: |
         cd server/src 
-        npm test
+        npm run test:all

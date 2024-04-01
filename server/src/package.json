@@ -5,7 +5,12 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon ./src",
-    "test": "jest"
+    "test:compile": "jest compile.test.js",
+    "test:registro": "jest registro.login.test.js",
+    "test:partida": "jest partidas.test.js",
+    "test:skins": "jest skins.test.js",
+    "test:tienda":"jest tienda.test.js",
+    "test:all": "npm run test:compile && npm run test:registro && npm run test:partida && npm run test:skins && npm run test:tienda"
   },
   "author": "UNIZAR-30226-2024-02",
   "license": "MIT",
