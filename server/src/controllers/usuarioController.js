@@ -259,6 +259,15 @@ async function setSkinEquipada(idUsuario, idSkin) {
     }
 }
   
+async function getMoney(idUsuario) {
+    try {
+        const usuario = await Usuario.findOne({ idUsuario });
+        return usuario.puntos;
+    } catch (error) {
+        console.error('Error al obtener el dinero del usuario:', error.message);
+        throw error;
+    }
+}
 
 module.exports = {
     crearUsuario,
@@ -268,5 +277,6 @@ module.exports = {
     cancelarAmistad,
     getSkinsEquipadasByUsuario,
     getSkinsEnPropiedadByUsuario,
-    setSkinEquipada
+    setSkinEquipada,
+    getMoney
 };

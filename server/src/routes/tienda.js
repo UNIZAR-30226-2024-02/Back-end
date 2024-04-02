@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const { obtenerTodo, comprarSkin } = require('../controllers/tiendaController');
 const obtenerUsuarioDesdeToken = require('../auth/auth');
+const { getMoney } = require('../controllers/usuarioController');
 
 router.post('/', async(req, res) => {
   const token = req.headers['authorization'];
@@ -49,5 +50,19 @@ router.post('/comprar', async(req, res) => {
   }
 })
 
+router.get('/dineroUser', async(req, res) => {
+  const token = req.headers['authorization'];
+  const user = obtenerUsuarioDesdeToken(token)
+  if(!user)
+    return res.status(401).json({ mensaje: 'Token no proporcionado o inválido' })
 
-module.exports = router
+  try {
+    dinero = await getMoney(user);
+    res.json({ dinero: dinero });
+  } catch (error) {
+      res.status(500).json({ mensaje: 'Error al obtener dinero del usuario' });
+  }
+})
+
+
+module.exports = router;

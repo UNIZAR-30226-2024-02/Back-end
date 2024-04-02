@@ -165,4 +165,15 @@ describe('Tienda', () => {
         expect(response.status).toBe(400);
     });
 
+    it('should return the user money when the token is valid', async () => {
+
+        const res = await request
+            .get('/tienda/dineroUser')
+            .set('Authorization', `${authTokenPig}`)
+            .set('Accept', 'application/json');
+
+        expect(res.statusCode).toEqual(200);
+        expect(res.body).toEqual({ dinero: 0 });
+    });
+
 });
