@@ -23,7 +23,7 @@ const JugadorSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
-    territorios: [{ type: String, default: []}],
+    territorios: [{ type: String, default: [] }],
     cartas: [{ type: CartaSchema }],
     skinFichas: {type: String, ref: 'Skin.idSkin'},
     color: {type: String, unique: true},
@@ -33,11 +33,8 @@ const JugadorSchema = new mongoose.Schema({
 const PartidaSchema = new mongoose.Schema({
     maxJugadores: { type: Number, default : 6},
     nombre: { type: String, required: true },
-    //iniciada: { type: Boolean, required: true, default: false },
-    //terminada: { type: Boolean, required: true, default: false },
     fechaInicio: { type: Date, default: null},
     fechaFin: { type: Date, default: null},
-    //publica: { type: Boolean, required: true, default: false}, 
     password: { type: String, required: false, default: null},
 
     ganador: {
@@ -50,14 +47,14 @@ const PartidaSchema = new mongoose.Schema({
     jugadores: [{ type: JugadorSchema, default: []}],
     cartas: [{  type: CartaSchema , default: [] }],
     descartes: [{  type: CartaSchema , default: [] }],
-    mapa: [{ type: ContinenteSchema }], 
+    mapa: [{ type: ContinenteSchema, default: [] }], 
     chat: { type: Chat.schema }
 });
 
 module.exports = {
     Partida: mongoose.model("Partida", PartidaSchema),
     Jugador: mongoose.model("Jugador", JugadorSchema),
-    Jugador: mongoose.model("Carta", CartaSchema),
-    Jugador: mongoose.model("Continente", ContinenteSchema),
-    Jugador: mongoose.model("Territorio", TerritorioSchema),
+    Carta: mongoose.model("Carta", CartaSchema),
+    Continente: mongoose.model("Continente", ContinenteSchema),
+    Territorio: mongoose.model("Territorio", TerritorioSchema),
 };

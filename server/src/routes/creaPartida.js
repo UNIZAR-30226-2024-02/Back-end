@@ -9,23 +9,17 @@ router.post('/', async (req, res) => {
   console.log('El crear partida tira')
   console.log(req.body)
   try {
-      let {privacidad, num, nombre, password } = req.body
-      console.log("HOLAs1")
+      let { nombre, password, numJugadores } = req.body
       const token = req.headers['authorization'];
       const user = obtenerUsuarioDesdeToken(token)
       if(!user)
         return res.status(401).json({ mensaje: 'Token no proporcionado o inválido' })
-  
-      if(!privacidad){ // if es publica
-        password=null; // por si acaso xd
-      }
-      console.log("HOLAs")
-      const succ = await crearPartida(privacidad, user, num, nombre, password)
-      console.log("HOLAs3")
+
+      const succ = await crearPartida(user, nombre, password, numJugadores)
       if (succ) {
-        res.status(200).json({ message: 'Partida inició correctamente' })
+        res.status(200).json({ message: 'Partida creada correctamente' })
       } else {
-        res.status(404).json({ message: '¡Ya existe una partida con estas credenciales!' })
+        res.status(400).json({ message: '¡Ya existe una partida con estas credenciales!' })
       }
   } catch (error) {
       console.log(error.message)
