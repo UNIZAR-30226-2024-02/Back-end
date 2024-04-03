@@ -111,11 +111,11 @@ describe('Creación de partidas', () => {
 describe('Creación de partidas', () => {
     it('debería fallar unirse a una partida no existente', async () => {
         const credenciales = {
-            idPartida: "65e4959ee5a6319da368bd15",
+            idPartida: "invalido",
             password: null
-        };
+        }
         const response = await request
-            .get('/nuevaPartida/join')
+            .put('/nuevaPartida/join')
             .send(credenciales)
             .set('Authorization', `${authTokenPerro}`) // Incluye el token de acceso en la cabecera
             .set('Accept', 'application/json');

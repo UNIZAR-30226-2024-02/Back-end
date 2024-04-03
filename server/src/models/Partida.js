@@ -19,15 +19,12 @@ const ContinenteSchema = new mongoose.Schema({
 
 const JugadorSchema = new mongoose.Schema({
     usuario: {
-        type: {
-            type: String,
-            ref: 'Usuario.idUsuario',
-            required: true,
-            unique: true
-        },
+        type: String,
+        required: true,
+        unique: true
     },
     territorios: [{ type: String, default: []}],
-    cartas: [{ type: CartaSchema}],
+    cartas: [{ type: CartaSchema }],
     skinFichas: {type: String, ref: 'Skin.idSkin'},
     color: {type: String, unique: true},
     abandonado: { type: Boolean, default: false}
