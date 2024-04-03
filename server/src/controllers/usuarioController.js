@@ -269,6 +269,28 @@ async function getMoney(idUsuario) {
     }
 }
 
+async function getFriends(idUsuario) {
+    try {
+        const usuario = await Usuario.findOne({ idUsuario });
+        return usuario.amigos;
+    }
+    catch (error) {
+        console.error('Error al obtener la lista de amigos:', error.message);
+        throw error;
+    }
+}
+
+async function getSolicitudes(idUsuario) {
+    try {
+        const usuario = await Usuario.findOne({ idUsuario });
+        return usuario.solicitudes;
+    }
+    catch (error) {
+        console.error('Error al obtener la lista de amigos:', error.message);
+        throw error;
+    }
+}
+
 module.exports = {
     crearUsuario,
     login,
@@ -278,5 +300,7 @@ module.exports = {
     getSkinsEquipadasByUsuario,
     getSkinsEnPropiedadByUsuario,
     setSkinEquipada,
-    getMoney
+    getMoney,
+    getFriends,
+    getSolicitudes
 };
