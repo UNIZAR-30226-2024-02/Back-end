@@ -291,6 +291,17 @@ async function getSolicitudes(idUsuario) {
     }
 }
 
+async function getInvitaciones(idUsuario) { 
+    try {
+        const usuario = await Usuario.findOne({ idUsuario });
+        return usuario.invitaciones;
+    }
+    catch (error) {
+        console.error('Error al obtener la lista de amigos:', error.message);
+        throw error;
+    }
+}
+
 module.exports = {
     crearUsuario,
     login,
@@ -302,5 +313,6 @@ module.exports = {
     setSkinEquipada,
     getMoney,
     getFriends,
-    getSolicitudes
+    getSolicitudes,
+    getInvitaciones
 };

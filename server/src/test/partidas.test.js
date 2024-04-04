@@ -102,6 +102,7 @@ describe('Creación de partidas', () => {
 
         expect(contienePartida).toBe(true);
     });
+
 });
 
 // Se expandirá cuando se implemente el módulo de unirse a partida
