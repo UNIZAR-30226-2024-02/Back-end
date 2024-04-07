@@ -1,17 +1,20 @@
 const supertest = require('supertest');
 const { app, startApp, close } = require('../app');
 const Usuario = require('../models/Usuario'); 
-const Partida = require('../models/Partida'); 
+const { Partida } = require('../models/Partida'); 
 const Chat = require('../models/Chat')
 
 const request = supertest(app);
 
 let authTokenPerro;
 let authTokenPig;
+let nombrePartida;
+let partidaPublica;
+let partidaPrivada;
 
 beforeAll(async () => {
     await startApp();
-
+    nombrePartida = 'amnistia';
     const perro = {
         id: 'perro_sanxe',
         password: 'soy_traidor_lovePigdemon'
@@ -42,21 +45,15 @@ afterAll((done) => {
 });
 
 
-let nombrePartida = 'partida_';
 describe('Creación de partidas', () => {
     it('debería permitir crear una nueva partida pública', async () => {
-        const caracteres = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        const longitud = 256; 
+        const existente = await Partida.findOne({nombre: nombrePartida});
+        if(existente) await Partida.deleteMany({nombre: nombrePartida}); // Borro la partida si ya existe
 
-        for (let i = 0; i < longitud; i++) {
-            const indiceAleatorio = Math.floor(Math.random() * caracteres.length);
-            nombrePartida += caracteres[indiceAleatorio];
-        }
         const partida = {
-            privacidad: false,
-            num: 4,
             nombre: nombrePartida,
-            password: null
+            password: null,
+            numJugadores: 4
         };
         const response = await request
             .post('/nuevaPartida')
@@ -65,15 +62,16 @@ describe('Creación de partidas', () => {
             .set('Accept', 'application/json');
 
             expect(response.status).toBe(200);
-            expect(response.body).toHaveProperty('message', 'Partida inició correctamente');
+            expect(response.body).toHaveProperty('message', 'Partida creada correctamente');
+            expect(response.body).toHaveProperty('idPartida');
+            partidaPublica = response.body.idPartida;
     });
 
     it('debería fallar crear una nueva partida ya existente', async () => {
         const partida = {
-            privacidad: false,
-            num: 4,
             nombre: nombrePartida,
-            password: null
+            password: null,
+            numJugadores: 4
         };
 
         const response = await request
@@ -82,15 +80,14 @@ describe('Creación de partidas', () => {
             .set('Authorization', `${authTokenPerro}`) // Incluye el token de acceso en la cabecera
             .set('Accept', 'application/json');
 
-            expect(response.status).toBe(404);
+            expect(response.status).toBe(400);
     });
 
     it('debería estar la nueva partida entre las listadas', async () => {
         const partida = {
-            privacidad: false,
-            num: 4,
             nombre: nombrePartida,
-            password: null
+            password: null,
+            numJugadores: 4
         };
 
         const response = await request
@@ -98,7 +95,7 @@ describe('Creación de partidas', () => {
             .set('Authorization', `${authTokenPerro}`) // Incluye el token de acceso en la cabecera
             .set('Accept', 'application/json');
 
-        expect(response.status).toBe(201);
+        expect(response.status).toBe(200);
         const partidas = response.body;
         const contienePartida = partidas.some(partidaEnLista => { // busco que esté la nueva partida en las listadas
             return partidaEnLista.nombre === partida.nombre;
@@ -109,19 +106,219 @@ describe('Creación de partidas', () => {
 });
 
 describe('Unir a partidas', () => {
-    it('debería fallar unirse a una partida no existente', async () => {
+    it('debería fallar unirse a una partida en la que estás', async () => {
         const credenciales = {
-            idPartida: "660da5a66fa4bbcd73ee5a9e",
+            idPartida: partidaPublica,
             password: null
         };
         const response = await request
-            .get('/nuevaPartida/join')
+            .put('/nuevaPartida/join')
             .send(credenciales)
             .set('Authorization', `${authTokenPerro}`) // Incluye el token de acceso en la cabecera
+            .set('Accept', 'application/json')
+        expect(response.status).toBe(400)
+        expect(response.body).toHaveProperty('message', 'Error uniendo')
+    })
+
+    it('debería permitir unirse a una partida pública', async () => {
+        const credenciales = {
+            idPartida: partidaPublica,
+            password: "debería funcionar incluso con password"
+        };
+        const response = await request
+            .put('/nuevaPartida/join')
+            .send(credenciales)
+            .set('Authorization', `${authTokenPig}`) // Incluye el token de acceso en la cabecera
+            .set('Accept', 'application/json')
+        expect(response.status).toBe(200)
+        expect(response.body).toHaveProperty('message', 'Unido correctamente')
+    })
+
+    // TODO: debería fallar unirse a una partida empezada?
+
+    it('debería fallar unirse a una partida no existente', async () => {
+        await Partida.deleteMany({nombre: nombrePartida})
+        const credenciales = {
+            idPartida: partidaPublica,
+            password: null
+        };
+        const response = await request
+            .put('/nuevaPartida/join')
+            .send(credenciales)
+            .set('Authorization', `${authTokenPerro}`) // Incluye el token de acceso en la cabecera
+            .set('Accept', 'application/json')
+        expect(response.status).toBe(400)
+    })
+
+    it('debería fallar unirse a una partida llena', async () => {
+        const partida = {
+            nombre: nombrePartida,
+            password: null,
+            numJugadores: 1
+        };
+        const created = await request
+            .post('/nuevaPartida')
+            .send(partida)
+            .set('Authorization', `${authTokenPerro}`) // Incluye el token de acceso en la cabecera
+            .set('Accept', 'application/json')
+
+            expect(created.status).toBe(200)
+            expect(created.body).toHaveProperty('message', 'Partida creada correctamente')
+            expect(created.body).toHaveProperty('idPartida')
+
+        const credenciales = {
+            idPartida: created.body.idPartida,
+            password: null
+        };
+        const joined = await request
+            .put('/nuevaPartida/join')
+            .send(credenciales)
+            .set('Authorization', `${authTokenPig}`) // Incluye el token de acceso en la cabecera
+            .set('Accept', 'application/json');
+        expect(joined.status).toBe(400)
+    })
+
+    it('debería fallar unirse a una partida privada con contraseña incorrecta', async () => {
+        await Partida.deleteMany({nombre: nombrePartida})
+        const partida = {
+            nombre: nombrePartida,
+            password: "soy española y me gusta el jamón", // impresionante contraseña de copilot
+            numJugadores: 2
+        };
+        const created = await request
+            .post('/nuevaPartida')
+            .send(partida)
+            .set('Authorization', `${authTokenPerro}`) // Incluye el token de acceso en la cabecera
+            .set('Accept', 'application/json');
+
+            expect(created.status).toBe(200);
+            expect(created.body).toHaveProperty('message', 'Partida creada correctamente');
+            expect(created.body).toHaveProperty('idPartida');
+            partidaPrivada = created.body.idPartida;
+
+        const credenciales = {
+            idPartida: created.body.idPartida,
+            password: "soy catalán y me gusta el pan con tomate" // otra impresionante contraseña de copilot
+        };
+        const joined = await request
+            .put('/nuevaPartida/join')
+            .send(credenciales)
+            .set('Authorization', `${authTokenPig}`) // Incluye el token de acceso en la cabecera
+            .set('Accept', 'application/json');
+        expect(joined.status).toBe(400)
+    })
+
+    it('debería fallar unirse a una partida privada sin contraseña', async () => {
+        const credenciales = {
+            idPartida: partidaPrivada,
+            password: null
+        };
+        const joined = await request
+            .put('/nuevaPartida/join')
+            .send(credenciales)
+            .set('Authorization', `${authTokenPig}`) // Incluye el token de acceso en la cabecera
+            .set('Accept', 'application/json');
+        expect(joined.status).toBe(400)
+    })
+
+    it('debería permitir unirse a una partida privada con la contraseña', async () => {
+        const credenciales = {
+            idPartida: partidaPrivada,
+            password: "soy española y me gusta el jamón"
+        };
+        const joined = await request
+            .put('/nuevaPartida/join')
+            .send(credenciales)
+            .set('Authorization', `${authTokenPig}`) // Incluye el token de acceso en la cabecera
+            .set('Accept', 'application/json');
+        expect(joined.status).toBe(200)
+    })
+})
+
+describe('Invitaciones a partidas', () => {
+    it('debería fallar invitar a una partida que no existe', async () => {
+        const credenciales = {
+            user: "pigdemon",
+            idPartida: partidaPublica
+        };
+        const response = await request
+            .put('/nuevaPartida/invite')
+            .send(credenciales)
+            .set('Authorization', `${authTokenPig}`) // Incluye el token de acceso en la cabecera
             .set('Accept', 'application/json');
         expect(response.status).toBe(400)
     })
-})
+
+    it('debería fallar invitar a un jugador de la partida', async () => {
+        const credenciales = {
+            user: "pigdemon",
+            idPartida: partidaPrivada
+        };
+        const response = await request
+            .put('/nuevaPartida/invite')
+            .send(credenciales)
+            .set('Authorization', `${authTokenPig}`) // Incluye el token de acceso en la cabecera
+            .set('Accept', 'application/json');
+        expect(response.status).toBe(400)
+    })
+
+    it('debería permitir invitar a un usuario', async () => {
+        await Partida.deleteMany({nombre: nombrePartida})
+        const partida = {
+            nombre: nombrePartida,
+            password: "soy española y me gusta el jamón", // impresionante contraseña de copilot
+            numJugadores: 2
+        };
+        const created = await request
+            .post('/nuevaPartida')
+            .send(partida)
+            .set('Authorization', `${authTokenPerro}`) // Incluye el token de acceso en la cabecera
+            .set('Accept', 'application/json');
+
+            expect(created.status).toBe(200);
+            expect(created.body).toHaveProperty('message', 'Partida creada correctamente');
+            expect(created.body).toHaveProperty('idPartida');
+            partidaPrivada = created.body.idPartida;
+
+        const credenciales = {
+            user: "pigdemon",
+            idPartida: partidaPrivada
+        };
+        const response = await request
+            .put('/nuevaPartida/invite')
+            .send(credenciales)
+            .set('Authorization', `${authTokenPig}`) // Incluye el token de acceso en la cabecera
+            .set('Accept', 'application/json');
+        expect(response.status).toBe(200)
+    })
+
+    it('debería fallar invitar a un invitado', async () => {
+        const credenciales = {
+            user: "pigdemon",
+            idPartida: partidaPrivada
+        };
+        const response = await request
+            .put('/nuevaPartida/invite')
+            .send(credenciales)
+            .set('Authorization', `${authTokenPig}`) // Incluye el token de acceso en la cabecera
+            .set('Accept', 'application/json');
+        expect(response.status).toBe(400)
+    })
+
+    it('debería permitir unirse a una partida invitada sin contraseña', async () => {
+        const credenciales = {
+            idPartida: partidaPrivada,
+            password: null
+        };
+        const response = await request
+            .put('/nuevaPartida/join')
+            .send(credenciales)
+            .set('Authorization', `${authTokenPig}`) // Incluye el token de acceso en la cabecera
+            .set('Accept', 'application/json')
+        expect(response.status).toBe(200)
+        expect(response.body).toHaveProperty('message', 'Unido correctamente')
+    })
+});
 
 // Se expandirá cuando se implemente el módulo de unirse a partida
 // PARA QUE ESTOS TESTS FUNCIONEN, PERRO SANXE TIENE QUE TENER AL MENOS UNA PARTIDA Y PIGDEMON NINGUNA

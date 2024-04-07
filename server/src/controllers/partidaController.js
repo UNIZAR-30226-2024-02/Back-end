@@ -4,6 +4,7 @@ const Usuario = require('../models/Usuario');
 async function crearPartida(user, nombre, password, numJugadores) {
   // Si existe una partida con el mismo nombre y la misma password, que no haya terminado -> no podrem
   const partidaExistente = await Partida.findOne({ nombre: nombre, fechaFin: null });
+  console.log(partidaExistente)
   if(partidaExistente)
     return null
 
@@ -29,22 +30,26 @@ async function invite(user, idPartida) {
       return false
     }
 
-    if (partida.jugadores.includes(user)) {
-      console.log('Ya está en esta partida.')
-      return false
+    for (let jugador of partida.jugadores) {
+      if (jugador.usuario === user) {
+        console.log('Ya está en esta partida.')
+        return false
+      }
     }
 
-    if (user.invitaciones.includes(idPartida)) {
+    var usuarioInvitado = await Usuario.findOne({ idUsuario: user })
+
+    if (usuarioInvitado.invitaciones.includes(idPartida)) {
       console.log('Ya está invitado a esa partida.')
       return false
     }
 
-    user.invitados.push(idPartida)
-    await partida.save()
+    usuarioInvitado.invitaciones.push(idPartida)
+    await usuarioInvitado.save()
 
     return true
   } catch (error) {
-    console.error("Error al unir a partida:", error)
+    console.error("Error al invitar a partida:", error)
     throw error;
   }
 }
@@ -84,7 +89,8 @@ async function join(user, idPartida, password) {
     }
 
     if (usuarioUnir.invitaciones.includes(idPartida)) {
-      partida.jugadores.push(user)
+      const jugador = new Jugador({ usuario: user })
+      partida.jugadores.push(jugador)
       await partida.save()
       return true
     }
@@ -109,7 +115,7 @@ async function join(user, idPartida, password) {
 // (es decir, están en espera de jugadores)
 async function getPartidasDisponibles() {
   try {
-    const partidasDisponibles = await Partida.find({ iniciada: false, terminada: false, publica: true });
+    const partidasDisponibles = await Partida.find({ fechaInicio: null, fechaFin: null, password: null });
     
     return partidasDisponibles;
   } catch (error) {
@@ -123,7 +129,7 @@ async function getHistorico(user) {
   try {
     // Query arrays: https://www.mongodb.com/docs/manual/tutorial/query-array-of-documents/
     // Query operators: https://www.mongodb.com/docs/manual/reference/operator/query/
-    const historico = await Partida.find({ terminada: true, "jugadores.usuario": { $eq: user } })
+    const historico = await Partida.find({ fechaFin: { $ne: null }, "jugadores.usuario": { $eq: user } })
 
     return historico
   } catch (error) {
