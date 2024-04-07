@@ -2,14 +2,14 @@ const mongoose = require("mongoose")
 const Chat = require("./Chat")
 
 const TerritorioSchema = new mongoose.Schema({
-    nombre: { type: String },
+    nombre: { type: String, required: true, unique: true},
     frontera: [{ type: String }],
-    tropas: { type: Number, required: true, default: 0 }
+    tropas: { type: Number, default: 0 }
 });
 
 const CartaSchema = new mongoose.Schema({
-    territorio: { type: String },
-    tropas: { type: Number, required: true, default: 0 }
+    territorio: { type: String, required: true, unique: true },
+    estrellas: { type: Number, required: true},
 });
 
 const ContinenteSchema = new mongoose.Schema({
@@ -19,38 +19,42 @@ const ContinenteSchema = new mongoose.Schema({
 
 const JugadorSchema = new mongoose.Schema({
     usuario: {
-        type: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Usuario',
-            required: true
-        },
+        type: String,
+        required: true,
+        unique: true
     },
-    territorios: [{ type: TerritorioSchema, default: [] }],
-    cartas: [{ type: CartaSchema , default: []}],
-    turno: { type: Number, required: true }
+    territorios: [{ type: String, default: [] }],
+    cartas: [{ type: CartaSchema }],
+    skinFichas: {type: String, ref: 'Skin.idSkin'},
+    color: {type: String, unique: true},
+    abandonado: { type: Boolean, default: false}
 });
 
 const PartidaSchema = new mongoose.Schema({
+    maxJugadores: { type: Number, default : 6},
     nombre: { type: String, required: true },
-    iniciada: { type: Boolean, required: true, default: false },
-    terminada: { type: Boolean, required: true, default: false },
-    fechaInicio: { type: Date, required: true, immutable: true },
-    fechaFin: { type: Date}, // no la pondria como requerida, una partida puede no haber acabado
-    publica: { type: Boolean, required: true, default: false}, 
-    password: { type: String, required: false},
+    fechaInicio: { type: Date, default: null},
+    fechaFin: { type: Date, default: null},
+    password: { type: String, required: false, default: null},
+
     ganador: {
         type: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Usuario',
+            type: String,
+            ref: 'Usuario.idUsuario',
         },
     },
     turno: { type: Number, required: true, default: 0 },
-    jugadores: [{ type: JugadorSchema }],
-    mapa: [{ type: ContinenteSchema }], 
+    jugadores: [{ type: JugadorSchema, default: []}],
+    cartas: [{  type: CartaSchema , default: [] }],
+    descartes: [{  type: CartaSchema , default: [] }],
+    mapa: [{ type: ContinenteSchema, default: [] }], 
     chat: { type: Chat.schema }
 });
 
 module.exports = {
     Partida: mongoose.model("Partida", PartidaSchema),
-    Jugador: mongoose.model("Jugador", JugadorSchema)
+    Jugador: mongoose.model("Jugador", JugadorSchema),
+    Carta: mongoose.model("Carta", CartaSchema),
+    Continente: mongoose.model("Continente", ContinenteSchema),
+    Territorio: mongoose.model("Territorio", TerritorioSchema),
 };

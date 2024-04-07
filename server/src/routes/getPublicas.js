@@ -12,7 +12,7 @@ router.get('/', async(req, res) => {
   
   try {
     const disp = await getPartidasDisponibles()
-    res.status(201).json(disp)
+    res.status(200).json(disp)
 
   } catch (error) {
     console.log(error.message)

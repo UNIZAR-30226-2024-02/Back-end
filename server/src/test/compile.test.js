@@ -14,8 +14,6 @@ afterAll((done) => {
   close().then(() => done());
 });
 
-let authTokenPerro;
-let authTokenPig;
 describe('Prueba inicial', () => {
     it('debería responder correctamente en la ruta principal', async () => {
         const response = await request.get('/');
