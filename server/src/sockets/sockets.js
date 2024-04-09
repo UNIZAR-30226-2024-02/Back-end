@@ -12,7 +12,7 @@ function handleConnection(socket) {
     socket.on('disconnectGame', (gameId) => handleDisconnectGame(socket, gameId, clientIp));
     
     socket.on('joinChat', (chatId) => handleJoinChat(socket, chatId, clientIp));
-    socket.on('sendChatMessage', (body) => handleSendChatMessage(socket, body.chatId, body.message));
+    socket.on('sendChatMessage', (body) => handleSendChatMessage(socket, body.chatId, body.message, body.user, body.timestamp));
     socket.on('exitChat', (chatId) => handleExitChat(socket, chatId, clientIp));
 }
 
@@ -44,8 +44,8 @@ function handleJoinChat(socket, chatId, clientIp) {
     console.log(`Usuario se unió al chat ${chatId}`);
 }
 
-function handleSendChatMessage(socket, chatId, message) {
-    socket.to(chatId).emit('chatMessage', message);
+function handleSendChatMessage(socket, chatId, message, user, timestamp) {
+    socket.to(chatId).emit('chatMessage', message, user, timestamp, chatId);
     console.log(`Mensaje enviado en chat ${chatId}: ${message}`);
 }
 
