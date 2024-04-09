@@ -2,7 +2,6 @@ const socketIO = require("socket.io");
 
 function handleConnection(socket) {
     const clientIp = socket.handshake.address;
-    console.log(`Usuario con IP ${clientIp} conectado`);
 
     socket.on('login', (userId) => handleLogin(socket, userId, clientIp));
     socket.on('logout', (userId) => handleLogout(socket, userId, clientIp));
@@ -21,33 +20,28 @@ function handleConnection(socket) {
 function handleLogin(socket, userId, clientIp) {
     socket.join(userId);
     console.log(`Usuario ${userId} se ha unido al juego`);
-    console.log(`IP del cliente: ${clientIp}`);
 }
 
 function handleLogout(socket, userId, clientIp) {
     socket.leave(userId);
     console.log(`Usuario ${userId} se ha desconectado del juego`);
-    console.log(`IP del cliente: ${clientIp}`);
 }
 
 // Partidas
 function handleJoinGame(socket, gameId, clientIp) {
     socket.join(gameId);
     console.log(`Usuario se unió a la partida ${gameId}`);
-    console.log(`IP del cliente: ${clientIp}`);
 }
 
 function handleDisconnectGame(socket, gameId, clientIp) {
     socket.leave(gameId);
     console.log(`Usuario desconectado de la partida ${gameId}`);
-    console.log(`IP del cliente: ${clientIp}`);
 }
 
 // Chats
 function handleJoinChat(socket, chatId, clientIp) {
     socket.join(chatId);
     console.log(`Usuario se unió al chat ${chatId}`);
-    console.log(`IP del cliente: ${clientIp}`);
 }
 
 function handleSendChatMessage(socket, chatId, message) {
@@ -58,14 +52,12 @@ function handleSendChatMessage(socket, chatId, message) {
 function handleExitChat(socket, chatId, clientIp) {
     socket.leave(chatId);
     console.log(`Usuario ha salido del chat ${chatId}`);
-    console.log(`IP del cliente: ${clientIp}`);
 }
 
 // Amigos
 function handleFriendRequest(socket, data, clientIp) {
     socket.to(data.userId).emit('friendRequest', data.notification, data.userId);
     console.log(`Notificación de solicitud de amistad enviada a ${data.userId}`);
-    console.log(`IP del cliente: ${clientIp}`);
 }
 
 // Notificaciones de test
@@ -102,7 +94,7 @@ function setupSocket(server) {
 
     io.on('connection', handleConnection);
 
-    setInterval(() => {
+    /*setInterval(() => {
         notifyGame(io, 'game123', '¡Bienvenidos a la partida game123!');
 
     }, 10000);
@@ -114,7 +106,7 @@ function setupSocket(server) {
     setInterval(() => {
         notifyChat(io, 'chat123', '¡Bienvenidos al chat chat123!');
         countParticipants(io, 'chat123');
-    }, 10000);
+    }, 10000);*/
 }
 
 module.exports = setupSocket;

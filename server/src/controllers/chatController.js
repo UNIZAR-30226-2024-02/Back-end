@@ -134,10 +134,10 @@ async function enviarMensaje(idUsuario, OIDChat, textoMensaje) {
     if (!usuario.chats.includes(chat._id)) {
       throw new Error('El usuario no tiene acceso a este chat');
     }
-
+    console.log(idUsuario)
     const nuevoMensaje = {
       texto: textoMensaje,
-      idUsuario: usuario._id,
+      idUsuario: idUsuario,
       timestamp: new Date(),
     };
 
