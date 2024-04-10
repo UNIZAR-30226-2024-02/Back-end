@@ -58,8 +58,9 @@ async function invite(user, idPartida) {
 async function join(user, idPartida, password) {
   try {
     var usuarioUnir = await Usuario.findOne({ idUsuario: user })
-
-    partida = await Partida.findById(idPartida)
+    partida = await Partida.findOne({nombre: idPartida, fechaInicio: null});
+    if(!partida)
+      partida = await Partida.findById(idPartida)
     if (!partida) {
       console.log('La partida no existe.')
 

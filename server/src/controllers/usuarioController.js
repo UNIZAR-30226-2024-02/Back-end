@@ -1,5 +1,6 @@
 const Usuario = require('../models/Usuario');
 const Skin = require('../models/Skin');
+const { Partida } = require('../models/Partida');
 
 async function crearUsuario(idUsuario, password, correo) {
     // Comprobar si el usuario o el correo electrónico ya existen en la base de datos
@@ -294,7 +295,15 @@ async function getSolicitudes(idUsuario) {
 async function getInvitaciones(idUsuario) { 
     try {
         const usuario = await Usuario.findOne({ idUsuario });
-        return usuario.invitaciones;
+        const invitaciones = usuario.invitaciones;
+        console.log(invitaciones)
+
+        const partidas = await Promise.all(invitaciones.map(async (invitacion) => {
+            console.log(invitacion)
+            return await Partida.findById(invitacion)
+        }));
+
+        return partidas;
     }
     catch (error) {
         console.error('Error al obtener la lista de amigos:', error.message);
