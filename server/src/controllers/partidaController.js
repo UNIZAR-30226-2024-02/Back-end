@@ -367,6 +367,22 @@ async function salirPartida(usuarioID, partidaOID) {
   }
 }
 
+async function getInfo(partidaID) {
+  try {
+    let partida = await Partida.findOne({nombre: partidaID, fechaInicio: null});
+    if(!partida)
+    try {
+      partida = await Partida.findById(partidaID)
+    } catch (error) {
+      throw new Error("Partida no encontrada");
+    }
+    return partida;
+  }
+  catch (error) {
+    throw error;
+  }
+}
+
 module.exports = {
   crearPartida, 
   getPartidasDisponibles,
@@ -374,5 +390,6 @@ module.exports = {
   invite,
   join,
   salirPartida,
-  iniciarPartida
+  iniciarPartida,
+  getInfo
 };
