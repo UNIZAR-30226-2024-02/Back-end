@@ -1,6 +1,7 @@
 const Chat = require('../models/Chat');
 const Usuario = require('../models/Usuario');
 const Mensaje = require('../models/Mensaje');
+const {Partida, Jugador} = require('../models/Partida');
 
 
 // nombreChat -> Nombre del chat
@@ -130,8 +131,11 @@ async function enviarMensaje(idUsuario, OIDChat, textoMensaje) {
     if (!chat) {
       throw new Error('Chat no encontrado');
     }
-
-    if (!usuario.chats.includes(chat._id)) {
+    const partida = await Partida.findOne({
+      'jugadores.usuario': usuario.idUsuario,
+      'chat._id': OIDChat
+    });
+    if (!usuario.chats.includes(chat._id) && !partida){
       throw new Error('El usuario no tiene acceso a este chat');
     }
     console.log(idUsuario)
