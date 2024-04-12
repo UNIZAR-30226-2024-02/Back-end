@@ -1,5 +1,6 @@
 const {Partida, Jugador} = require('../models/Partida');
 const Usuario = require('../models/Usuario');
+const Chat = require('../models/Chat');
 
 async function crearPartida(user, nombre, password, numJugadores) {
   // Si existe una partida con el mismo nombre y la misma password, que no haya terminado -> no podrem
@@ -7,14 +8,18 @@ async function crearPartida(user, nombre, password, numJugadores) {
   console.log(partidaExistente)
   if(partidaExistente)
     return null
-
+  // Crear chat de la partida
+  const chat = new Chat({ nombreChat: nombre, mensajes: [], usuarios: [user]});
+  await chat.save();
+  console.log(chat)
   const jugador = new Jugador({ usuario: user });
   const nuevaPartida = new Partida({ nombre: nombre,
                                      fechaInicio: null,
                                      fechaFin: null,
                                      password: password, // si me llega null saldra null y ya
                                      jugadores: [jugador],
-                                     maxJugadores: numJugadores
+                                     maxJugadores: numJugadores, 
+                                     chat: chat
                                     });
 
   await nuevaPartida.save()
@@ -103,7 +108,13 @@ async function join(user, idPartida, password) {
 
     const jugador = new Jugador({ usuario: user })
     partida.jugadores.push(jugador) // Push the ID of the Jugador document
+    // lo unimos al chat
+    const chat = await Chat.findById(partida.chat)
+    chat.usuarios.push(user)
+    await chat.save()
+    partida.chat = chat
     await partida.save()
+    console.log(chat)
 
     return true
   } catch (error) {
