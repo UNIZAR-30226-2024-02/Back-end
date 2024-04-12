@@ -149,6 +149,10 @@ async function enviarMensaje(idUsuario, OIDChat, textoMensaje) {
 
     await chat.save();
     //TODO avisar a todos los participantes del nuevo mensaje
+    if(partida){
+      partida.chat.mensajes.push(nuevoMensaje);
+      await partida.save();
+    }
 
     console.log('Mensaje enviado con éxito');
   } catch (error) {
