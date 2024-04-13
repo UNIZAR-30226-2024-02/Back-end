@@ -119,3 +119,28 @@ describe('GestionSkins', () => {
             expect(response.status).toBe(400);
     });
 });
+
+describe('GET /obtenerAvatar/:id', () => {
+  
+    it('should return 400 if an error occurs', async () => {
+  
+      const response = await request
+        .get('/misSkins/obtenerAvatar/123')
+        .set('Authorization', `${authTokenPerro}`)
+        .set('Accept', 'application/json');
+  
+      expect(response.status).toBe(400);
+    });
+  
+    it('should return 201 and the avatar if successful', async () => {
+  
+      const response = await request
+        .get('/misSkins/obtenerAvatar/perro_sanxe')
+        .set('Authorization', `${authTokenPerro}`)
+        .set('Accept', 'application/json');
+  
+      expect(response.status).toBe(201);
+      const skin = response.body.idSkin;
+      expect(skin).toEqual('exampleSkin762');
+    });
+  });

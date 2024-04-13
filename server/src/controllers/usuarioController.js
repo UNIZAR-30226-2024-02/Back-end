@@ -311,6 +311,19 @@ async function getInvitaciones(idUsuario) {
     }
 }
 
+async function obtenerAvatar(idUsuario){
+    try {
+        const usuario = await Usuario.findOne({ idUsuario });
+        console.log(usuario.avatar.type)
+        const avatar = await Skin.findOne({ idSkin: new RegExp(usuario.avatar.type, 'i') });
+        console.log(avatar)
+        return avatar;
+    } catch (error) {
+        console.error('Error al obtener el avatar del usuario:', error.message);
+        throw error;
+    }
+}
+
 module.exports = {
     crearUsuario,
     login,
@@ -323,5 +336,6 @@ module.exports = {
     getMoney,
     getFriends,
     getSolicitudes,
-    getInvitaciones
+    getInvitaciones,
+    obtenerAvatar
 };
