@@ -8,6 +8,8 @@ async function crearPartida(user, nombre, password, numJugadores) {
   console.log(partidaExistente)
   if(partidaExistente)
     return null
+  if(numJugadores < 2 || numJugadores > 6)
+    return null
   // Crear chat de la partida
   const chat = new Chat({ nombreChat: nombre, mensajes: [], usuarios: [user]});
   await chat.save();

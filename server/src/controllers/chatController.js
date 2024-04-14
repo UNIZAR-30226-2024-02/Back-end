@@ -45,6 +45,9 @@ async function crearChat(nombreChat, idUsuario, usuarios) {
         console.log(amigosexistentes);
         // se crea el chat con el nombre del chat especiificado
         const todosLosUsuarios = [...amigosexistentes, idUsuario];
+        if(todosLosUsuarios.length < 2){
+          throw new Error('No hay suficientes usuarios para crear un chat');
+        }
 
         const nuevoChat = new Chat({nombreChat, usuarios: todosLosUsuarios});
         console.log(nuevoChat)
