@@ -37,11 +37,9 @@ const PartidaSchema = new mongoose.Schema({
     fechaFin: { type: Date, default: null},
     password: { type: String, required: false, default: null},
 
-    ganador: {
-        type: {
+    ganador: { // TODO
             type: String,
-            ref: 'Usuario.idUsuario',
-        },
+            default: null
     },
     turno: { type: Number, required: true, default: 0 },
     jugadores: [{ type: JugadorSchema, default: []}],
