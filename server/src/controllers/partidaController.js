@@ -18,9 +18,10 @@ async function crearPartida(user, nombre, password, numJugadores) {
   const nuevaPartida = new Partida({ nombre: nombre,
                                      fechaInicio: null,
                                      fechaFin: null,
-                                     password: password, // si me llega null saldra null y ya
+                                     password: password, // si me llega null saldra null y ya.
                                      jugadores: [jugador],
                                      maxJugadores: numJugadores, 
+                                     ganador: null,
                                      chat: chat
                                     });
 
