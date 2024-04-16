@@ -194,8 +194,8 @@ describe('Unir a partidas', () => {
             .send(credenciales)
             .set('Authorization', token) // Incluye el token de acceso en la cabecera
             .set('Accept', 'application/json');
-            expect(shouldfail.status).toBe(400);
-        }); 
+        expect(shouldfail.status).toBe(400);
+    }); 
 
 
     it('debería fallar unirse a una partida privada con contraseña incorrecta', async () => {

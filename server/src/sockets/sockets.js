@@ -9,6 +9,8 @@ function handleConnection(socket) {
     socket.on('friendRequest', (data) => handleFriendRequest(socket, data, clientIp));
 
     socket.on('joinGame', (body) => handleJoinGame(socket, body.gameId, body.user, clientIp));
+    socket.on('inviteGame', (body) => handleInviteGame(socket, body.gameId, body.user_dest, body.user_from, clientIp));
+    socket.on('gameStarted', (gameId) => handleGameStarted(socket, gameId, clientIp));
     socket.on('disconnectGame', (body) => handleDisconnectGame(socket, body.gameId, body.user, clientIp));
     
     socket.on('joinChat', (chatId) => handleJoinChat(socket, chatId, clientIp));
@@ -32,6 +34,16 @@ function handleJoinGame(socket, gameId, user, clientIp) {
     socket.join(gameId);
     socket.to(gameId).emit('userJoined', user);
     console.log(`Usuario se unió a la partida ${gameId}`);
+}
+
+function handleInviteGame(socket, gameId, user_dest, user_from, clientIp){
+    socket.to(user_dest).emit('gameInvitation', gameId, user_from);
+    console.log(`Invitación de juego enviada a ${user_dest}`);
+}
+
+function handleGameStarted(socket, gameId, clientIp){
+    socket.to(gameId).emit('gameStarted', gameId);
+    console.log(`Partida ${gameId} ha comenzado`);
 }
 
 function handleDisconnectGame(socket, gameId, user, clientIp) {

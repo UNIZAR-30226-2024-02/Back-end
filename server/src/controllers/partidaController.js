@@ -35,6 +35,7 @@ async function invite(user, idPartida) {
     partida = await Partida.findById(idPartida)
     if (!partida) {
       console.log('La partida no existe.')
+      console.log(idPartida)
       return false
     }
 
