@@ -129,6 +129,6 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-#/server/src/node_modules/
+/server/src/node_modules/
 
 riskilloprueba2.pem
