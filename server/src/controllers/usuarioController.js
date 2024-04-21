@@ -6,7 +6,7 @@ async function crearUsuario(idUsuario, password, correo) {
     // Comprobar si el usuario o el correo electrónico ya existen en la base de datos
     const existingUser = await Usuario.findOne({ $or: [{ idUsuario }, { correo }] })
     if (existingUser) {
-        console.log('el usuario ya existe')
+        //console.log('el usuario ya existe')
         throw new Error('El nombre de usuario o correo electrónico ya está en uso.')
     }
     // Crear un nuevo usuario y guardarlo en la base de datos
