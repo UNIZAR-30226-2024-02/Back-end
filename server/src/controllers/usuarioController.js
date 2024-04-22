@@ -324,6 +324,19 @@ async function obtenerAvatar(idUsuario){
     }
 }
 
+async function obtenerTerreno(idUsuario){
+    try {
+        const usuario = await Usuario.findOne({ idUsuario });
+        console.log(usuario.terreno.type)
+        const terreno = await Skin.findOne({ idSkin: new RegExp(usuario.terreno.type, 'i') });
+        console.log(terreno)
+        return terreno;
+    } catch (error) {
+        console.error('Error al obtener el terreno del usuario:', error.message);
+        throw error;
+    }
+}
+
 module.exports = {
     crearUsuario,
     login,
@@ -337,5 +350,6 @@ module.exports = {
     getFriends,
     getSolicitudes,
     getInvitaciones,
-    obtenerAvatar
+    obtenerAvatar,
+    obtenerTerreno
 };
