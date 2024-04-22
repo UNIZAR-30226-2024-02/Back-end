@@ -43,12 +43,16 @@ const PartidaSchema = new mongoose.Schema({
             ref: 'Usuario.idUsuario',
         },
     },
-    turno: { type: Number, required: true, default: 0 },
     jugadores: [{ type: JugadorSchema, default: []}],
     cartas: [{  type: CartaSchema , default: [] }],
     descartes: [{  type: CartaSchema , default: [] }],
     mapa: [{ type: ContinenteSchema, default: [] }], 
-    chat: { type: Chat.schema }
+    chat: { type: Chat.schema },
+
+    turno: { type: Number, default: 0 },
+    fase: { type: Number, default: 0 },
+    auxColocar: { type: Number, default: 0 },
+    auxRobar: { type: Boolean, default: false }
 });
 
 module.exports = {

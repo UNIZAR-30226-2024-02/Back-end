@@ -1,5 +1,14 @@
+const { FindCursor } = require('mongodb');
 const {Partida, Jugador} = require('../models/Partida');
+const { findById } = require('../models/Skin');
 const Usuario = require('../models/Usuario');
+
+// FASES PARTIDA
+const Colocar = 0; // Aqui se pueden utilizar cartas
+const Atacar = 1;
+const Maniobrar = 2;
+const Robar = 3;
+const Fin = 4; // Para utilizar cartas
 
 async function crearPartida(user, nombre, password, numJugadores) {
   // Si existe una partida con el mismo nombre y la misma password, que no haya terminado -> no podrem
@@ -111,6 +120,38 @@ async function join(user, idPartida, password) {
   }
 }
 
+async function salirPartida(usuarioID, partidaOID) {
+  try {
+    const partida = await Partida.findById(partidaOID);
+    
+    if (partida) {
+      // Verificar si el usuario está en la partida
+      const index = partida.jugadores.indexOf(usuarioID);
+      if (index !== -1) {
+        // Si la partida no ha comenzado (fechaInicio es null), quitar al usuario de la partida
+        if (partida.fechaInicio === null) {
+          partida.jugadores.splice(index, 1);
+          await partida.save();
+          console.log("Usuario sacado de la partida", partida);
+        } else {
+          // Si la partida ha comenzado, marcar al usuario como abandonado
+          const jugador = partida.jugadores[index];
+          jugador.abandonado = true;
+          await partida.save();
+          console.log("Usuario marcado como abandonado en la partida", partida);
+        }
+      } else {
+        console.error("El usuario no está en la partida");
+      }
+    } else {
+      console.error("Partida no encontrada");
+    }
+  } catch (error) {
+    console.error("Error al sacar al usuario de la partida", error);
+    throw error;
+  }
+}
+
 // Devuelve las partidas públicas que no han empezado ni terminado
 // (es decir, están en espera de jugadores)
 async function getPartidasDisponibles() {
@@ -139,24 +180,469 @@ async function getHistorico(user) {
 }
 
 // Dado el object id de una partida (id unico de la bdd) inicia esta.
-async function iniciarPartida(partidaOID) {
-  try {
-      const partida = await Partida.findById(partidaOID);
-      if (partida) {
-          partida.fechaInicio = new Date();
-
-          await inicializarEstado(partida);
-
-          await partida.save();
-
-          console.log("Partida iniciada correctamente:", partida);
-      } else {
-          console.error("Partida a iniciar no encontrada");
-      }
-  } catch (error) {
-      console.error("Error al iniciar partida:", error);
-      throw error;
+async function iniciarPartida(partidaOID, usuarioID) {
+  const partida = await Partida.findById(partidaOID);
+  if (!partida) {
+    console.error("La partida no existe");
+    return false;
   }
+
+  // Comprobar si el usuario esta en la partida
+  jugador = numJugador(partida, usuarioID);
+  if(jugador == - 1){
+    return false;
+  }
+
+  if(partida.jugadores.length() < 3){
+    console.error("Numero de jugadores insuficientes en la partida");
+    return false;
+  }
+
+  partida.fechaInicio = new Date();
+
+  await inicializarEstado(partida);
+
+  await partida.save();
+
+  console.log("Partida iniciada correctamente:", partida);
+}
+
+async function colocarTropas(partidaOID, usuarioID, nombreTerritorio, tropas) {
+  // Comprobar que la partida existe y leerla
+  partida = await Partida.findById(partidaOID)
+  if (!partida) {
+    console.error("La partida no existe");
+    return false;
+  }
+
+  // Comprobar si el usuario esta en la partida y obtener numero de jugador
+  jugador = numJugador(partida, usuarioID);
+  if(jugador == - 1){
+    return false;
+  }
+
+  // Comprobar que es el turno del jugador
+  if(!comprobarTurno(partida, jugador)){
+    return false;
+  }
+
+  // Comprobar que la partida se encuentra en la fase de colocacion de tropas
+  if(partida.fase != Colocar || partida.fase != FindCursor){
+    console.error("El jugador no se encuentra en la fase de colocacion tropas");
+    return false;
+  }
+
+  // Comprobar que el territorio pertenece al jugador
+  if(!comprobarTerritorio(partida, nombreTerritorio)){
+    return false;
+  }
+
+  // Comprobamos la variable auxiliar auxColocar para saber cuantas
+  // tropas le quedan por colocar al jugador
+  if(partida.auxColocar > tropas){
+    console.error("No quedan suficientes refuerzos");
+    return false;
+  }
+
+  // Actualizamos el numero de tropas del territorio
+  actualizarTropasTerritorio(partida, nombreTerritorio, tropas);
+  partida.save();
+
+  return true;
+}
+
+async function atacarTerritorio(partidaOID, usuarioID, territorioAtacante, territorioDefensor, numTropas) {
+  // Comprobar que la partida existe y leerla
+  partida = await Partida.findById(partidaOID)
+  if (!partida) {
+    console.error("La partida no existe");
+    return false;
+  }
+
+  // Comprobar si el usuario esta en la partida y obtener numero de jugador
+  jugador = numJugador(partida, usuarioID);
+  if (jugador == - 1) {
+    return false;
+  }
+
+  // Comprobar que es el turno del jugador
+  if (!comprobarTurno(partida, jugador)) {
+    return false;
+  }
+
+  // Comprobar que la partida se encuentra en la fase de ataque
+  if (partida.fase != Atacar) {
+    console.error("El jugador no se encuentra en la fase de ataque");
+    return false;
+  }
+
+  // Comprobar que el territorio atacante pertenece al jugador
+  if (!comprobarTerritorio(partida,territorioAtacante)) {
+    console.error("El territorio atacante no pertenece al jugador");
+    return false;
+  }
+
+  // Comprobar que en el territorio atacante hay suficientes tropas para el ataque (y dejar una)
+  tropasTerritorioAtacante = actualizarTropasTerritorio(partida,territorioAtacante, 0);
+  if ((tropasTerritorioAtacante - 1) < numTropas) {
+    console.error("No hay tropas suficientes en el territorio para realizar el ataque");
+    return false;
+  }
+
+  // Comprobamos que el numero de 
+  if (numTropas > 3 || numTropas < 1) {
+    console.error("Numero invalido de tropas atacantes: " + numTropas);
+    return false;
+  }
+
+  // Comprobar que el territorio defensor no pertenece al jugador
+  if(comprobarTerritorio(partida,territorioDefensor)){
+    console.error("El territorio defensor pertenece al jugador");
+    return false;
+  }
+
+  // Comprobar que el territorio atacante es fronterizo con el defensor.
+  if(territoriosFronterizos(partida,territorioAtacante, territorioDefensor)){
+    console.error("Los territorios no son fronterizos");
+    return false;
+  }
+
+  // Calculamos los dados del atacante
+  dadosAtacante = [];
+  for (let i = 0; i < numTropas; i++) {
+    dadosAtacante.push(Math.floor(Math.random() * 6) + 1); 
+  }
+
+  // Calculamos el numero de dados del defensor y los tiramos
+  tropasTerritorioDefensor = actualizarTropasTerritorio(pertida,territorioDefensor, 0);
+  numDadosDefensor = min(2, tropasTerritorioDefensor);
+  dadosDefensor = [];
+  for (let i = 0; i < numDadosDefensor; i++) {
+    dadosDefensor.push(Math.floor(Math.random() * 6) + 1); 
+  }
+
+  resultadoBatalla = resolverBatalla(dadosAtacante, dadosDefensor);
+  defensoresRestantes = actualizarTropasTerritorio(partida, territorioDefensor, resultadoBatalla.tropasPerdidasDefensor);
+  if (defensoresRestantes == 0) {   // El defensor pierde el territorio
+    // Quitar el territorio al jugador que lo tenia
+    jugadorDefensor = encontrarPropietario(partida, territorioDefensor);
+    partida.jugadores[jugadorDefensor].territorios.drop(territorioDefensor)
+    // Dar el territorio al jugador atacante
+    partida.jugadores[jugador].territorios.push(territorioDefensor);
+    // Poner en el territorio defensor numTropas - resultadoBatalla.tropsPerdidasAtacante
+    actualizarTropasTerritorio(partida, territorioDefensor, numTropas - resultadoBatalla.tropasPerdidasAtacante);
+    // Quitar del territorio atacante las tropas utilizadas para el ataque
+    actualizarTropasTerritorio(partida, territorioAtacante, -numTropas);
+    // Flag de robar carta
+    partida.auxRobar = true;
+  } else { 
+    // Quitar del territorio atacante las tropas perdidas en la batalla
+    actualizarTropasTerritorio(partida, territorioAtacante, -(numTropas - resultadoBatalla.tropasPerdidasAtacante))
+  }
+}
+
+async function realizarManiobra(partidaOID, usuarioID, territorioOrigen, territorioDestino, numTropas) {
+  // Comprobar que la partida existe y leerla
+  partida = await Partida.findById(partidaOID)
+  if (!partida) {
+    console.error("La partida no existe")
+    return false
+  }
+
+  // Buscar al jugador en la partida
+  jugador = numJugador(partida, usuarioID);
+  if (jugador == - 1) {
+    return false;
+  }
+
+  // Comprobar que sea el turno del jugador
+  if (!comprobarTurno(partida, jugador)) {
+    return false;
+  }
+
+  // Comprobar que la partida se encuentra en la fase de ataque
+  if (partida.fase != Maniobrar) {
+    console.error("El jugador no se encuentra en la fase de maniobrar");
+    return false;
+  }
+
+  // Comprobar que el territorio origen pertenece al jugador
+  if (comprobarTerritorio(partida, territorioOrigen)) {
+    console.error("El territorio origen no pertenece al jugador");
+    return false;
+  }
+
+  // Comprobar que el territorio destino pertenece al jugador
+  if (comprobarTerritorio(partida, territorioDestino)) {
+    console.error("El territorio destino no pertenece al jugador");
+    return false;
+  }
+
+  // Comprobar si se puede llegar de un territorio a otro pasando solo por territorios del jugador
+  if (!maniobraPosible(partida, jugador, territorioOrigen, territorioDestino)) {
+    console.error("No hay ruta posible hasta el territorio destino desde el territorio origen");
+    return false;
+  }
+
+  // Calculamos el nº de tropas en el territorio origen.
+  tropasTerritorioOrigen = actualizarTropasTerritorio(pertida,territorioDefensor, 0);
+  if (numTropas > (tropasTerritorioOrigen - 1)) {
+    console.error("Nº de tropas insuficientes en el territorio origen");
+    return false;
+  }
+
+  // Quitamos/Añadimos las tropas
+  actualizarTropasTerritorio(partida, territorioOrigen, -numTropas);
+  actualizarTropasTerritorio(partida, territorioDestino, numTropas);
+
+  return true;
+}
+
+// Funcion para cambiar de fase / pasar de turno
+async function siguienteFase(partidaOID, usuarioID) {
+  // Comprobar que la partida existe y leerla
+  partida = await Partida.findById(partidaOID)
+  if (!partida) {
+    console.error("La partida no existe")
+    return false
+  }
+
+  // Buscar al jugador en la partida
+  jugador = numJugador(partida, usuarioID);
+  if(jugador == - 1){
+    return false;
+  }
+
+  // Comprobar que sea el turno del jugador
+  if(!comprobarTurno(partida, jugador)){
+    return false;
+  }
+
+  // Si es fase de colocacion y quedar tropas por colocar no se puede pasar de fase
+  if((partida.fase == Colocar || partida.fase == Fin) && partida.auxColocar != 0){
+    console.error("No se han terminado de colocar las tropas");
+    return false;
+  }
+
+  // Pasar a la siguiente fase. Si era la ultima fase pasar de turno
+  partida.fase = (partida.fase + 1) % 5;
+  if(partida.fase = Colocar){
+    partida.turno = partida.turno + 1;
+
+    // Inicializamos la variable de refuerzos del siguiente jugador
+    siguienteJugador = (jugador + 1) % partida.jugadores.length()
+    partida.auxColocar = calcularRefuerzos(partida, siguienteJugador);
+
+    // Si el mazo de cartas esta vacio y en la pila de descartes hay alguna carta
+    // Barajeamos la pila de descartes en el mazo
+    if(partida.cartas.length == 0 && partida.descartes.length > 0){
+      partida.cartas = partida.descartes;
+      partida.descartes = [];
+      partida.cartas = shuffle(partida.cartas);
+    }
+    
+    // Si el flag de robar esta activo y se puede robar una carta se roba
+    if(partida.cartas.length >= 1 && partida.auxRobar == true){
+      cartaRobada = partida.cartas.pop();
+      partida.jugadores[numJugador].cartas.push(cartaRobada);
+      partida.auxRobar = false;
+    }
+  }
+
+  await partida.save();
+}
+
+async function utilizarCartas(partidaOID, usuarioID, carta1, carta2, carta3) {
+  // Comprobar que la partida existe y leerla
+  partida = await Partida.findById(partidaOID)
+  if (!partida) {
+    console.error("La partida no existe")
+    return false
+  }
+
+  // Buscar al jugador en la partida
+  jugador = numJugador(partida, usuarioID);
+  if(jugador == - 1){
+    return false;
+  }
+
+  // Comprobar que sea el turno del jugador
+  if(!comprobarTurno(partida, jugador)){
+    return false;
+  }
+
+  // Si es fase de colocacion y quedar tropas por colocar no se puede pasar de fase
+  if(partida.fase != Colocar && partida.fase != Fin){
+    console.error("No se pueden utilizar cartas en esta fase");
+    return false;
+  }
+  
+  // Leer las cartas del jugador
+  cartasJugador = partida.jugadores[numJugador].cartas.map(carta => carta.territorio);
+
+  // Verificar si el jugador tiene las tres cartas
+  if (cartasJugador.includes(carta1) && cartasJugador.includes(carta2) && cartasJugador.includes(carta3)) {
+    // Obtener las cartas que se deben descartar
+    cartasDescartar = [carta1, carta2, carta3];
+
+    // Cartas que se queda el jugador despues
+    nuevasCartasJugador = jugador.cartas.filter(carta => !cartasDescartar.includes(carta.territorio));
+
+    // Calcular el valor de tropas que suman las tres cartas
+    partida.auxColocar = partida.cartas
+      .filter(carta => cartasDescartar.includes(carta.territorio))
+      .reduce((total, carta) => total + carta.estrellas, 0);
+
+    // Actualizar las cartas del jugador
+    jugador.cartas = nuevasCartasJugador;
+
+    // Agregar las cartas al array de descartes de la partida
+    partida.descartes.push(...jugador.cartas.filter(carta => cartasDescartar.includes(carta.territorio)));
+
+
+    await partida.save();
+    console.log("Cartas utilizadas");
+
+    return true; // Indica que se han descartado las cartas
+  } else {
+      console.log("El jugador no dispone de las cartas que quiere utilizar")
+      return false; // Indica que el jugador no tiene las tres cartas
+  }
+}
+
+// Funcion para pasar el estado de la partida al front
+async function getPartida(partidaOID, UsuarioID){
+  // Comprobar que la partida existe y leerla
+  partida = await Partida.findById(partidaOID)
+  if (!partida) {
+    console.error("La partida no existe")
+    return
+  }
+
+  // Buscar al jugador en la partida
+  jugador = numJugador(partida, UsuarioID);
+  if (jugador == - 1) {
+    return
+  }
+
+  for (let i = 0; i < partida.jugadores.length; i++) {
+    // Eliminar el campo cartas de el resto de jugadores
+    if (i != jugadorIndex) {
+      delete partida.jugadores[i].cartas;
+    }
+  }
+
+  delete partida.descartes;
+  delete partida.cartas;
+
+  return partida;
+}
+
+// -------------------- FUNCIONES AUXILIARES ----------------------------------
+async function calcularRefuerzos(partida, numJugador){
+  numTerritorios = partida.jugadores[numJugador].territorios.length;
+  refuerzos;
+
+  // Refuerzos por numero de territorios
+  if (numTerritorios < 12){
+    refuerzos = 0;
+  } else if (numTerritorios >= 12 && numTerritorios <= 42) {
+    refuerzos = Math.ceil((numero - 11) / 3);
+  } else{
+    console.error("Numero de territorio incongruente");
+    refuerzos = -1;
+    return refuerzos;
+  }
+
+  // Refuerzos por continente
+  if (controlaContinente(partida.jugadores[numJugador], NA)) {
+    refuerzos += 5;
+  }
+
+  if (controlaContinente(partida.jugadores[numJugador], SA)) {
+    refuerzos += 2;
+  }
+
+  if (controlaContinente(partida.jugadores[numJugador], EU)) {
+    refuerzos += 5;
+  }
+
+  if (controlaContinente(partida.jugadores[numJugador], AF)) {
+    refuerzos += 3;
+  }
+
+  if (controlaContinente(partida.jugadores[numJugador], AS)) {
+    refuerzos += 7;
+  }
+
+  if (controlaContinente(partida.jugadores[numJugador], OC)) {
+    refuerzos += 2;
+  }
+
+  return refuerzos;
+}
+
+// Funcion auxiliar para comprobar si un jugador tiene un continente completo
+function controlaContinente(jugador, continente) {
+  // Obtener los territorios del continente
+  const territoriosContinente = continente.territorios.map(territorio => territorio.nombre);
+
+  // Verificar si el jugador tiene todos los territorios del continente
+  for (const territorio of territoriosContinente) {
+      if (!jugador.territorios.includes(territorio)) {
+          return false;
+      }
+  }
+  return true;
+}
+
+async function actualizarTropasTerritorio(partida, nombreTerritorio, delta){
+  for (const continente of partida.mapa) {
+    const territorioEncontrado = continente.territorios.find(territorio => territorio.nombre === nombreTerritorio);
+    if (territorioEncontrado) {
+        territorioEncontrado.tropas = territorioEncontrado.tropas + delta;
+        return territorioEncontrado.tropas;
+    }
+  };
+
+  return -1;
+}
+
+// Dado un id de usuario devuelve su numero de jugador o -1 si no esta
+async function numJugador(partida, usuarioID){
+  for( let i = 0; i <= partida.jugadores.length; i++){
+    if( partida.jugadores[i] == usuarioID){
+      return i;
+    }
+  }
+  console.error("El usuario " + usuarioID + " no esta en la partida");
+  return -1;
+}
+
+async function comprobarTurno(partida, numJugador){
+  // Comprobar si la partida aun no ha empezado o si ha terminado
+  if (partida.fechaInicio == null || partida.fechaFin != null) {
+    console.error("La partida no esta activa")
+    return false;
+  }
+
+  // Comprobar si es el turno del jugador
+  if (partida.turno == numJugador) {
+    return true;
+  } else {
+    console.error("No es el turno del jugador " + numJugador);
+    return false;
+  }
+}
+
+async function comprobarTerritorio(partida, numJugador, nombreTerritorio){
+  for( let i = 0; i <= partida.jugadores.length; i++){
+    if( partida.territorios[i] == nombreTerritorio){
+      return true;
+    }
+  }
+  console.error("El territorio " + nombreTerritorio + " no pertenece al jugador " + numJugador);
+  return false;
 }
 
 async function inicializarEstado(partida) {
@@ -224,48 +710,48 @@ async function inicializarEstado(partida) {
     {territorio: "NUEVA GUINEA", estrellas: 2}
   ];
 
-  const Alaska = new Territorio({ nombre: "ALASKA", frontera: ["ALBERTA", "TERRITORIOS DEL NOROESTE", "KAMCHATKA"]});
-  const Alberta = new Territorio({ nombre: "ALBERTA", frontera: ["ALASKA", "ESTADOS UNIDOS OESTE" , "ONTARIO", "TERRITORIOS DEL NOROESTE"]});
-  const AmericaCentral = new Territorio({ nombre: "AMERICA CENTRAL", frontera: ["ESTADOS UNIDOS ESTE", "ESTADOS UNIDOS OESTE", "VENEZUELA"]});
-  const EstadosUnidosEste = new Territorio({ nombre: "ESTADOS UNIDOS ESTE", frontera: ["ALBERTA", "AMERICA CENTRAL", "ESTADOS UNIDOS OESTE", "ONTARIO"]});
-  const Groenlandia = new Territorio({ nombre: "GROENLANDIA", frontera: ["TERRITORIOS DEL NOROESTE", "ONTARIO", "QUEBEC", "ISLANDIA"]});
-  const TerritoriosDelNoroeste = new Territorio({ nombre: "TERRITORIOS DEL NOROESTE", frontera: ["ALASKA", "ALBERTA", "ONTARIO", "GROENLANDIA"]});
-  const Ontario = new Territorio({ nombre: "ONTARIO", frontera: ["TERRITORIOS DEL NOROESTE", "ALASKA", "QUEBEC", "GROENLANDIA", "ESTADOS UNIDOS OESTE", "ESTADOS UNIDOS ESTE"]});
-  const Quebec = new Territorio({ nombre: "QUEBEC", frontera: ["ONTARIO", "ESTADOS UNIDOS ESTE", "GROENLANDIA"]});
-  const EstadosUnidosOeste = new Territorio({ nombre: "ESTADOS UNIDOS OESTE", frontera: ["ESTADOS UNIDOS ESTE", "ONTARIO", "QUEBEC", "AMERICA CENTRAL"]});
-  const Argentina = new Territorio({ nombre: "ARGENTINA", frontera: ["PERU", "BRASIL"]});
-  const Brasil = new Territorio({ nombre: "BRASIL", frontera: ["ARGENTINA", "VENEZUELA", "PERU", "AFRICA NORTE"]});
-  const Peru = new Territorio({ nombre: "PERU", frontera: ["ARGENTINA", "VENEZUELA", "BRASIL"]});
-  const Venezuela = new Territorio({ nombre: "VENEZUELA ", frontera: ["AMERICA CENTRAL", "PERU", "BRASIL"]});
-  const GranBretana = new Territorio({ nombre: "GRAN BRETANA", frontera: ["EUROPA OCCIDENTAL", "EUROPA NORTE", "ESCANDINAVIA", "ISLANDIA"]});
-  const Islandia = new Territorio({ nombre: "ISLANDIA", frontera: ["GRAN BRETANA", "GROENLANDIA", "ESCANDINAVIA"]});
-  const EuropaNorte = new Territorio({ nombre: "EUROPA NORTE", frontera: ["EUROPA SUR", "EUROPA OCCIDENTAL", "RUSIA", "GRAN BRETANA", "ESCANDINAVIA"]});
-  const Escandinavia = new Territorio({ nombre: "ESCANDINAVIA", frontera: ["RUSIA", "EUROPA NORTE", "GRAN BRETANA", "ISLANDIA"]});
-  const EuropaSur = new Territorio({ nombre: "EUROPA SUR", frontera: ["EUROPA OCCIDENTAL", "EUROPA NORTE", "RUSIA", "AFRICA NORTE", "EGIPTO"]});
-  const Rusia = new Territorio({ nombre: "RUSIA", frontera: ["ESCANDINAVIA", "EUROPA NORTE", "EUROPA SUR", "URAL", "AFGANISTAN", "ORIENTE MEDIO"]});
-  const EuropaOccidental = new Territorio({ nombre: "EUROPA OCCIDENTAL", frontera: ["EUROPA NORTE", "EUROPA SUR", "AFRICA NORTE", "GRAN BRETANA"]});
-  const Congo = new Territorio({ nombre: "CONGO", frontera: ["AFRICA ORIENTAL", "SUDAFRICA", "AFRICA NORTE"]});
-  const AfricaOriental = new Territorio({ nombre: "AFRICA ORIENTAL", frontera: ["EGIPTO", "AFRICA NORTE", "CONGO", "SUDAFRICA", "MADAGASCAR"]});
-  const Egipto = new Territorio({ nombre: "EGIPTO", frontera: ["AFRICA NORTE", "AFRICA ORIENTAL", "EUROPA SUR"]});
-  const Madagascar = new Territorio({ nombre: "MADAGASCAR", frontera: ["AFRICA ORIENTAL", "SUDAFRICA"]});
-  const AfricaNorte = new Territorio({ nombre: "AFRICA NORTE", frontera: ["EGIPTO", "BRASIL", "AFRICA ORIENTAL", "CONGO"]});
-  const Sudafrica = new Territorio({ nombre: "SUDAFRICA", frontera: ["MADAGASCAR", "CONGO", "AFRICA ORIENTAL"]});
-  const Afganistan = new Territorio({ nombre: "AFGANISTAN", frontera: ["RUSIA", "URAL", "INDIA", "ORIENTE MEDIO", "CHINA"]});
-  const China = new Territorio({ nombre: "CHINA", frontera: ["INDIA", "SUDESTE ASIATIOCO", "MONGOLIA", "SIBERIA", "URAL", "AFGANISTAN"]});
-  const India = new Territorio({ nombre: "INDIA", frontera: ["CHINA", "ORIENTE MEDIO", "AFGANISTAN", "SUDESTE ASIATICO"]});
-  const Irkutsk = new Territorio({ nombre: "IRKUTSK", frontera: ["YAKUTSK", "SIBERIA", "MONGOLIA", "KAMCHATKA"]});
-  const Japon = new Territorio({ nombre: "JAPON", frontera: ["KAMCHATKA", "MONGOLIA"]});
-  const Kamchatka = new Territorio({ nombre: "KAMCHATKA", frontera: ["ALASKA", "YAKUTSK", "IRKUTSK", "MONGOLIA"]});
-  const OrienteMedio = new Territorio({ nombre: "ORIENTE MEDIO", frontera: ["RUSIA", "AFGANISTAN", "INDIA", "EGIPTO"]});
-  const Mongolia = new Territorio({ nombre: "MONGOLIA", frontera: ["IRKUTSK", "CHINA", "JAPON", "SIBERIA"]});
-  const SudesteAsiatico = new Territorio({ nombre: "SUDESTE ASIATICO", frontera: ["CHINA", "INDIA", "INDONESIA"]});
-  const Siberia = new Territorio({ nombre: "SIBERIA", frontera: ["IRKUTSK", "YAKUTSK", "MONGOLIA", "CHINA", "URAL"]});
-  const Ural = new Territorio({ nombre: "URAL", frontera: ["SIBERIA", "RUSIA", "AFGANISTAN"]});
-  const Yakutsk = new Territorio({ nombre: "YAKUTSK", frontera: ["IRKUTSK", "KAMCHATKA", "SIBERIA"]});
-  const Indonesia = new Territorio({ nombre: "INDONESIA", frontera: ["SUDESTE ASIATICO", "NUEVA GUINEA", "AUSTRALIA OCCIDENTAL"]});
-  const NuevaGuinea = new Territorio({ nombre: "NUEVA GUINEA", frontera: ["AUSTRALIA OCCIDENTAL", "AUSTRALIA ORIENTAL", "INDONESIA"]});
-  const AustraliaOccidental = new Territorio({ nombre: "AUSTRALIA OCCIDENTAL", frontera: ["AUSTRALIA ORIENTAL", "INDONESIA", "NUEVA GUINEA"]});
-  const AustraliaOriental = new Territorio({ nombre: "AUSTRALIA ORIENTAL", frontera: ["AUSTRALIA OCCIDENTAL", "NUEVA GUINEA"]});
+  const Alaska = new Territorio({ nombre: "ALASKA", frontera: ["ALBERTA", "TERRITORIOS DEL NOROESTE", "KAMCHATKA"], tropas: 1 });
+  const Alberta = new Territorio({ nombre: "ALBERTA", frontera: ["ALASKA", "ESTADOS UNIDOS OESTE", "ONTARIO", "TERRITORIOS DEL NOROESTE"], tropas: 2 });
+  const AmericaCentral = new Territorio({ nombre: "AMERICA CENTRAL", frontera: ["ESTADOS UNIDOS ESTE", "ESTADOS UNIDOS OESTE", "VENEZUELA"], tropas: 1 });
+  const EstadosUnidosEste = new Territorio({ nombre: "ESTADOS UNIDOS ESTE", frontera: ["ALBERTA", "AMERICA CENTRAL", "ESTADOS UNIDOS OESTE", "ONTARIO", "QUEBEC"], tropas: 2 });
+  const Groenlandia = new Territorio({ nombre: "GROENLANDIA", frontera: ["TERRITORIOS DEL NOROESTE", "ONTARIO", "QUEBEC", "ISLANDIA"], tropas: 1 });
+  const TerritoriosDelNoroeste = new Territorio({ nombre: "TERRITORIOS DEL NOROESTE", frontera: ["ALASKA", "ALBERTA", "ONTARIO", "GROENLANDIA"], tropas: 2 });
+  const Ontario = new Territorio({ nombre: "ONTARIO", frontera: ["TERRITORIOS DEL NOROESTE", "ALASKA", "QUEBEC", "GROENLANDIA", "ESTADOS UNIDOS OESTE", "ESTADOS UNIDOS ESTE"], tropas: 1 });
+  const Quebec = new Territorio({ nombre: "QUEBEC", frontera: ["ONTARIO", "ESTADOS UNIDOS ESTE", "GROENLANDIA"], tropas: 2 });
+  const EstadosUnidosOeste = new Territorio({ nombre: "ESTADOS UNIDOS OESTE", frontera: ["ESTADOS UNIDOS ESTE", "ONTARIO", "AMERICA CENTRAL"], tropas: 1 });
+  const Argentina = new Territorio({ nombre: "ARGENTINA", frontera: ["PERU", "BRASIL"], tropas: 1 });
+  const Brasil = new Territorio({ nombre: "BRASIL", frontera: ["ARGENTINA", "VENEZUELA", "PERU", "AFRICA NORTE"], tropas: 2 });
+  const Peru = new Territorio({ nombre: "PERU", frontera: ["ARGENTINA", "VENEZUELA", "BRASIL"], tropas: 1 });
+  const Venezuela = new Territorio({ nombre: "VENEZUELA ", frontera: ["AMERICA CENTRAL", "PERU", "BRASIL"], tropas: 2 });
+  const GranBretana = new Territorio({ nombre: "GRAN BRETANA", frontera: ["EUROPA OCCIDENTAL", "EUROPA NORTE", "ESCANDINAVIA", "ISLANDIA"], tropas: 1 });
+  const Islandia = new Territorio({ nombre: "ISLANDIA", frontera: ["GRAN BRETANA", "GROENLANDIA", "ESCANDINAVIA"], tropas: 2 });
+  const EuropaNorte = new Territorio({ nombre: "EUROPA NORTE", frontera: ["EUROPA SUR", "EUROPA OCCIDENTAL", "RUSIA", "GRAN BRETANA", "ESCANDINAVIA"], tropas: 1 });
+  const Escandinavia = new Territorio({ nombre: "ESCANDINAVIA", frontera: ["RUSIA", "EUROPA NORTE", "GRAN BRETANA", "ISLANDIA"], tropas: 1 });
+  const EuropaSur = new Territorio({ nombre: "EUROPA SUR", frontera: ["EUROPA OCCIDENTAL", "EUROPA NORTE", "RUSIA", "AFRICA NORTE", "EGIPTO"], tropas: 2 });
+  const Rusia = new Territorio({ nombre: "RUSIA", frontera: ["ESCANDINAVIA", "EUROPA NORTE", "EUROPA SUR", "URAL", "AFGANISTAN", "ORIENTE MEDIO"], tropas: 1 });
+  const EuropaOccidental = new Territorio({ nombre: "EUROPA OCCIDENTAL", frontera: ["EUROPA NORTE", "EUROPA SUR", "AFRICA NORTE", "GRAN BRETANA"], tropas: 1 });
+  const Congo = new Territorio({ nombre: "CONGO", frontera: ["AFRICA ORIENTAL", "SUDAFRICA", "AFRICA NORTE"], tropas: 1 });
+  const AfricaOriental = new Territorio({ nombre: "AFRICA ORIENTAL", frontera: ["EGIPTO", "AFRICA NORTE", "CONGO", "SUDAFRICA", "MADAGASCAR"], tropas: 2 });
+  const Egipto = new Territorio({ nombre: "EGIPTO", frontera: ["AFRICA NORTE", "AFRICA ORIENTAL", "EUROPA SUR"], tropas: 1 });
+  const Madagascar = new Territorio({ nombre: "MADAGASCAR", frontera: ["AFRICA ORIENTAL", "SUDAFRICA"], tropas: 1 });
+  const AfricaNorte = new Territorio({ nombre: "AFRICA NORTE", frontera: ["EGIPTO", "BRASIL", "AFRICA ORIENTAL", "CONGO"], tropas: 2 });
+  const Sudafrica = new Territorio({ nombre: "SUDAFRICA", frontera: ["MADAGASCAR", "CONGO", "AFRICA ORIENTAL"], tropas: 1 });
+  const Afganistan = new Territorio({ nombre: "AFGANISTAN", frontera: ["RUSIA", "URAL", "INDIA", "ORIENTE MEDIO", "CHINA"], tropas: 1 });
+  const China = new Territorio({ nombre: "CHINA", frontera: ["INDIA", "SUDESTE ASIATICO", "MONGOLIA", "SIBERIA", "URAL", "AFGANISTAN"], tropas: 2 });
+  const India = new Territorio({ nombre: "INDIA", frontera: ["CHINA", "ORIENTE MEDIO", "AFGANISTAN", "SUDESTE ASIATICO"], tropas: 1 });
+  const Irkutsk = new Territorio({ nombre: "IRKUTSK", frontera: ["YAKUTSK", "SIBERIA", "MONGOLIA", "KAMCHATKA"], tropas: 2 });
+  const Japon = new Territorio({ nombre: "JAPON", frontera: ["KAMCHATKA", "MONGOLIA"], tropas: 1 });
+  const Kamchatka = new Territorio({ nombre: "KAMCHATKA", frontera: ["ALASKA", "YAKUTSK", "IRKUTSK", "MONGOLIA"], tropas: 2 });
+  const OrienteMedio = new Territorio({ nombre: "ORIENTE MEDIO", frontera: ["RUSIA", "AFGANISTAN", "INDIA", "EGIPTO"], tropas: 1 });
+  const Mongolia = new Territorio({ nombre: "MONGOLIA", frontera: ["IRKUTSK", "CHINA", "JAPON", "SIBERIA"], tropas: 2 });
+  const SudesteAsiatico = new Territorio({ nombre: "SUDESTE ASIATICO", frontera: ["CHINA", "INDIA", "INDONESIA"], tropas: 1 });
+  const Siberia = new Territorio({ nombre: "SIBERIA", frontera: ["IRKUTSK", "YAKUTSK", "MONGOLIA", "CHINA", "URAL"], tropas: 2 });
+  const Ural = new Territorio({ nombre: "URAL", frontera: ["SIBERIA", "RUSIA", "AFGANISTAN"], tropas: 1 });
+  const Yakutsk = new Territorio({ nombre: "YAKUTSK", frontera: ["IRKUTSK", "KAMCHATKA", "SIBERIA"], tropas: 2 });
+  const Indonesia = new Territorio({ nombre: "INDONESIA", frontera: ["SUDESTE ASIATICO", "NUEVA GUINEA", "AUSTRALIA OCCIDENTAL"], tropas: 1 });
+  const NuevaGuinea = new Territorio({ nombre: "NUEVA GUINEA", frontera: ["AUSTRALIA OCCIDENTAL", "AUSTRALIA ORIENTAL", "INDONESIA"], tropas: 2 });
+  const AustraliaOccidental = new Territorio({ nombre: "AUSTRALIA OCCIDENTAL", frontera: ["AUSTRALIA ORIENTAL", "INDONESIA", "NUEVA GUINEA"], tropas: 2 });
+  const AustraliaOriental = new Territorio({ nombre: "AUSTRALIA ORIENTAL", frontera: ["AUSTRALIA OCCIDENTAL", "NUEVA GUINEA"], tropas: 1 });  
 
   const NATerritorios = [
     Alaska, Alberta, AmericaCentral, EstadosUnidosEste,
@@ -296,7 +782,6 @@ async function inicializarEstado(partida) {
     Indonesia, NuevaGuinea, AustraliaOccidental, AustraliaOriental
   ];
 
-  // Create continents
   const NA = new Continente({
     territorios: NATerritorios,
     valor: 5
@@ -331,40 +816,122 @@ async function inicializarEstado(partida) {
 
   partida.mapa = Mapa;
 
+  // Barajear cartas
+  partida.cartas = shuffle(partida.cartas);
+
+  // Reapartir los territorios
+  for (let i = 0; i < partida.cartas.length; i++) {
+    partida.jugadores[i % partida.jugadores.length].push(partida.cartas[i].Territorio);
+  }
+
+  // Volver a barajear
+  partida.cartas = shuffle(partida.cartas);
+
 }
 
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
 
-async function salirPartida(usuarioID, partidaOID) {
-  try {
-    const partida = await Partida.findById(partidaOID);
-    
-    if (partida) {
-      // Verificar si el usuario está en la partida
-      const index = partida.jugadores.indexOf(usuarioID);
-      if (index !== -1) {
-        // Si la partida no ha comenzado (fechaInicio es null), quitar al usuario de la partida
-        if (partida.fechaInicio === null) {
-          partida.jugadores.splice(index, 1);
-          await partida.save();
-          console.log("Usuario sacado de la partida", partida);
-        } else {
-          // Si la partida ha comenzado, marcar al usuario como abandonado
-          const jugador = partida.jugadores[index];
-          jugador.abandonado = true;
-          await partida.save();
-          console.log("Usuario marcado como abandonado en la partida", partida);
-        }
-      } else {
-        console.error("El usuario no está en la partida");
-      }
-    } else {
-      console.error("Partida no encontrada");
-    }
-  } catch (error) {
-    console.error("Error al sacar al usuario de la partida", error);
-    throw error;
+function territoriosFronterizos(partida, territorio1, territorio2) {
+  // Busca el territorio1 en la partida
+  const infoTerritorio1 = partida.mapa.find(continente => continente.territorios.find(t => t.nombre === territorio1));
+  
+  if (!infoTerritorio1) {
+      console.error('Territorio 1 no encontrado en la partida');
+      return false;
+  }
+  
+  // Busca el territorio2 en la partida
+  const infoTerritorio2 = partida.mapa.find(continente => continente.territorios.find(t => t.nombre === territorio2));
+  
+  if (!infoTerritorio2) {
+      console.error('Territorio 2 no encontrado en la partida');
+      return false;
+  }
+  
+  // Verifica si territorio1 y territorio2 son fronterizos
+  if (infoTerritorio1.frontera.includes(territorio2) && infoTerritorio2.frontera.includes(territorio1)) {
+      return true;
+  } else {
+      return false;
   }
 }
+
+// Función para resolver una batalla entre el atacante y el defensor
+function resolverBatalla(dadosAtacante, dadosDefensor) {
+  let tropasPerdidasAtacante = 0;
+  let tropasPerdidasDefensor = 0;
+
+  // Calcula el número de comparaciones basado en la cantidad mínima de dados lanzados
+  const numComparaciones = Math.min(dadosAtacante.length, dadosDefensor.length);
+
+  // Resuelve cada comparación de dados
+  for (let i = 0; i < numComparaciones; i++) {
+      if (dadosAtacante[i] > dadosDefensor[i]) {
+          tropasPerdidasDefensor++;
+      } else {
+          tropasPerdidasAtacante++;
+      }
+  }
+
+  return { tropasPerdidasAtacante, tropasPerdidasDefensor };
+}
+
+// Devuelve el numero de jugador al que pertenece un territorio
+async function encontrarPropietario(partida, nombreTerritorio){ 
+  for (let i = 0; i < partida.jugadores.length; i++) {
+    const jugador = partida.jugadores[i];
+    if (jugador.territorios.includes(nombreTerritorio)) {
+        console.log(`El territorio ${nombreTerritorio} pertenece al jugador ${jugador.usuario}.`);
+        console.log(`Índice del jugador en partida.jugadores: ${i}`);
+        return i;
+    }
+  }
+}
+
+async function maniobraPosible(partida, numJugador, territorioOrigen, territorioDestino) {
+  // Crear un conjunto para almacenar los territorios visitados
+  const visitados = new Set();
+
+  // Función recursiva para realizar la búsqueda en profundidad (DFS)
+  function dfs(territorioActual) {
+      // Agregar el territorio actual al conjunto de visitados
+      visitados.add(territorioActual);
+
+      // Verificar si el territorio actual es igual al territorio de destino
+      if (territorioActual === territorioDestino) {
+          return true;
+      }
+
+      // Obtener los territorios vecinos del territorio actual pertenecientes al jugador
+      territorios = partida.mapa.flatMap(continente => continente.territorios);
+      territoriosVecinos = territoriosVecinos
+        .filter(vecino => vecino.nombre === territorioActual)[0] // Filtrar el territorio actual
+        .frontera // Obtener los territorios vecinos
+        .filter(vecino => partida.jugadores[numJugador].territorios.includes(vecino)); // Filtrar los vecinos pertenecientes al jugador
+
+      // Recorrer los territorios vecinos y realizar DFS en aquellos que no han sido visitados
+      for (const vecino of territoriosVecinos) {
+          if (!visitados.has(vecino)) {
+              if (dfs(vecino)) {
+                  return true;
+              }
+          }
+      }
+
+      return false;
+  }
+
+  // Llamar a la función DFS con el territorio de origen
+  return dfs(territorioOrigen);
+}
+
+// ----------------------------------------------------------------------------
 
 module.exports = {
   crearPartida, 
@@ -373,5 +940,11 @@ module.exports = {
   invite,
   join,
   salirPartida,
-  iniciarPartida
+  iniciarPartida,
+  siguienteFase,
+  colocarTropas,
+  atacarTerritorio,
+  realizarManiobra,
+  utilizarCartas,
+  getPartida
 };

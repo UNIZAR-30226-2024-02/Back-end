@@ -9,6 +9,7 @@ const amistadRouter = require('./routes/amistad');
 const tiendaRouter = require('./routes/tienda');
 const chatRouter = require('./routes/chats')
 const misSkinsRouter = require('./routes/misSkins')
+const partidaRouter = require('./routes/partida')
 const cors = require('cors');
 
 const app = express();
@@ -62,8 +63,9 @@ app.use('/nuevaPartida', nuevaPartidaRouter);
 app.use('/partidas', obtenerPartidasRouter);
 app.use('/amistad', amistadRouter);
 app.use('/tienda', tiendaRouter);
-app.use('/chats', chatRouter)
-app.use('/misSkins', misSkinsRouter)
+app.use('/chats', chatRouter);
+app.use('/misSkins', misSkinsRouter);
+app.use('/partida', partidaRouter);
 
 // ruta prueba principal
 app.get('/', (req, res) => {
