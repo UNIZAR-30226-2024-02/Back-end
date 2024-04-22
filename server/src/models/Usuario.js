@@ -61,14 +61,14 @@ const UsuarioSchema = new mongoose.Schema({
       type: String,
       ref: 'Skin.idSkin',
     }],
-    default: ['exampleSkin', 'exampleSkin2', 'exampleSkin3']
+    default: ['defaultSkin', 'defaultFichas', 'defaultMap']
   },
 
   avatar: {
     type: {
       type: String,
       ref: 'Skin.idSkin',
-      default: 'exampleSkin'
+      default: 'defaultSkin'
     },
   },
 
@@ -76,7 +76,7 @@ const UsuarioSchema = new mongoose.Schema({
     type: {
       type: String,
       ref: 'Skin.idSkin',
-      default: 'exampleSkin2'
+      default: 'defaultFichas'
     },
   },
 
@@ -84,7 +84,7 @@ const UsuarioSchema = new mongoose.Schema({
     type: {
       type: String,
       ref: 'Skin.idSkin',
-      default: 'exampleSkin3'
+      default: 'defaultMap'
     },
   }
 })
