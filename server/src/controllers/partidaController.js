@@ -1,5 +1,5 @@
 const { FindCursor } = require('mongodb');
-const {Partida, Jugador} = require('../models/Partida');
+const {Partida, Jugador, Territorio, Carta, Continente} = require('../models/Partida');
 const { findById } = require('../models/Skin');
 const Usuario = require('../models/Usuario');
 const Chat = require('../models/Chat');
@@ -197,30 +197,35 @@ async function getHistorico(user) {
 
 // Dado el object id de una partida (id unico de la bdd) inicia esta.
 async function iniciarPartida(partidaOID, usuarioID) {
-  const partida = await Partida.findById(partidaOID);
-  if (!partida) {
-    console.error("La partida no existe");
-    return false;
+  try {
+    const partida = await Partida.findById(partidaOID);
+    if (!partida) {
+      throw new MediaError("La partida no existe");
+
+    }
+
+    // Comprobar si el usuario esta en la partida
+    jugador = numJugador(partida, usuarioID);
+    if(jugador == - 1){
+      return false;
+    }
+
+    if(partida.jugadores.length < 2){
+      throw new Error("Numero de jugadores insuficiente");
+    }
+
+    partida.fechaInicio = new Date();
+
+    await inicializarEstado(partida);
+    
+    await partida.save();
+    console.log("Partida iniciada correctamente:", partida);
+    return true;
+    //console.log("Partida iniciada correctamente:", partida);
+  } catch (error) {
+    console.log(error.message)
+    throw error;
   }
-
-  // Comprobar si el usuario esta en la partida
-  jugador = numJugador(partida, usuarioID);
-  if(jugador == - 1){
-    return false;
-  }
-
-  if(partida.jugadores.length() < 3){
-    console.error("Numero de jugadores insuficientes en la partida");
-    return false;
-  }
-
-  partida.fechaInicio = new Date();
-
-  await inicializarEstado(partida);
-
-  await partida.save();
-
-  console.log("Partida iniciada correctamente:", partida);
 }
 
 async function colocarTropas(partidaOID, usuarioID, nombreTerritorio, tropas) {
@@ -424,7 +429,7 @@ async function siguienteFase(partidaOID, usuarioID) {
   }
 
   // Buscar al jugador en la partida
-  jugador = numJugador(partida, usuarioID);
+  jugador = await numJugador(partida, usuarioID);
   if(jugador == - 1){
     return false;
   }
@@ -442,7 +447,8 @@ async function siguienteFase(partidaOID, usuarioID) {
 
   // Pasar a la siguiente fase. Si era la ultima fase pasar de turno
   partida.fase = (partida.fase + 1) % 5;
-  if(partida.fase = Colocar){
+  console.log(partida.fase)
+  if(partida.fase === Colocar){
     partida.turno = partida.turno + 1;
 
     // Inicializamos la variable de refuerzos del siguiente jugador
@@ -464,8 +470,9 @@ async function siguienteFase(partidaOID, usuarioID) {
       partida.auxRobar = false;
     }
   }
-
+  console.log(partida.fase)
   await partida.save();
+  return true;
 }
 
 async function utilizarCartas(partidaOID, usuarioID, carta1, carta2, carta3) {
@@ -543,7 +550,7 @@ async function getPartida(partidaOID, UsuarioID){
 
   for (let i = 0; i < partida.jugadores.length; i++) {
     // Eliminar el campo cartas de el resto de jugadores
-    if (i != jugadorIndex) {
+    if (i != jugador) {
       delete partida.jugadores[i].cartas;
     }
   }
@@ -627,7 +634,7 @@ async function actualizarTropasTerritorio(partida, nombreTerritorio, delta){
 // Dado un id de usuario devuelve su numero de jugador o -1 si no esta
 async function numJugador(partida, usuarioID){
   for( let i = 0; i <= partida.jugadores.length; i++){
-    if( partida.jugadores[i] == usuarioID){
+    if( partida.jugadores[i].usuario == usuarioID){
       return i;
     }
   }
@@ -637,11 +644,11 @@ async function numJugador(partida, usuarioID){
 
 async function comprobarTurno(partida, numJugador){
   // Comprobar si la partida aun no ha empezado o si ha terminado
+  console.log("Jugador: " + numJugador + " Turno: " + partida.turno)
   if (partida.fechaInicio == null || partida.fechaFin != null) {
     console.error("La partida no esta activa")
     return false;
   }
-
   // Comprobar si es el turno del jugador
   if (partida.turno == numJugador) {
     return true;
@@ -667,10 +674,28 @@ async function inicializarEstado(partida) {
     const j = Math.floor(Math.random() * (i + 1));
     [partida.jugadores[i], partida.jugadores[j]] = [partida.jugadores[j], partida.jugadores[i]];
   }
+  
 
-  // Actualizamos el campo turno de cada jugador
-  for (let i = 0; i < partida.jugadores.length; i++) {
-    partida.jugadores[i].turno = i + 1; 
+  // Actualizamos el campo turno de cada jugador -> ?¿
+  //for (let i = 0; i < partida.jugadores.length; i++) {
+  //  partida.jugadores[i].turno = i + 1; 
+  //}
+  //console.log(partida.jugadores)
+
+  // le metemos el color a los jugadores
+  colores = ['verde', 'rojo', 'azul', 'amarillo', 'rosa', 'morado'];
+  shuffle(colores);
+  for(let jugador of partida.jugadores){
+    if (colores.length > 0) {
+      let color = this.colores.pop();
+      if (color !== undefined) {
+        jugador.color = color;
+      } else {
+        console.error('Unexpected error: No more colors available');
+      }
+    } else {
+      console.error('No more colors available');
+    }
   }
 
 
@@ -834,11 +859,13 @@ async function inicializarEstado(partida) {
 
   // Barajear cartas
   partida.cartas = shuffle(partida.cartas);
-
+  partida.jugadores.map(jugador => jugador.territorios = []);
+  console.log(partida.jugadores.map(jugador => jugador.territorios))
   // Reapartir los territorios
   for (let i = 0; i < partida.cartas.length; i++) {
-    partida.jugadores[i % partida.jugadores.length].push(partida.cartas[i].Territorio);
+    partida.jugadores[i % partida.jugadores.length].territorios.push(partida.cartas[i].territorio);
   }
+
 
   // Volver a barajear
   partida.cartas = shuffle(partida.cartas);

@@ -1,3 +1,20 @@
+const express = require('express')
+const router = express.Router()
+const {   crearPartida, 
+  getPartidasDisponibles,
+  getHistorico,
+  invite,
+  join,
+  salirPartida,
+  iniciarPartida,
+  siguienteFase,
+  colocarTropas,
+  atacarTerritorio,
+  realizarManiobra,
+  utilizarCartas,
+  getPartida } = require('../controllers/partidaController');
+const obtenerUsuarioDesdeToken = require('../auth/auth');
+
 router.put('/getPartida', async (req, res) => {
   console.log(req.body)
   try {
@@ -8,7 +25,7 @@ router.put('/getPartida', async (req, res) => {
       return res.status(401).json({ mensaje: 'Token no proporcionado o inválido' })
 
     partida = await getPartida(idPartida, user)
-    if (succ) {
+    if (partida) {
       res.status(200).json({ partida })
     } else {
       res.status(400).json({ message: 'Error al encontrar partida' })
@@ -31,8 +48,6 @@ router.put('/iniciarPartida', async (req, res) => {
     const succ = await iniciarPartida(idPartida, user)
     if (succ) {
       res.status(200).json({ message: 'Partida iniciada' })
-    } else {
-      res.status(400).json({ message: 'Error al iniciar partida' })
     }
   } catch (error) {
     console.log(error.message)
@@ -144,3 +159,5 @@ router.put('/utilizarCartas', async (req, res) => {
     res.status(500).json({ error: error.message })
   }
 });
+
+module.exports = router
