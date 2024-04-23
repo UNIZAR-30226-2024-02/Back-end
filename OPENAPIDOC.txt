@@ -1,0 +1,818 @@
+openapi: 3.0.0
+info:
+  title: API REST del Back End
+  version: 1.0.0
+tags:
+  - name: Authentication
+    description: Operaciones relacionadas con la autentificación de usuarios
+  - name: Chat
+    description: Operaciones relacionadas con la funcionalidad del chat
+  - name: Amistad
+    description: Operaciones relacionadas con la funcionalidad de lista de amigos
+  - name: Tienda 
+    description: Operaciones relacionadas con la funcionalidad de la tienda de skins
+  - name: MisSkins 
+    description: Operaciones relacionadas con la gestión de skins de un usuario
+  - name: Ranking
+    description: Operaciones relacionadas con el ranking de usuarios
+  - name: Partidas
+    description: Operaciones relacionadas con la creación y gestión de partidas
+paths:
+  /login:
+    post:
+      tags: 
+        - Authentication
+      summary: Iniciar sesión de un usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: El ID o correo electrónico del usuario
+                password:
+                  type: string
+                  description: La contraseña del usuario
+              required:
+                - id
+                - password
+      responses:
+        '200':
+          description: Inicio de sesión exitoso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Un mensaje que indica que el inicio de sesión fue exitoso
+                  token:
+                    type: string
+                    description: El token JWT para el usuario que inició sesión
+                  idUsuario:
+                    type: string
+                    description: El ID del usuario que inició sesión
+        '400':
+          description: Solicitud incorrecta
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: El mensaje de error
+        '403':
+          description: Prohibido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: El mensaje de error que indica credenciales incorrectas
+  /register:
+    post:
+      summary: Registrar un nuevo usuario
+      tags: 
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                idUsuario:
+                  type: string
+                  description: El ID del nuevo usuario
+                password:
+                  type: string
+                  description: La contraseña del nuevo usuario
+                correo:
+                  type: string
+                  description: El correo electrónico del nuevo usuario
+              required:
+                - idUsuario
+                - password
+                - correo
+      responses:
+        '201':
+          description: Registro exitoso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Un mensaje que indica que el registro fue exitoso
+                  token:
+                    type: string
+                    description: El token JWT para el nuevo usuario
+        '400':
+          description: Solicitud incorrecta
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: El mensaje de error
+  /chats/crearChat:
+      post:
+        summary: Crear un nuevo chat
+        tags: 
+          - Chat
+        parameters:
+          - in: header
+            name: authorization
+            schema:
+              type: string
+            required: true
+            description: El token de autorización del usuario
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  nombreChat:
+                    type: string
+                    description: El nombre del nuevo chat
+                  usuarios:
+                    type: array
+                    items:
+                      type: string
+                    description: Un array de IDs de usuarios
+                required:
+                  - nombreChat
+                  - usuarios
+        responses:
+          '201':
+            description: Chat creado exitosamente
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    mensaje:
+                      type: string
+                      description: Un mensaje que indica que el chat fue creado exitosamente
+          '401':
+            description: No autorizado
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    mensaje:
+                      type: string
+                      description: Un mensaje que indica que el token no fue proporcionado o es inválido
+          '500':
+            description: Error interno del servidor
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      description: El mensaje de error
+  /chats/salirDeChat:
+    post:
+      summary: Salir de un chat
+      tags: 
+        - Chat
+      parameters:
+        - in: header
+          name: authorization
+          schema:
+            type: string
+          required: true
+          description: El token de autorización de un usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                OID:
+                  type: string
+                  description: El identificador del chat
+      responses:
+        '200':
+          description: El usuario abandonó el chat con éxito
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal Server Error
+
+  /chats/enviarMensaje:
+    post:
+      tags: 
+        - Chat    
+      summary: Enviar mensaje al chat
+      parameters:
+        - in: header
+          name: authorization
+          schema:
+            type: string
+          required: true
+          description: El token de autorización de un usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                OID:
+                  type: string
+                  description: El identificador del chat
+                textoMensaje:
+                  type: string
+                  description: El texto del mensaje
+      responses:
+        '200':
+          description: El mensaje se ha enviado con éxito
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal Server Error
+
+  /chats/obtenerMensajes:
+    post:
+      tags: 
+        - Chat
+      summary: Obtener mensajes del chat
+      parameters:
+        - in: header
+          name: authorization
+          schema:
+            type: string
+          required: true
+          description: El token de autorización de un usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                OIDChat:
+                  type: string
+                  description: El identificador del Chat
+      responses:
+        '200':
+          description: Mensajes recuperados exitosamente
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal Server Error
+
+  /chats/listar:
+    get:
+      summary: Obtener todos los chats
+      tags:
+        - Chat
+      parameters:
+        - in: header
+          name: authorization
+          schema:
+            type: string
+          required: true
+          description: El token de autorización de un usuario
+      responses:
+        '200':
+          description: Chats listados con éxito
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal Server Error
+
+  /chats/obtenerParticipantes:
+    post:
+      summary: Obtener los participantes de un chat
+      tags:
+        - Chat
+      parameters:
+        - in: header
+          name: authorization
+          schema:
+            type: string
+          required: true
+          description: El token de autorización de un usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                OIDChat:
+                  type: string
+                  description: El identificador de un chat
+      responses:
+        '200':
+          description: Participantes recuperados con éxito
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal Server Error
+  /amistad:
+    post:
+      summary: Crear una nueva amistad
+      tags: 
+        - Amistad
+      parameters:
+        - in: header
+          name: authorization
+          schema:
+            type: string
+          required: true
+          description: El token de autorización del usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                idDestino:
+                  type: string
+                  description: El ID del usuario destino
+      responses:
+        '200':
+          description: Creación de amistad correcta
+        '400':
+          description: Error al crear amistad
+        '401':
+          description: Token no proporcionado o inválido
+        '500':
+          description: Error fatal
+  /amistad/{idDestino}:
+    delete:
+      summary: Cancelar una amistad
+      tags: 
+        - Amistad
+      parameters:
+        - in: header
+          name: authorization
+          schema:
+            type: string
+          required: true
+          description: El token de autorización del usuario
+        - in: path
+          name: idDestino
+          schema:
+            type: string
+          required: true
+          description: El ID del usuario destino
+      responses:
+        '200':
+          description: Cancelación de amistad correcta
+        '400':
+          description: Error al cancelar amistad
+        '401':
+          description: Token no proporcionado o inválido
+        '500':
+          description: Error fatal
+  /amistad/listarAmigos:
+    get:
+      summary: Listar amigos
+      tags: 
+        - Amistad
+      parameters:
+        - in: header
+          name: authorization
+          schema:
+            type: string
+          required: true
+          description: El token de autorización del usuario
+      responses:
+        '200':
+          description: Lista de amigos
+        '401':
+          description: Token no proporcionado o inválido
+        '500':
+          description: Error fatal
+  /amistad/listarSolicitudes:
+    get:
+      summary: Listar solicitudes de amistad
+      tags: 
+        - Amistad
+      parameters:
+        - in: header
+          name: authorization
+          schema:
+            type: string
+          required: true
+          description: El token de autorización del usuario
+      responses:
+        '200':
+          description: Lista de solicitudes de amistad
+        '401':
+          description: Token no proporcionado o inválido
+        '500':
+          description: Error fatal
+  /tienda:
+    post:
+      summary: Buscar skins en la tienda
+      tags: 
+        - Tienda
+      parameters:
+        - in: header
+          name: authorization
+          schema:
+            type: string
+          required: true
+          description: El token de autorización del usuario
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sortBy:
+                  type: string
+                  description: Campo por el cual ordenar los resultados
+                precioMin:
+                  type: number
+                  description: Precio mínimo de las skins a buscar
+                precioMax:
+                  type: number
+                  description: Precio máximo de las skins a buscar
+                tipo:
+                  type: string
+                  description: Tipo de las skins a buscar
+      responses:
+        '200':
+          description: Lista de skins
+        '401':
+          description: Token no proporcionado o inválido
+        '500':
+          description: Error al obtener skins de la tienda
+  /tienda/comprar:
+    post:
+      summary: Comprar una skin
+      tags: 
+        - Tienda
+      parameters:
+        - in: header
+          name: authorization
+          schema:
+            type: string
+          required: true
+          description: El token de autorización del usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                idSkin:
+                  type: string
+                  description: ID de la skin a comprar
+      responses:
+        '200':
+          description: Skin adquirida correctamente
+        '400':
+          description: No tienes suficiente dinero
+        '401':
+          description: Token no proporcionado o inválido
+        '500':
+          description: Error al obtener skins de la tienda
+  /tienda/dineroUser:
+    get:
+      summary: Obtener dinero del usuario
+      tags: 
+        - Tienda
+      parameters:
+        - in: header
+          name: authorization
+          schema:
+            type: string
+          required: true
+          description: El token de autorización del usuario
+      responses:
+        '200':
+          description: Dinero del usuario
+        '401':
+          description: Token no proporcionado o inválido
+        '500':
+          description: Error al obtener dinero del usuario
+  /misSkins/equipadas:
+    get:
+      summary: Obtener skins equipadas del usuario
+      tags: 
+        - MisSkins
+      parameters:
+        - in: header
+          name: authorization
+          schema:
+            type: string
+          required: true
+          description: El token de autorización del usuario
+      responses:
+        '201':
+          description: Lista de skins equipadas
+        '401':
+          description: Token no proporcionado o inválido
+        '400':
+          description: Error al obtener skins equipadas
+  /misSkins/enPropiedad:
+    get:
+      summary: Obtener skins en propiedad del usuario
+      tags: 
+        - MisSkins
+      parameters:
+        - in: header
+          name: authorization
+          schema:
+            type: string
+          required: true
+          description: El token de autorización del usuario
+      responses:
+        '201':
+          description: Lista de skins en propiedad
+        '401':
+          description: Token no proporcionado o inválido
+        '400':
+          description: Error al obtener skins en propiedad
+  /misSkins/equipar:
+    post:
+      summary: Equipar una skin
+      tags: 
+        - MisSkins
+      parameters:
+        - in: header
+          name: authorization
+          schema:
+            type: string
+          required: true
+          description: El token de autorización del usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                skinAEquipar:
+                  type: string
+                  description: ID de la skin a equipar
+      responses:
+        '201':
+          description: Skin equipada correctamente
+        '401':
+          description: Token no proporcionado o inválido
+        '400':
+          description: Error al equipar skin
+  /misSkins/obtenerAvatar/{id}:
+    get:
+      summary: Obtener avatar del usuario
+      tags: 
+        - MisSkins
+      parameters:
+        - in: header
+          name: authorization
+          schema:
+            type: string
+          required: true
+          description: El token de autorización del usuario
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: ID del usuario
+      responses:
+        '201':
+          description: Avatar del usuario
+        '401':
+          description: Token no proporcionado o inválido
+        '400':
+          description: Error al obtener avatar
+  /ranking:
+    get:
+      summary: Obtener ranking de usuarios
+      tags: 
+        - Ranking
+      parameters:
+        - in: header
+          name: authorization
+          schema:
+            type: string
+          required: true
+          description: El token de autorización del usuario
+      responses:
+        '201':
+          description: Lista de usuarios ordenados por ranking
+        '401':
+          description: Token no proporcionado o inválido
+        '400':
+          description: Error al obtener ranking
+  /nuevaPartida:
+    post:
+      summary: Crear una partida
+      tags: 
+        - Partidas
+      parameters:
+        - in: header
+          name: authorization
+          schema:
+            type: string
+          required: true
+          description: El token de autorización del usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nombre:
+                  type: string
+                  description: Nombre de la partida
+                password:
+                  type: string
+                  description: Contraseña de la partida
+                numJugadores:
+                  type: integer
+                  description: Número de jugadores en la partida
+      responses:
+        '200':
+          description: Partida creada correctamente
+        '400':
+          description: ¡Ya existe una partida con estas credenciales!
+        '401':
+          description: Token no proporcionado o inválido
+        '500':
+          description: Error al crear partida
+  /nuevaPartida/invite:
+    put:
+      summary: Invitar a un usuario a la partida
+      tags: 
+        - Partidas
+      parameters:
+        - in: header
+          name: authorization
+          schema:
+            type: string
+          required: true
+          description: El token de autorización del usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  type: string
+                  description: ID del usuario a invitar
+                idPartida:
+                  type: string
+                  description: ID de la partida
+      responses:
+        '200':
+          description: Invitado correctamente
+        '400':
+          description: Error invitando
+        '401':
+          description: Token no proporcionado o inválido
+        '500':
+          description: Error al invitar
+  /nuevaPartida/join:
+    put:
+      summary: Unirse a una partida
+      tags: 
+        - Partidas
+      parameters:
+        - in: header
+          name: authorization
+          schema:
+            type: string
+          required: true
+          description: El token de autorización del usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                idPartida:
+                  type: string
+                  description: ID de la partida
+                password:
+                  type: string
+                  description: Contraseña de la partida
+      responses:
+        '200':
+          description: Unido correctamente
+        '400':
+          description: Error uniendo
+        '401':
+          description: Token no proporcionado o inválido
+        '500':
+          description: Error al unirse
+  /partidas:
+    get:
+      summary: Obtener partidas disponibles
+      tags:
+        - Partidas
+      parameters:
+        - in: header
+          name: authorization
+          schema:
+            type: string
+          required: true
+          description: El token de autorización del usuario
+      responses:
+        '200':
+          description: Lista de partidas disponibles
+        '401':
+          description: Token no proporcionado o inválido
+        '400':
+          description: Error al obtener partidas disponibles
+  /partidas/historico:
+    get:
+      summary: Obtener historico de partidas del usuario
+      tags:
+        - Partidas
+      parameters:
+        - in: header
+          name: authorization
+          schema:
+            type: string
+          required: true
+          description: El token de autorización del usuario
+      responses:
+        '200':
+          description: Historico de partidas del usuario
+        '204':
+          description: No hay partidas en el historico
+        '401':
+          description: Token no proporcionado o inválido
+        '400':
+          description: Error al obtener historico
+  /partidas/invitaciones:
+    get:
+      summary: Obtener invitaciones a partidas del usuario
+      tags: 
+        - Partidas
+      parameters:
+        - in: header
+          name: authorization
+          schema:
+            type: string
+          required: true
+          description: El token de autorización del usuario
+      responses:
+        '200':
+          description: Lista de invitaciones a partidas
+        '401':
+          description: Token no proporcionado o inválido
+        '400':
+          description: Error al obtener invitaciones
+  /partidas/partida/{id}:
+    get:
+      summary: Obtener información de una partida
+      tags: 
+        - Partidas
+      parameters:
+        - in: header
+          name: authorization
+          schema:
+            type: string
+          required: true
+          description: El token de autorización del usuario
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: ID de la partida
+      responses:
+        '200':
+          description: Información de la partida
+        '401':
+          description: Token no proporcionado o inválido
+        '400':
+          description: Error al obtener información de la partida
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/UZ-30226-2024-02/Proyecto_Software2324/1.0.0

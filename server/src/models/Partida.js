@@ -2,13 +2,13 @@ const mongoose = require("mongoose")
 const Chat = require("./Chat")
 
 const TerritorioSchema = new mongoose.Schema({
-    nombre: { type: String, required: true, unique: true},
+    nombre: { type: String, required: true },
     frontera: [{ type: String }],
     tropas: { type: Number, default: 0 }
 });
 
 const CartaSchema = new mongoose.Schema({
-    territorio: { type: String, required: true, unique: true },
+    territorio: { type: String, required: true },
     estrellas: { type: Number, required: true},
 });
 
@@ -20,13 +20,12 @@ const ContinenteSchema = new mongoose.Schema({
 const JugadorSchema = new mongoose.Schema({
     usuario: {
         type: String,
-        required: true,
-        unique: true
+        required: true
     },
     territorios: [{ type: String, default: [] }],
     cartas: [{ type: CartaSchema }],
     skinFichas: {type: String, ref: 'Skin.idSkin'},
-    color: {type: String, unique: true},
+    color: {type: String},
     abandonado: { type: Boolean, default: false}
 });
 
@@ -37,11 +36,9 @@ const PartidaSchema = new mongoose.Schema({
     fechaFin: { type: Date, default: null},
     password: { type: String, required: false, default: null},
 
-    ganador: {
-        type: {
+    ganador: { // TODO
             type: String,
-            ref: 'Usuario.idUsuario',
-        },
+            default: null
     },
     jugadores: [{ type: JugadorSchema, default: []}],
     cartas: [{  type: CartaSchema , default: [] }],

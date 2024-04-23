@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const { crearUsuario } = require('../controllers/usuarioController');
+const jwt = require('jsonwebtoken');
 
 // petición post desde <url>/register desencadena esta acción
 // los parámetros van en el body de la request
@@ -11,7 +12,8 @@ router.post('/', async(req, res) => {
       const { idUsuario, password, correo } = req.body
       await crearUsuario(idUsuario, password, correo)
       console.log('Usuario registrado exitosamente')
-      res.status(201).json({ message: 'Usuario registrado exitosamente' })
+      const token = jwt.sign({ idUsuario: idUsuario }, 'claveSecreta', { expiresIn: '1h' });
+      res.status(201).json({ message: 'Usuario registrado exitosamente', token })
   } catch (error) {
       console.log(error.message)
       res.status(400).json({ error: error.message })

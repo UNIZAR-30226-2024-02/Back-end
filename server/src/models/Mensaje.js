@@ -4,7 +4,7 @@ const Usuario = require("./Usuario");
 const MensajeSchema = mongoose.Schema({
   texto: { type: String, required: true, default: "" },
   idUsuario: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,
     ref: 'Usuario',
     required: true
   },

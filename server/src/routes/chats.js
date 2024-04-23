@@ -62,7 +62,7 @@ router.post('/enviarMensaje', async (req, res) => {
         return res.status(401).json({ mensaje: 'Token no proporcionado o inválido' })  
 
     const { OID, textoMensaje } = req.body;
-
+    console.log(OID, textoMensaje)
     try {
         await enviarMensaje(user, OID, textoMensaje);
         res.status(200).json({ mensaje: 'Mensaje enviado con éxito' });

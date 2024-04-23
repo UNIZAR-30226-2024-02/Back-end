@@ -103,6 +103,7 @@ describe('Creación de partidas', () => {
 
         expect(contienePartida).toBe(true);
     });
+
 });
 
 describe('Unir a partidas', () => {
@@ -154,7 +155,7 @@ describe('Unir a partidas', () => {
         const partida = {
             nombre: nombrePartida,
             password: null,
-            numJugadores: 1
+            numJugadores: 2
         };
         const created = await request
             .post('/nuevaPartida')
@@ -175,8 +176,27 @@ describe('Unir a partidas', () => {
             .send(credenciales)
             .set('Authorization', `${authTokenPig}`) // Incluye el token de acceso en la cabecera
             .set('Accept', 'application/json');
-        expect(joined.status).toBe(400)
-    })
+        expect(created.status).toBe(200)
+        const loginCredentials = {
+            id: 'a',
+            password: 'a'
+        };
+
+        const response = await request
+            .post('/login')
+            .send(loginCredentials)
+            .set('Accept', 'application/json');
+
+        expect(response.status).toBe(200);
+        const token = response.body.token;
+        const shouldfail = await request
+            .put('/nuevaPartida/join')
+            .send(credenciales)
+            .set('Authorization', token) // Incluye el token de acceso en la cabecera
+            .set('Accept', 'application/json');
+        expect(shouldfail.status).toBe(400);
+    }); 
+
 
     it('debería fallar unirse a una partida privada con contraseña incorrecta', async () => {
         await Partida.deleteMany({nombre: nombrePartida})
@@ -263,6 +283,11 @@ describe('Invitaciones a partidas', () => {
     })
 
     it('debería permitir invitar a un usuario', async () => {
+        const usuario = await Usuario.findOne({ idUsuario: 'pigdemon' });
+        if (usuario) {
+            usuario.invitaciones = [];
+            await usuario.save();
+        }
         await Partida.deleteMany({nombre: nombrePartida})
         const partida = {
             nombre: nombrePartida,
@@ -317,6 +342,18 @@ describe('Invitaciones a partidas', () => {
             .set('Accept', 'application/json')
         expect(response.status).toBe(200)
         expect(response.body).toHaveProperty('message', 'Unido correctamente')
+    })
+
+    it('debería permitir listar las partidas de un usuario', async () => {
+        
+        const response = await request
+            .get('/partidas/invitaciones')
+            .set('Authorization', `${authTokenPig}`) // Incluye el token de acceso en la cabecera
+            .set('Accept', 'application/json');
+
+        expect(response.status).toBe(200)
+        expect(response.body).toHaveProperty('Partidas')
+        expect(response.body.Partidas).toHaveLength(1) // debería haber una partida en la lista pigdemon
     })
 });
 

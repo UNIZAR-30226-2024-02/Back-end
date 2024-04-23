@@ -1,12 +1,12 @@
 const Usuario = require('../models/Usuario');
 const Skin = require('../models/Skin');
+const { Partida } = require('../models/Partida');
 
 async function crearUsuario(idUsuario, password, correo) {
-    console.log(idUsuario, password, correo)
     // Comprobar si el usuario o el correo electrónico ya existen en la base de datos
     const existingUser = await Usuario.findOne({ $or: [{ idUsuario }, { correo }] })
     if (existingUser) {
-        console.log('el usuario ya existe')
+        //console.log('el usuario ya existe')
         throw new Error('El nombre de usuario o correo electrónico ya está en uso.')
     }
     // Crear un nuevo usuario y guardarlo en la base de datos
@@ -260,6 +260,82 @@ async function setSkinEquipada(idUsuario, idSkin) {
     }
 }
   
+async function getMoney(idUsuario) {
+    try {
+        const usuario = await Usuario.findOne({ idUsuario });
+        return usuario.puntos;
+    } catch (error) {
+        console.error('Error al obtener el dinero del usuario:', error.message);
+        throw error;
+    }
+}
+
+async function getFriends(idUsuario) {
+    try {
+        const usuario = await Usuario.findOne({ idUsuario });
+        return usuario.amigos;
+    }
+    catch (error) {
+        console.error('Error al obtener la lista de amigos:', error.message);
+        throw error;
+    }
+}
+
+async function getSolicitudes(idUsuario) {
+    try {
+        const usuario = await Usuario.findOne({ idUsuario });
+        return usuario.solicitudes;
+    }
+    catch (error) {
+        console.error('Error al obtener la lista de amigos:', error.message);
+        throw error;
+    }
+}
+
+async function getInvitaciones(idUsuario) { 
+    try {
+        const usuario = await Usuario.findOne({ idUsuario });
+        const invitaciones = usuario.invitaciones;
+        console.log(invitaciones)
+
+        const partidas = await Promise.all(invitaciones.map(async (invitacion) => {
+            console.log(invitacion)
+            return await Partida.findById(invitacion)
+        }));
+
+        return partidas;
+    }
+    catch (error) {
+        console.error('Error al obtener la lista de amigos:', error.message);
+        throw error;
+    }
+}
+
+async function obtenerAvatar(idUsuario){
+    try {
+        const usuario = await Usuario.findOne({ idUsuario });
+        console.log(usuario.avatar.type)
+        const avatar = await Skin.findOne({ idSkin: new RegExp(usuario.avatar.type, 'i') });
+        console.log(avatar)
+        return avatar;
+    } catch (error) {
+        console.error('Error al obtener el avatar del usuario:', error.message);
+        throw error;
+    }
+}
+
+async function obtenerTerreno(idUsuario){
+    try {
+        const usuario = await Usuario.findOne({ idUsuario });
+        console.log(usuario.terreno.type)
+        const terreno = await Skin.findOne({ idSkin: new RegExp(usuario.terreno.type, 'i') });
+        console.log(terreno)
+        return terreno;
+    } catch (error) {
+        console.error('Error al obtener el terreno del usuario:', error.message);
+        throw error;
+    }
+}
 
 module.exports = {
     crearUsuario,
@@ -269,5 +345,11 @@ module.exports = {
     cancelarAmistad,
     getSkinsEquipadasByUsuario,
     getSkinsEnPropiedadByUsuario,
-    setSkinEquipada
+    setSkinEquipada,
+    getMoney,
+    getFriends,
+    getSolicitudes,
+    getInvitaciones,
+    obtenerAvatar,
+    obtenerTerreno
 };

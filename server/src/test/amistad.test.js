@@ -106,6 +106,17 @@ describe('Sistema de amistad', () => {
             expect(response.body).toHaveProperty('message', 'Creación de amistad correcta');
     });
 
+    it('debería permitir listar solicitudes de amistad', async () => {
+        const response = await request
+            .get('/amistad/listarSolicitudes')
+            .set('Authorization', `${authTokenPig}`)
+            .set('Accept', 'application/json');
+        expect(response.status).toBe(200);
+        expect(response.body).toHaveProperty('message', 'Solicitudes');
+        expect(response.body.solicitudes).toHaveLength(1);
+        expect(response.body.solicitudes).toContain('perro_sanxe');
+    });
+
     it('debería fallar repetir solicitud de amistad', async () => {
         const amorVerdadero = {
             idDestino: "pigdemon"
@@ -144,6 +155,7 @@ describe('Sistema de amistad', () => {
                 expect(response.status).toBe(200);
                 expect(response.body).toHaveProperty('message', 'Creación de amistad correcta');
         }
+
         const response = await request
             .delete('/amistad/perro_sanxe')
             .set('Authorization', `${authTokenPig}`) // Incluye el token de acceso en la cabecera
@@ -151,6 +163,16 @@ describe('Sistema de amistad', () => {
 
             expect(response.status).toBe(200);
             expect(response.body).toHaveProperty('message', 'Cancelación de amistad correcta');
+    });
+
+    it('debería permitir listar solicitudes de amistad después de rechazar', async () => {
+        const response = await request
+            .get('/amistad/listarSolicitudes')
+            .set('Authorization', `${authTokenPig}`)
+            .set('Accept', 'application/json');
+        expect(response.status).toBe(200);
+        expect(response.body).toHaveProperty('message', 'Solicitudes');
+        expect(response.body.solicitudes).toHaveLength(0);
     });
 
     it('debería permitir crear amistad', async () => {
@@ -195,6 +217,20 @@ describe('Sistema de amistad', () => {
             expect(response.body).toHaveProperty('message', 'Error al crear amistad');
     });
 
+    // listo los amigos de perro sanxe antes de borrarlos
+    it('debería permitir listar amigos', async () => {
+        const response = await request
+            .get('/amistad/listarAmigos')
+            .set('Authorization', `${authTokenPerro}`)
+            .set('Accept', 'application/json');
+
+            expect(response.status).toBe(200);
+            expect(response.body).toHaveProperty('message', 'Lista de amigos');
+            expect(response.body).toHaveProperty('friends');
+            expect(response.body.friends).toHaveLength(1);
+            expect(response.body.friends).toContain('pigdemon');
+    });
+
     it('debería permitir borrar amistad', async () => {
         const response = await request
             .delete('/amistad/perro_sanxe')
@@ -203,6 +239,18 @@ describe('Sistema de amistad', () => {
 
             expect(response.status).toBe(200);
             expect(response.body).toHaveProperty('message', 'Cancelación de amistad correcta');
+    });
+
+    it('debería permitir listar amigos despues de eliminar', async () => {
+        const response = await request
+            .get('/amistad/listarAmigos')
+            .set('Authorization', `${authTokenPerro}`)
+            .set('Accept', 'application/json');
+
+            expect(response.status).toBe(200);
+            expect(response.body).toHaveProperty('message', 'Lista de amigos');
+            expect(response.body).toHaveProperty('friends');
+            expect(response.body.friends).toHaveLength(0);
     });
 
     it('debería fallar cancelar amistad inexistente', async () => {
@@ -214,5 +262,6 @@ describe('Sistema de amistad', () => {
             expect(response.status).toBe(400);
             expect(response.body).toHaveProperty('message', 'Error al cancelar amistad');
     });
+
 });
 

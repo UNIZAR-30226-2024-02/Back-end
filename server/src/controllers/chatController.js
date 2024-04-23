@@ -1,6 +1,7 @@
 const Chat = require('../models/Chat');
 const Usuario = require('../models/Usuario');
 const Mensaje = require('../models/Mensaje');
+const {Partida, Jugador} = require('../models/Partida');
 
 
 // nombreChat -> Nombre del chat
@@ -44,6 +45,9 @@ async function crearChat(nombreChat, idUsuario, usuarios) {
         console.log(amigosexistentes);
         // se crea el chat con el nombre del chat especiificado
         const todosLosUsuarios = [...amigosexistentes, idUsuario];
+        if(todosLosUsuarios.length < 2){
+          throw new Error('No hay suficientes usuarios para crear un chat');
+        }
 
         const nuevoChat = new Chat({nombreChat, usuarios: todosLosUsuarios});
         console.log(nuevoChat)
@@ -130,14 +134,17 @@ async function enviarMensaje(idUsuario, OIDChat, textoMensaje) {
     if (!chat) {
       throw new Error('Chat no encontrado');
     }
-
-    if (!usuario.chats.includes(chat._id)) {
+    const partida = await Partida.findOne({
+      'jugadores.usuario': usuario.idUsuario,
+      'chat._id': OIDChat
+    });
+    if (!usuario.chats.includes(chat._id) && !partida){
       throw new Error('El usuario no tiene acceso a este chat');
     }
-
+    console.log(idUsuario)
     const nuevoMensaje = {
       texto: textoMensaje,
-      idUsuario: usuario._id,
+      idUsuario: idUsuario,
       timestamp: new Date(),
     };
 
@@ -145,6 +152,10 @@ async function enviarMensaje(idUsuario, OIDChat, textoMensaje) {
 
     await chat.save();
     //TODO avisar a todos los participantes del nuevo mensaje
+    if(partida){
+      partida.chat.mensajes.push(nuevoMensaje);
+      await partida.save();
+    }
 
     console.log('Mensaje enviado con éxito');
   } catch (error) {

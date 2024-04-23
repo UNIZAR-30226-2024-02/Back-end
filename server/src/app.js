@@ -1,5 +1,5 @@
 const express = require('express');
-const {connectDB, disconnectDB} = require('./config/db');
+const { connectDB, disconnectDB } = require('./config/db');
 const registerRouter = require('./routes/register');
 const loginRouter = require('./routes/login');
 const rankingRouter = require('./routes/ranking');
@@ -11,8 +11,11 @@ const chatRouter = require('./routes/chats')
 const misSkinsRouter = require('./routes/misSkins')
 const partidaRouter = require('./routes/partida')
 const cors = require('cors');
+const http = require('http');
+const setupSocket = require('./sockets/sockets');
 
 const app = express();
+const server = http.createServer(app);
 
 // parse application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: false }))
@@ -24,7 +27,7 @@ app.use(express.json())
 async function startApp() {
     try {
         await connectDB();
-        server = app.listen(4000, () => {
+        server.listen(4000, () => {
             console.log('Todo piola xD');
         });
     } catch (error) {
@@ -71,5 +74,8 @@ app.use('/partida', partidaRouter);
 app.get('/', (req, res) => {
     res.send('Todo funciona bien');
 })
+
+// Configurar socket.io
+setupSocket(server);
 
 module.exports = { app, startApp, close };

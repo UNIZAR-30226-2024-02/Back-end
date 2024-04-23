@@ -2,6 +2,7 @@ const { FindCursor } = require('mongodb');
 const {Partida, Jugador} = require('../models/Partida');
 const { findById } = require('../models/Skin');
 const Usuario = require('../models/Usuario');
+const Chat = require('../models/Chat');
 
 // FASES PARTIDA
 const Colocar = 0; // Aqui se pueden utilizar cartas
@@ -16,14 +17,21 @@ async function crearPartida(user, nombre, password, numJugadores) {
   console.log(partidaExistente)
   if(partidaExistente)
     return null
-
+  if(numJugadores < 2 || numJugadores > 6)
+    return null
+  // Crear chat de la partida
+  const chat = new Chat({ nombreChat: nombre, mensajes: [], usuarios: [user]});
+  await chat.save();
+  console.log(chat)
   const jugador = new Jugador({ usuario: user });
   const nuevaPartida = new Partida({ nombre: nombre,
                                      fechaInicio: null,
                                      fechaFin: null,
-                                     password: password, // si me llega null saldra null y ya
+                                     password: password, // si me llega null saldra null y ya.
                                      jugadores: [jugador],
-                                     maxJugadores: numJugadores
+                                     maxJugadores: numJugadores, 
+                                     ganador: null,
+                                     chat: chat
                                     });
 
   await nuevaPartida.save()
@@ -36,6 +44,7 @@ async function invite(user, idPartida) {
     partida = await Partida.findById(idPartida)
     if (!partida) {
       console.log('La partida no existe.')
+      console.log(idPartida)
       return false
     }
 
@@ -67,8 +76,9 @@ async function invite(user, idPartida) {
 async function join(user, idPartida, password) {
   try {
     var usuarioUnir = await Usuario.findOne({ idUsuario: user })
-
-    partida = await Partida.findById(idPartida)
+    partida = await Partida.findOne({nombre: idPartida, fechaInicio: null});
+    if(!partida)
+      partida = await Partida.findById(idPartida)
     if (!partida) {
       console.log('La partida no existe.')
 
@@ -111,7 +121,13 @@ async function join(user, idPartida, password) {
 
     const jugador = new Jugador({ usuario: user })
     partida.jugadores.push(jugador) // Push the ID of the Jugador document
+    // lo unimos al chat
+    const chat = await Chat.findById(partida.chat)
+    chat.usuarios.push(user)
+    await chat.save()
+    partida.chat = chat
     await partida.save()
+    console.log(chat)
 
     return true
   } catch (error) {
@@ -933,6 +949,22 @@ async function maniobraPosible(partida, numJugador, territorioOrigen, territorio
 
 // ----------------------------------------------------------------------------
 
+async function getInfo(partidaID) {
+  try {
+    let partida = await Partida.findOne({nombre: partidaID, fechaInicio: null});
+    if(!partida)
+    try {
+      partida = await Partida.findById(partidaID)
+    } catch (error) {
+      throw new Error("Partida no encontrada");
+    }
+    return partida;
+  }
+  catch (error) {
+    throw error;
+  }
+}
+
 module.exports = {
   crearPartida, 
   getPartidasDisponibles,
@@ -946,5 +978,6 @@ module.exports = {
   atacarTerritorio,
   realizarManiobra,
   utilizarCartas,
-  getPartida
+  getPartida,
+  getInfo
 };
