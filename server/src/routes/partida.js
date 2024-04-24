@@ -65,10 +65,10 @@ router.put('/siguienteFase', async (req, res) => {
       return res.status(401).json({ mensaje: 'Token no proporcionado o inválido' })
 
     const succ = await siguienteFase(idPartida, user)
+    console.log(succ)
     if (succ) {
-      res.status(200).json({ message: 'Cambio de fase con exito' })
-    } else {
-      res.status(400).json({ message: 'Error al cambiar de fase' })
+      console.log(succ)
+      res.status(200).json({ message: 'Cambio de fase con exito', fase: succ.fase, turno: succ.turno})
     }
   } catch (error) {
     console.log(error.message)
@@ -88,8 +88,6 @@ router.put('/colocarTropas', async (req, res) => {
     const succ = await colocarTropas(idPartida, user, territorio, numTropas);
     if (succ) {
       res.status(200).json({ message: 'Tropas colocadas' })
-    } else {
-      res.status(400).json({ message: 'Error al colocar tropas' })
     }
   } catch (error) {
     console.log(error.message)

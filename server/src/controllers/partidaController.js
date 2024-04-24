@@ -217,7 +217,7 @@ async function iniciarPartida(partidaOID, usuarioID) {
     partida.fechaInicio = new Date();
 
     await inicializarEstado(partida);
-    
+    partida.auxColocar = await calcularRefuerzos(partida, 0);
     await partida.save();
     console.log("Partida iniciada correctamente:", partida);
     return true;
@@ -229,47 +229,52 @@ async function iniciarPartida(partidaOID, usuarioID) {
 }
 
 async function colocarTropas(partidaOID, usuarioID, nombreTerritorio, tropas) {
-  // Comprobar que la partida existe y leerla
-  partida = await Partida.findById(partidaOID)
-  if (!partida) {
-    console.error("La partida no existe");
+  try {
+    // Comprobar que la partida existe y leerla
+    partida = await Partida.findById(partidaOID)
+    if (!partida) {
+      throw new Error("La partida no existe");
+      return false;
+    }
+
+    // Comprobar si el usuario esta en la partida y obtener numero de jugador
+    jugador = await numJugador(partida, usuarioID);
+    if(jugador == - 1){
+      throw new Error("El jugador no está presente en la partida");
+    }
+
+    // Comprobar que es el turno del jugador
+    if(!await comprobarTurno(partida, jugador)){
+      throw new Error("No es tu turno");
+    }
+
+    // Comprobar que la partida se encuentra en la fase de colocacion de tropas
+    if(partida.fase != Colocar){
+      throw new Error("El jugador no se encuentra en la fase de colocación de tropas");
+      return false;
+    }
+
+    // Comprobar que el territorio pertenece al jugador
+    if(!await comprobarTerritorio(partida, jugador, nombreTerritorio)){
+      throw new Error("El territorio no te pertenece");
+    }
+
+    // Comprobamos la variable auxiliar auxColocar para saber cuantas
+    // tropas le quedan por colocar al jugador
+    if(partida.auxColocar < tropas){
+      throw new Error("No te quedan suficientes refuerzos por colocar");
+      return false;
+    }
+
+    // Actualizamos el numero de tropas del territorios
+    await actualizarTropasTerritorio(partida, nombreTerritorio, tropas);
+    partida.save();
+
+    return true;
+  } catch (error) {
+    throw new Error(error.message);
     return false;
   }
-
-  // Comprobar si el usuario esta en la partida y obtener numero de jugador
-  jugador = numJugador(partida, usuarioID);
-  if(jugador == - 1){
-    return false;
-  }
-
-  // Comprobar que es el turno del jugador
-  if(!comprobarTurno(partida, jugador)){
-    return false;
-  }
-
-  // Comprobar que la partida se encuentra en la fase de colocacion de tropas
-  if(partida.fase != Colocar || partida.fase != FindCursor){
-    console.error("El jugador no se encuentra en la fase de colocacion tropas");
-    return false;
-  }
-
-  // Comprobar que el territorio pertenece al jugador
-  if(!comprobarTerritorio(partida, nombreTerritorio)){
-    return false;
-  }
-
-  // Comprobamos la variable auxiliar auxColocar para saber cuantas
-  // tropas le quedan por colocar al jugador
-  if(partida.auxColocar > tropas){
-    console.error("No quedan suficientes refuerzos");
-    return false;
-  }
-
-  // Actualizamos el numero de tropas del territorio
-  actualizarTropasTerritorio(partida, nombreTerritorio, tropas);
-  partida.save();
-
-  return true;
 }
 
 async function atacarTerritorio(partidaOID, usuarioID, territorioAtacante, territorioDefensor, numTropas) {
@@ -421,58 +426,60 @@ async function realizarManiobra(partidaOID, usuarioID, territorioOrigen, territo
 
 // Funcion para cambiar de fase / pasar de turno
 async function siguienteFase(partidaOID, usuarioID) {
-  // Comprobar que la partida existe y leerla
-  partida = await Partida.findById(partidaOID)
-  if (!partida) {
-    console.error("La partida no existe")
-    return false
-  }
-
-  // Buscar al jugador en la partida
-  jugador = await numJugador(partida, usuarioID);
-  if(jugador == - 1){
-    return false;
-  }
-
-  // Comprobar que sea el turno del jugador
-  if(!comprobarTurno(partida, jugador)){
-    return false;
-  }
-
-  // Si es fase de colocacion y quedar tropas por colocar no se puede pasar de fase
-  if((partida.fase == Colocar || partida.fase == Fin) && partida.auxColocar != 0){
-    console.error("No se han terminado de colocar las tropas");
-    return false;
-  }
-
-  // Pasar a la siguiente fase. Si era la ultima fase pasar de turno
-  partida.fase = (partida.fase + 1) % 5;
-  console.log(partida.fase)
-  if(partida.fase === Colocar){
-    partida.turno = partida.turno + 1;
-
-    // Inicializamos la variable de refuerzos del siguiente jugador
-    siguienteJugador = (jugador + 1) % partida.jugadores.length()
-    partida.auxColocar = calcularRefuerzos(partida, siguienteJugador);
-
-    // Si el mazo de cartas esta vacio y en la pila de descartes hay alguna carta
-    // Barajeamos la pila de descartes en el mazo
-    if(partida.cartas.length == 0 && partida.descartes.length > 0){
-      partida.cartas = partida.descartes;
-      partida.descartes = [];
-      partida.cartas = shuffle(partida.cartas);
+  try {
+    // Comprobar que la partida existe y leerla
+    partida = await Partida.findById(partidaOID)
+    if (!partida) {
+      throw new Error("La partida no existe")
     }
-    
-    // Si el flag de robar esta activo y se puede robar una carta se roba
-    if(partida.cartas.length >= 1 && partida.auxRobar == true){
-      cartaRobada = partida.cartas.pop();
-      partida.jugadores[numJugador].cartas.push(cartaRobada);
-      partida.auxRobar = false;
+
+    // Buscar al jugador en la partida
+    jugador = await numJugador(partida, usuarioID);
+    if(jugador == - 1){
+      throw new Error("El jugador no está presente en la partida")
     }
+
+    // Comprobar que sea el turno del jugador
+    if(! await comprobarTurno(partida, jugador)){
+      throw new Error("No es tu turno")
+    }
+
+    // Si es fase de colocacion y quedar tropas por colocar no se puede pasar de fase
+    if((partida.fase == Colocar || partida.fase == Fin) && partida.auxColocar != 0){
+      throw new Error("No se han terminado de colocar las tropas")
+    }
+
+    // Pasar a la siguiente fase. Si era la ultima fase pasar de turno
+    partida.fase = (partida.fase + 1) % 5;
+    if(partida.fase === Colocar){
+      partida.turno = partida.turno + 1;
+
+      // Inicializamos la variable de refuerzos del siguiente jugador
+      siguienteJugador = (jugador + 1) % partida.jugadores.length
+      partida.auxColocar = await calcularRefuerzos(partida, siguienteJugador);
+
+      // Si el mazo de cartas esta vacio y en la pila de descartes hay alguna carta
+      // Barajeamos la pila de descartes en el mazo
+      if(partida.cartas.length == 0 && partida.descartes.length > 0){
+        partida.cartas = partida.descartes;
+        partida.descartes = [];
+        partida.cartas = shuffle(partida.cartas);
+      }
+      
+      // Si el flag de robar esta activo y se puede robar una carta se roba
+      if(partida.cartas.length >= 1 && partida.auxRobar == true){
+        cartaRobada = partida.cartas.pop();
+        partida.jugadores[numJugador].cartas.push(cartaRobada);
+        partida.auxRobar = false;
+      }
+    }
+    let refuerzos = partida.auxColocar; 
+    let robar = partida.auxRobar;
+    await partida.save();
+    return {fase: partida.fase, turno: partida.turno, refuerzos: refuerzos, robar: robar};
+  } catch (error) {
+    throw new Error(error.message);
   }
-  console.log(partida.fase)
-  await partida.save();
-  return true;
 }
 
 async function utilizarCartas(partidaOID, usuarioID, carta1, carta2, carta3) {
@@ -564,41 +571,43 @@ async function getPartida(partidaOID, UsuarioID){
 // -------------------- FUNCIONES AUXILIARES ----------------------------------
 async function calcularRefuerzos(partida, numJugador){
   numTerritorios = partida.jugadores[numJugador].territorios.length;
-  refuerzos;
+  let refuerzos;
 
   // Refuerzos por numero de territorios
+  console.log("Territorios", numTerritorios)
   if (numTerritorios < 12){
     refuerzos = 0;
   } else if (numTerritorios >= 12 && numTerritorios <= 42) {
-    refuerzos = Math.ceil((numero - 11) / 3);
+    refuerzos = Math.abs(Math.ceil((numJugador - 11) / 3));
+    console.log('Refuerzos', refuerzos)
   } else{
     console.error("Numero de territorio incongruente");
     refuerzos = -1;
     return refuerzos;
   }
 
-  // Refuerzos por continente
-  if (controlaContinente(partida.jugadores[numJugador], NA)) {
+  // Refuerzos por continente const Mapa = [NA, SA, EU, AF, AS, OC];
+  if (controlaContinente(partida.jugadores[numJugador], partida.mapa[0])) {
     refuerzos += 5;
   }
 
-  if (controlaContinente(partida.jugadores[numJugador], SA)) {
+  if (controlaContinente(partida.jugadores[numJugador], partida.mapa[1])) {
     refuerzos += 2;
   }
 
-  if (controlaContinente(partida.jugadores[numJugador], EU)) {
+  if (controlaContinente(partida.jugadores[numJugador], partida.mapa[2])) {
     refuerzos += 5;
   }
 
-  if (controlaContinente(partida.jugadores[numJugador], AF)) {
+  if (controlaContinente(partida.jugadores[numJugador], partida.mapa[3])) {
     refuerzos += 3;
   }
 
-  if (controlaContinente(partida.jugadores[numJugador], AS)) {
+  if (controlaContinente(partida.jugadores[numJugador], partida.mapa[4])) {
     refuerzos += 7;
   }
 
-  if (controlaContinente(partida.jugadores[numJugador], OC)) {
+  if (controlaContinente(partida.jugadores[numJugador], partida.mapa[5])) {
     refuerzos += 2;
   }
 
@@ -623,7 +632,8 @@ async function actualizarTropasTerritorio(partida, nombreTerritorio, delta){
   for (const continente of partida.mapa) {
     const territorioEncontrado = continente.territorios.find(territorio => territorio.nombre === nombreTerritorio);
     if (territorioEncontrado) {
-        territorioEncontrado.tropas = territorioEncontrado.tropas + delta;
+        territorioEncontrado.tropas = Number(territorioEncontrado.tropas) + Number(delta);
+        partida.auxColocar -= delta;
         return territorioEncontrado.tropas;
     }
   };
@@ -659,10 +669,9 @@ async function comprobarTurno(partida, numJugador){
 }
 
 async function comprobarTerritorio(partida, numJugador, nombreTerritorio){
-  for( let i = 0; i <= partida.jugadores.length; i++){
-    if( partida.territorios[i] == nombreTerritorio){
-      return true;
-    }
+  let jugador = partida.jugadores[numJugador];
+  if(jugador.territorios.includes(nombreTerritorio)){
+    return true;
   }
   console.error("El territorio " + nombreTerritorio + " no pertenece al jugador " + numJugador);
   return false;
