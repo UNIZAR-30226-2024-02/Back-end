@@ -286,13 +286,13 @@ async function atacarTerritorio(partidaOID, usuarioID, territorioAtacante, terri
   }
 
   // Comprobar si el usuario esta en la partida y obtener numero de jugador
-  jugador = numJugador(partida, usuarioID);
+  jugador = await numJugador(partida, usuarioID);
   if (jugador == - 1) {
     return false;
   }
 
   // Comprobar que es el turno del jugador
-  if (!comprobarTurno(partida, jugador)) {
+  if (!await comprobarTurno(partida, jugador)) {
     return false;
   }
 
@@ -303,36 +303,36 @@ async function atacarTerritorio(partidaOID, usuarioID, territorioAtacante, terri
   }
 
   // Comprobar que el territorio atacante pertenece al jugador
-  if (!comprobarTerritorio(partida,territorioAtacante)) {
+  if (!await comprobarTerritorio(partida, jugador, territorioAtacante)) {
     console.error("El territorio atacante no pertenece al jugador");
     return false;
   }
-
+  
   // Comprobar que en el territorio atacante hay suficientes tropas para el ataque (y dejar una)
-  tropasTerritorioAtacante = actualizarTropasTerritorio(partida,territorioAtacante, 0);
+  tropasTerritorioAtacante = await actualizarTropasTerritorio(partida,territorioAtacante, 0);
   if ((tropasTerritorioAtacante - 1) < numTropas) {
     console.error("No hay tropas suficientes en el territorio para realizar el ataque");
     return false;
   }
 
-  // Comprobamos que el numero de 
+  // Comprobamos que el numero de tropas con el que desea atacar es correcto
   if (numTropas > 3 || numTropas < 1) {
     console.error("Numero invalido de tropas atacantes: " + numTropas);
     return false;
   }
-
+  
   // Comprobar que el territorio defensor no pertenece al jugador
-  if(comprobarTerritorio(partida,territorioDefensor)){
+  if(await comprobarTerritorio(partida, jugador, territorioDefensor)){
     console.error("El territorio defensor pertenece al jugador");
     return false;
   }
-
+  
   // Comprobar que el territorio atacante es fronterizo con el defensor.
-  if(territoriosFronterizos(partida,territorioAtacante, territorioDefensor)){
+  if(!territoriosFronterizos(partida,territorioAtacante, territorioDefensor)){
     console.error("Los territorios no son fronterizos");
     return false;
   }
-
+  console.log("Y paso")
   // Calculamos los dados del atacante
   dadosAtacante = [];
   for (let i = 0; i < numTropas; i++) {
@@ -340,30 +340,32 @@ async function atacarTerritorio(partidaOID, usuarioID, territorioAtacante, terri
   }
 
   // Calculamos el numero de dados del defensor y los tiramos
-  tropasTerritorioDefensor = actualizarTropasTerritorio(pertida,territorioDefensor, 0);
-  numDadosDefensor = min(2, tropasTerritorioDefensor);
+  tropasTerritorioDefensor = await actualizarTropasTerritorio(partida,territorioDefensor, 0);
+  numDadosDefensor = Math.min(2, tropasTerritorioDefensor);
   dadosDefensor = [];
   for (let i = 0; i < numDadosDefensor; i++) {
     dadosDefensor.push(Math.floor(Math.random() * 6) + 1); 
   }
 
-  resultadoBatalla = resolverBatalla(dadosAtacante, dadosDefensor);
-  defensoresRestantes = actualizarTropasTerritorio(partida, territorioDefensor, resultadoBatalla.tropasPerdidasDefensor);
+  //TODO FALTA CALCULAR LOS RESULTADOS DE LA BATALLA MEJOR NO? 
+  resultadoBatalla = await resolverBatalla(dadosAtacante, dadosDefensor);
+  //TODO HASTA AQUÍ ESTÁ DEBBUGGEADO ----------------------------------------------------------
+  defensoresRestantes = await actualizarTropasTerritorio(partida, territorioDefensor, resultadoBatalla.tropasPerdidasDefensor);
   if (defensoresRestantes == 0) {   // El defensor pierde el territorio
     // Quitar el territorio al jugador que lo tenia
-    jugadorDefensor = encontrarPropietario(partida, territorioDefensor);
+    jugadorDefensor = await encontrarPropietario(partida, territorioDefensor);
     partida.jugadores[jugadorDefensor].territorios.drop(territorioDefensor)
     // Dar el territorio al jugador atacante
     partida.jugadores[jugador].territorios.push(territorioDefensor);
     // Poner en el territorio defensor numTropas - resultadoBatalla.tropsPerdidasAtacante
-    actualizarTropasTerritorio(partida, territorioDefensor, numTropas - resultadoBatalla.tropasPerdidasAtacante);
+    await actualizarTropasTerritorio(partida, territorioDefensor, numTropas - resultadoBatalla.tropasPerdidasAtacante);
     // Quitar del territorio atacante las tropas utilizadas para el ataque
-    actualizarTropasTerritorio(partida, territorioAtacante, -numTropas);
+    await actualizarTropasTerritorio(partida, territorioAtacante, -numTropas);
     // Flag de robar carta
     partida.auxRobar = true;
   } else { 
-    // Quitar del territorio atacante las tropas perdidas en la batalla
-    actualizarTropasTerritorio(partida, territorioAtacante, -(numTropas - resultadoBatalla.tropasPerdidasAtacante))
+    // Quitar del territorio atacante las tropas perdidas en la batalla TODO faltaría quitarle al defensor, si ha perdido no?
+    await actualizarTropasTerritorio(partida, territorioAtacante, -(numTropas - resultadoBatalla.tropasPerdidasAtacante))
   }
 }
 
@@ -890,16 +892,16 @@ function shuffle(array) {
 }
 
 function territoriosFronterizos(partida, territorio1, territorio2) {
+  const territorios = partida.mapa.flatMap(continente => continente.territorios);
   // Busca el territorio1 en la partida
-  const infoTerritorio1 = partida.mapa.find(continente => continente.territorios.find(t => t.nombre === territorio1));
-  
+  const infoTerritorio1 = territorios.find(t => t.nombre === territorio1);
   if (!infoTerritorio1) {
       console.error('Territorio 1 no encontrado en la partida');
       return false;
   }
   
   // Busca el territorio2 en la partida
-  const infoTerritorio2 = partida.mapa.find(continente => continente.territorios.find(t => t.nombre === territorio2));
+  const infoTerritorio2 = territorios.find(t => t.nombre === territorio2);
   
   if (!infoTerritorio2) {
       console.error('Territorio 2 no encontrado en la partida');
@@ -908,9 +910,10 @@ function territoriosFronterizos(partida, territorio1, territorio2) {
   
   // Verifica si territorio1 y territorio2 son fronterizos
   if (infoTerritorio1.frontera.includes(territorio2) && infoTerritorio2.frontera.includes(territorio1)) {
-      return true;
+    console.log("hola")
+    return true;
   } else {
-      return false;
+    return false;
   }
 }
 

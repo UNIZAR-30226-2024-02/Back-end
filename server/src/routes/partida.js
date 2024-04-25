@@ -15,6 +15,7 @@ const {   crearPartida,
   getPartida } = require('../controllers/partidaController');
 const obtenerUsuarioDesdeToken = require('../auth/auth');
 
+// Debugged
 router.put('/getPartida', async (req, res) => {
   console.log(req.body)
   try {
@@ -36,6 +37,7 @@ router.put('/getPartida', async (req, res) => {
   }
 });
 
+// Debugged
 router.put('/iniciarPartida', async (req, res) => {
   console.log(req.body)
   try {
@@ -55,6 +57,7 @@ router.put('/iniciarPartida', async (req, res) => {
   }
 });
 
+// Debugged
 router.put('/siguienteFase', async (req, res) => {
   console.log(req.body)
   try {
@@ -76,6 +79,7 @@ router.put('/siguienteFase', async (req, res) => {
   }
 });
 
+// Debugged
 router.put('/colocarTropas', async (req, res) => {
   console.log(req.body)
   try {
