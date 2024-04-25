@@ -268,7 +268,7 @@ async function colocarTropas(partidaOID, usuarioID, nombreTerritorio, tropas) {
 
     // Actualizamos el numero de tropas del territorios
     await actualizarTropasTerritorio(partida, nombreTerritorio, tropas);
-    partida.save();
+    await partida.save();
 
     return true;
   } catch (error) {
@@ -277,6 +277,7 @@ async function colocarTropas(partidaOID, usuarioID, nombreTerritorio, tropas) {
   }
 }
 
+// Debugged, falta integrar en el front
 async function atacarTerritorio(partidaOID, usuarioID, territorioAtacante, territorioDefensor, numTropas) {
   // Comprobar que la partida existe y leerla
   partida = await Partida.findById(partidaOID)
@@ -332,7 +333,7 @@ async function atacarTerritorio(partidaOID, usuarioID, territorioAtacante, terri
     console.error("Los territorios no son fronterizos");
     return false;
   }
-  console.log("Y paso")
+  
   // Calculamos los dados del atacante
   dadosAtacante = [];
   for (let i = 0; i < numTropas; i++) {
@@ -347,14 +348,12 @@ async function atacarTerritorio(partidaOID, usuarioID, territorioAtacante, terri
     dadosDefensor.push(Math.floor(Math.random() * 6) + 1); 
   }
 
-  //TODO FALTA CALCULAR LOS RESULTADOS DE LA BATALLA MEJOR NO? 
   resultadoBatalla = await resolverBatalla(dadosAtacante, dadosDefensor);
-  //TODO HASTA AQUÍ ESTÁ DEBBUGGEADO ----------------------------------------------------------
-  defensoresRestantes = await actualizarTropasTerritorio(partida, territorioDefensor, resultadoBatalla.tropasPerdidasDefensor);
-  if (defensoresRestantes == 0) {   // El defensor pierde el territorio
+  defensoresRestantes = await actualizarTropasTerritorio(partida, territorioDefensor, -resultadoBatalla.tropasPerdidasDefensor);
+  if (defensoresRestantes === 0) {   // El defensor pierde el territorio // ES ====
     // Quitar el territorio al jugador que lo tenia
     jugadorDefensor = await encontrarPropietario(partida, territorioDefensor);
-    partida.jugadores[jugadorDefensor].territorios.drop(territorioDefensor)
+    partida.jugadores[jugadorDefensor].territorios = partida.jugadores[jugadorDefensor].territorios.filter(territorio => territorio !== territorioDefensor);
     // Dar el territorio al jugador atacante
     partida.jugadores[jugador].territorios.push(territorioDefensor);
     // Poner en el territorio defensor numTropas - resultadoBatalla.tropsPerdidasAtacante
@@ -364,9 +363,12 @@ async function atacarTerritorio(partidaOID, usuarioID, territorioAtacante, terri
     // Flag de robar carta
     partida.auxRobar = true;
   } else { 
-    // Quitar del territorio atacante las tropas perdidas en la batalla TODO faltaría quitarle al defensor, si ha perdido no?
+    // Quitar del territorio atacante las tropas perdidas en la batalla 
     await actualizarTropasTerritorio(partida, territorioAtacante, -(numTropas - resultadoBatalla.tropasPerdidasAtacante))
   }
+  partida.auxColocar = 0;
+  await partida.save();
+  return true;
 }
 
 async function realizarManiobra(partidaOID, usuarioID, territorioOrigen, territorioDestino, numTropas) {
