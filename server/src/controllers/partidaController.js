@@ -279,96 +279,93 @@ async function colocarTropas(partidaOID, usuarioID, nombreTerritorio, tropas) {
 
 // Debugged, falta integrar en el front
 async function atacarTerritorio(partidaOID, usuarioID, territorioAtacante, territorioDefensor, numTropas) {
-  // Comprobar que la partida existe y leerla
-  partida = await Partida.findById(partidaOID)
-  if (!partida) {
-    console.error("La partida no existe");
-    return false;
-  }
+  try {
+    // Comprobar que la partida existe y leerla
+    partida = await Partida.findById(partidaOID)
+    if (!partida) {
+      throw new Error("La partida no existe");
+    }
 
-  // Comprobar si el usuario esta en la partida y obtener numero de jugador
-  jugador = await numJugador(partida, usuarioID);
-  if (jugador == - 1) {
-    return false;
-  }
+    // Comprobar si el usuario esta en la partida y obtener numero de jugador
+    jugador = await numJugador(partida, usuarioID);
+    if (jugador == - 1) {
+      throw new Error("El jugador no está en la partida");
+    }
 
-  // Comprobar que es el turno del jugador
-  if (!await comprobarTurno(partida, jugador)) {
-    return false;
-  }
+    // Comprobar que es el turno del jugador
+    if (!await comprobarTurno(partida, jugador)) {
+      throw new Error("No es tu turno");
+    }
 
-  // Comprobar que la partida se encuentra en la fase de ataque
-  if (partida.fase != Atacar) {
-    console.error("El jugador no se encuentra en la fase de ataque");
-    return false;
-  }
+    // Comprobar que la partida se encuentra en la fase de ataque
+    if (partida.fase != Atacar) {
+      throw new Error("El jugador no se encuentra en la fase de ataque");
+    }
 
-  // Comprobar que el territorio atacante pertenece al jugador
-  if (!await comprobarTerritorio(partida, jugador, territorioAtacante)) {
-    console.error("El territorio atacante no pertenece al jugador");
-    return false;
-  }
-  
-  // Comprobar que en el territorio atacante hay suficientes tropas para el ataque (y dejar una)
-  tropasTerritorioAtacante = await actualizarTropasTerritorio(partida,territorioAtacante, 0);
-  if ((tropasTerritorioAtacante - 1) < numTropas) {
-    console.error("No hay tropas suficientes en el territorio para realizar el ataque");
-    return false;
-  }
+    // Comprobar que el territorio atacante pertenece al jugador
+    if (!await comprobarTerritorio(partida, jugador, territorioAtacante)) {
+      throw new Error("El territorio atacante no pertenece al jugador");
+    }
+    
+    // Comprobar que en el territorio atacante hay suficientes tropas para el ataque (y dejar una)
+    tropasTerritorioAtacante = await actualizarTropasTerritorio(partida,territorioAtacante, 0);
+    if ((tropasTerritorioAtacante - 1) < numTropas) {
+      throw new Error("No hay tropas suficientes en el territorio para realizar el ataque");
+    }
 
-  // Comprobamos que el numero de tropas con el que desea atacar es correcto
-  if (numTropas > 3 || numTropas < 1) {
-    console.error("Numero invalido de tropas atacantes: " + numTropas);
-    return false;
-  }
-  
-  // Comprobar que el territorio defensor no pertenece al jugador
-  if(await comprobarTerritorio(partida, jugador, territorioDefensor)){
-    console.error("El territorio defensor pertenece al jugador");
-    return false;
-  }
-  
-  // Comprobar que el territorio atacante es fronterizo con el defensor.
-  if(!territoriosFronterizos(partida,territorioAtacante, territorioDefensor)){
-    console.error("Los territorios no son fronterizos");
-    return false;
-  }
-  
-  // Calculamos los dados del atacante
-  dadosAtacante = [];
-  for (let i = 0; i < numTropas; i++) {
-    dadosAtacante.push(Math.floor(Math.random() * 6) + 1); 
-  }
+    // Comprobamos que el numero de tropas con el que desea atacar es correcto
+    if (numTropas > 3 || numTropas < 1) {
+      throw new Error("Numero invalido de tropas atacantes: " + numTropas);
+    }
+    
+    // Comprobar que el territorio defensor no pertenece al jugador
+    if(await comprobarTerritorio(partida, jugador, territorioDefensor)){
+      throw new Error("El territorio defensor pertenece al jugador");
+    }
+    
+    // Comprobar que el territorio atacante es fronterizo con el defensor.
+    if(!territoriosFronterizos(partida,territorioAtacante, territorioDefensor)){
+      throw new Error("Los territorios no son fronterizos");
+    }
+    
+    // Calculamos los dados del atacante
+    dadosAtacante = [];
+    for (let i = 0; i < numTropas; i++) {
+      dadosAtacante.push(Math.floor(Math.random() * 6) + 1); 
+    }
 
-  // Calculamos el numero de dados del defensor y los tiramos
-  tropasTerritorioDefensor = await actualizarTropasTerritorio(partida,territorioDefensor, 0);
-  numDadosDefensor = Math.min(2, tropasTerritorioDefensor);
-  dadosDefensor = [];
-  for (let i = 0; i < numDadosDefensor; i++) {
-    dadosDefensor.push(Math.floor(Math.random() * 6) + 1); 
-  }
+    // Calculamos el numero de dados del defensor y los tiramos
+    tropasTerritorioDefensor = await actualizarTropasTerritorio(partida,territorioDefensor, 0);
+    numDadosDefensor = Math.min(2, tropasTerritorioDefensor);
+    dadosDefensor = [];
+    for (let i = 0; i < numDadosDefensor; i++) {
+      dadosDefensor.push(Math.floor(Math.random() * 6) + 1); 
+    }
 
-  resultadoBatalla = await resolverBatalla(dadosAtacante, dadosDefensor);
-  defensoresRestantes = await actualizarTropasTerritorio(partida, territorioDefensor, -resultadoBatalla.tropasPerdidasDefensor);
-  if (defensoresRestantes === 0) {   // El defensor pierde el territorio // ES ====
-    // Quitar el territorio al jugador que lo tenia
-    jugadorDefensor = await encontrarPropietario(partida, territorioDefensor);
-    partida.jugadores[jugadorDefensor].territorios = partida.jugadores[jugadorDefensor].territorios.filter(territorio => territorio !== territorioDefensor);
-    // Dar el territorio al jugador atacante
-    partida.jugadores[jugador].territorios.push(territorioDefensor);
-    // Poner en el territorio defensor numTropas - resultadoBatalla.tropsPerdidasAtacante
-    await actualizarTropasTerritorio(partida, territorioDefensor, numTropas - resultadoBatalla.tropasPerdidasAtacante);
-    // Quitar del territorio atacante las tropas utilizadas para el ataque
-    await actualizarTropasTerritorio(partida, territorioAtacante, -numTropas);
-    // Flag de robar carta
-    partida.auxRobar = true;
-  } else { 
-    // Quitar del territorio atacante las tropas perdidas en la batalla 
-    await actualizarTropasTerritorio(partida, territorioAtacante, -(numTropas - resultadoBatalla.tropasPerdidasAtacante))
+    resultadoBatalla = await resolverBatalla(dadosAtacante, dadosDefensor);
+    defensoresRestantes = await actualizarTropasTerritorio(partida, territorioDefensor, -resultadoBatalla.tropasPerdidasDefensor);
+    if (defensoresRestantes === 0) {   // El defensor pierde el territorio // ES ====
+      // Quitar el territorio al jugador que lo tenia
+      jugadorDefensor = await encontrarPropietario(partida, territorioDefensor);
+      partida.jugadores[jugadorDefensor].territorios = partida.jugadores[jugadorDefensor].territorios.filter(territorio => territorio !== territorioDefensor);
+      // Dar el territorio al jugador atacante
+      partida.jugadores[jugador].territorios.push(territorioDefensor);
+      // Poner en el territorio defensor numTropas - resultadoBatalla.tropsPerdidasAtacante
+      await actualizarTropasTerritorio(partida, territorioDefensor, numTropas - resultadoBatalla.tropasPerdidasAtacante);
+      // Quitar del territorio atacante las tropas utilizadas para el ataque
+      await actualizarTropasTerritorio(partida, territorioAtacante, -numTropas);
+      // Flag de robar carta
+      partida.auxRobar = true;
+    } else { 
+      // Quitar del territorio atacante las tropas perdidas en la batalla 
+      await actualizarTropasTerritorio(partida, territorioAtacante, -(numTropas - resultadoBatalla.tropasPerdidasAtacante))
+    }
+    partida.auxColocar = 0;
+    await partida.save();
+    return {dadosAtacante: dadosAtacante, dadosDefensor: dadosDefensor, resultadoBatalla: resultadoBatalla, conquistado: defensoresRestantes === 0};
+  } catch (error) {
+    throw new Error(error.message);
   }
-  partida.auxColocar = 0;
-  await partida.save();
-  return true;
 }
 
 async function realizarManiobra(partidaOID, usuarioID, territorioOrigen, territorioDestino, numTropas) {

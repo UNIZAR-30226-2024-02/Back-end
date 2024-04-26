@@ -110,9 +110,12 @@ router.put('/atacarTerritorio', async (req, res) => {
 
     const succ = await atacarTerritorio(idPartida, user, territorioAtacante, territorioDefensor, numTropas);
     if (succ) {
-      res.status(200).json({ message: 'Ataque realizado' })
-    } else {
-      res.status(400).json({ message: 'Error al realizar ataque' })
+      res.status(200).json({ message: 'Ataque realizado', 
+                            dadosAtacante: succ.dadosAtacante, 
+                            dadosDefensor: succ.dadosDefensor, 
+                            resultadoBatalla: succ.resultadoBatalla, 
+                            conquistado: succ.conquistado 
+                          })
     }
   } catch (error) {
     console.log(error.message)
