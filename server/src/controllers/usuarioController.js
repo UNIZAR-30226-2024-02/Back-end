@@ -337,6 +337,17 @@ async function obtenerTerreno(idUsuario){
     }
 }
 
+async function getPerfil(idUsuario) {
+    try {
+        const usuario = await Usuario.findOne({ idUsuario }).select("idUsuario avatar puntos elo")
+        const avatar = await Skin.findOne({ idSkin: new RegExp(usuario.avatar.type, 'i') })
+        return { nombre: usuario.idUsuario, avatar, puntos: usuario.puntos, elo: usuario.elo }
+    } catch (error) {
+        console.error("Error al obtener usuarios por ranking:", error);
+        throw error;
+    }
+}
+
 module.exports = {
     crearUsuario,
     login,
@@ -351,5 +362,6 @@ module.exports = {
     getSolicitudes,
     getInvitaciones,
     obtenerAvatar,
-    obtenerTerreno
+    obtenerTerreno,
+    getPerfil
 };

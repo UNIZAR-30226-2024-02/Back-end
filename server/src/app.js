@@ -1,17 +1,18 @@
-const express = require('express');
-const { connectDB, disconnectDB } = require('./config/db');
-const registerRouter = require('./routes/register');
-const loginRouter = require('./routes/login');
-const rankingRouter = require('./routes/ranking');
-const nuevaPartidaRouter = require('./routes/creaPartida');
-const obtenerPartidasRouter = require('./routes/getPublicas');
-const amistadRouter = require('./routes/amistad');
-const tiendaRouter = require('./routes/tienda');
+const express = require('express')
+const { connectDB, disconnectDB } = require('./config/db')
+const registerRouter = require('./routes/register')
+const loginRouter = require('./routes/login')
+const rankingRouter = require('./routes/ranking')
+const nuevaPartidaRouter = require('./routes/creaPartida')
+const obtenerPartidasRouter = require('./routes/getPublicas')
+const amistadRouter = require('./routes/amistad')
+const tiendaRouter = require('./routes/tienda')
 const chatRouter = require('./routes/chats')
 const misSkinsRouter = require('./routes/misSkins')
-const cors = require('cors');
-const http = require('http');
-const setupSocket = require('./sockets/sockets');
+const perfilRouter = require('./routes/perfil')
+const cors = require('cors')
+const http = require('http')
+const setupSocket = require('./sockets/sockets')
 
 const app = express();
 const server = http.createServer(app);
@@ -67,6 +68,7 @@ app.use('/amistad', amistadRouter);
 app.use('/tienda', tiendaRouter);
 app.use('/chats', chatRouter)
 app.use('/misSkins', misSkinsRouter)
+app.use('/perfil', perfilRouter);
 
 // ruta prueba principal
 app.get('/', (req, res) => {
