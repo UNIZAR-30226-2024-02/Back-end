@@ -908,7 +908,7 @@ function territoriosFronterizos(partida, territorio1, territorio2) {
   }
   
   // Verifica si territorio1 y territorio2 son fronterizos
-  if (infoTerritorio1.frontera.includes(territorio2) && infoTerritorio2.frontera.includes(territorio1)) {
+  if (infoTerritorio1.frontera.includes(territorio2) || infoTerritorio2.frontera.includes(territorio1)) {
     console.log("hola")
     return true;
   } else {
