@@ -20,8 +20,9 @@ let token2;
 
 let id3 = 'Martin'
 let pass3 = 'passMartin'
-let mail3 = 'tomas@gmail.com'
+let mail3 = 'martin@gmail.com'
 let token3;
+
 
 beforeAll(async () => {
     await startApp();
@@ -37,32 +38,39 @@ beforeAll(async () => {
         password: pass1,
         correo: mail1
     }
-    await request
+
+    response = await request
         .post('/register')
         .send(user1)
         .set('Accept', 'application/json');
-
+    console.log(response)
+    expect(response.status).toBe(201);
     // --- Registro usuario 2 ---
     user2 = {
         idUsuario: id2,
         password: pass2,
         correo: mail2
     }
-    await request
+
+    response = await request
         .post('/register')
         .send(user2)
         .set('Accept', 'application/json');
+    expect(response.status).toBe(201);
 
     // --- Registro usuario 3 ---
-    user1 = {
+    user3 = {
         idUsuario: id3,
         password: pass3,
         correo: mail3
     }
-    await request
+
+    response = await request
         .post('/register')
         .send(user3)
         .set('Accept', 'application/json');
+        console.log(response.error)
+    expect(response.status).toBe(201);
 
 
     // ---  Inicio sesion Usuario 1 ---
@@ -72,9 +80,10 @@ beforeAll(async () => {
     };
 
     response = await request
-    .post('/login')
-    .send(user1)
-    .set('Accept', 'application/json');
+        .post('/login')
+        .send(user1)
+        .set('Accept', 'application/json');
+    expect(response.status).toBe(200);
 
     token1 = response.body.token;
 
@@ -85,9 +94,10 @@ beforeAll(async () => {
     };
 
     response = await request
-    .post('/login')
-    .send(user2)
-    .set('Accept', 'application/json');
+        .post('/login')
+        .send(user2)
+        .set('Accept', 'application/json');
+        expect(response.status).toBe(200);
 
     token2 = response.body.token;
 
@@ -98,9 +108,10 @@ beforeAll(async () => {
     };
 
     response = await request
-    .post('/login')
-    .send(user3)
-    .set('Accept', 'application/json');
+        .post('/login')
+        .send(user3)
+        .set('Accept', 'application/json');
+        expect(response.status).toBe(200);
 
     token3 = response.body.token;
 
@@ -119,8 +130,9 @@ beforeAll(async () => {
     response = await request
         .post('/nuevaPartida')
         .send(partida)
-        .set('Authorization', `${authtoken1}`)
+        .set('Authorization', `${token1}`)
         .set('Accept', 'application/json');
+        expect(response.status).toBe(200)
 
     partidaOID = response.body.idPartida;
 
@@ -133,14 +145,16 @@ beforeAll(async () => {
     response = await request
         .put('/nuevaPartida/join')
         .send(credenciales)
-        .set('Authorization', `${authtoken2}`)
+        .set('Authorization', `${token2}`)
         .set('Accept', 'application/json')
+    expect(response.status).toBe(200)
 
     response = await request
         .put('/nuevaPartida/join')
         .send(credenciales)
-        .set('Authorization', `${authtoken3}`)
+        .set('Authorization', `${token3}`)
         .set('Accept', 'application/json')
+    expect(response.status).toBe(200)
 })
 
 
