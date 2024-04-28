@@ -165,4 +165,20 @@ router.put('/utilizarCartas', async (req, res) => {
   }
 });
 
+router.put('/salirPartida', async (req, res) => {
+  try{
+    let { idPartida } = req.body
+    const token = req.headers['authorization'];
+    const user = obtenerUsuarioDesdeToken(token)
+    if(!user)
+      return res.status(401).json({ mensaje: 'Token no proporcionado o inválido' })
+
+    await salirPartida(user, idPartida)
+    res.status(200).json({ message: 'Salida de partida exitosa' })
+  }
+  catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+});
+
 module.exports = router

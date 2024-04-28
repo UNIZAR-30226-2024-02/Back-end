@@ -142,25 +142,40 @@ async function salirPartida(usuarioID, partidaOID) {
     
     if (partida) {
       // Verificar si el usuario está en la partida
-      const index = partida.jugadores.indexOf(usuarioID);
+      console.log(usuarioID)
+      let index = -1;
+      for(let i = 0; i < partida.jugadores.length; i++){
+        if(partida.jugadores[i].usuario == usuarioID){
+          index = i;
+          break;
+        }
+      }
       if (index !== -1) {
         // Si la partida no ha comenzado (fechaInicio es null), quitar al usuario de la partida
         if (partida.fechaInicio === null) {
           partida.jugadores.splice(index, 1);
-          await partida.save();
+          if(partida.jugadores.length == 0){
+            await Partida.deleteOne({ _id: partidaOID });
+          } else {
+            await partida.save();
+          }
           console.log("Usuario sacado de la partida", partida);
         } else {
           // Si la partida ha comenzado, marcar al usuario como abandonado
           const jugador = partida.jugadores[index];
-          jugador.abandonado = true;
-          await partida.save();
-          console.log("Usuario marcado como abandonado en la partida", partida);
+          if(!jugador.abandonado){
+            jugador.abandonado = true;
+            await partida.save();
+            console.log("Usuario marcado como abandonado en la partida", partida);
+          }
+          else 
+            throw new Error("El usuario ya ha abandonado la partida")
         }
       } else {
-        console.error("El usuario no está en la partida");
+        throw new Error("El usuario no está en la partida");
       }
     } else {
-      console.error("Partida no encontrada");
+      throw new Error("Partida no encontrada");
     }
   } catch (error) {
     console.error("Error al sacar al usuario de la partida", error);
