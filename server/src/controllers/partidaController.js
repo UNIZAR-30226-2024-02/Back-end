@@ -166,6 +166,18 @@ async function salirPartida(usuarioID, partidaOID) {
           if(!jugador.abandonado){
             jugador.abandonado = true;
             await partida.save();
+            let cnt = 0;
+            for(let player of partida.jugadores){
+              if(!player.abandonado){
+                break;
+              } else {
+                cnt++;
+              }
+            }
+            if(cnt == partida.jugadores.length){
+              partida.fechaFin = new Date();
+              await partida.save();
+            }
             console.log("Usuario marcado como abandonado en la partida", partida);
           }
           else 
@@ -292,6 +304,7 @@ async function colocarTropas(partidaOID, usuarioID, nombreTerritorio, tropas) {
   }
 }
 
+
 // Debugged, falta integrar en el front
 async function atacarTerritorio(partidaOID, usuarioID, territorioAtacante, territorioDefensor, numTropas) {
   try {
@@ -376,6 +389,13 @@ async function atacarTerritorio(partidaOID, usuarioID, territorioAtacante, terri
       await actualizarTropasTerritorio(partida, territorioAtacante, -(numTropas - resultadoBatalla.tropasPerdidasAtacante))
     }
     partida.auxColocar = 0
+    // Si tenemos un ganador, actualizamos la partida
+    let ganador = await tenemosGanador(partida)
+    if(ganador){
+      partida.fechaFin = new Date()
+      partida.ganador = ganador.usuario
+      console.log("Gana el jugador " + ganador)
+    }
     await partida.save()
     return {dadosAtacante: dadosAtacante, dadosDefensor: dadosDefensor, resultadoBatalla: resultadoBatalla, conquistado: defensoresRestantes === 0}
   } catch (error) {
@@ -1003,6 +1023,16 @@ async function maniobraPosible(partida, numJugador, territorioOrigen, territorio
 
   const territorio = partida.mapa.flatMap(continent => continent.territorios).find(territorio => territorio.nombre === territorioOrigen)
   return isFriendlyReachable(partida.mapa, territorio, territorioDestino, partida.jugadores[numJugador])
+}
+
+// Ganamos si controlamos todos los territorios
+async function tenemosGanador(partida){
+  for(let jugador of partida.jugadores){
+    if(jugador.territorios.length == partida.mapa.flatMap(continent => continent.territorios).length){
+      return jugador;
+    }
+  }
+  return null;
 }
 
 // ----------------------------------------------------------------------------
