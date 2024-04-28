@@ -17,6 +17,8 @@ tags:
     description: Operaciones relacionadas con el ranking de usuarios
   - name: Partidas
     description: Operaciones relacionadas con la creación y gestión de partidas
+  - name: Perfil 
+    description: Operaciones relacionadas con el perfil de un usuario
 paths:
   /login:
     post:
@@ -812,6 +814,282 @@ paths:
           description: Token no proporcionado o inválido
         '400':
           description: Error al obtener información de la partida
+  /partida/obtenerPartida:
+    put:
+      summary: Obtiene una partida específica
+      tags: 
+        - Partidas
+      parameters:
+        - name: idPartida
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Partida obtenida con éxito
+        '400':
+          description: Error al encontrar partida
+  /partida/iniciarPartida:
+    put:
+      summary: Inicia una partida específica
+      tags: 
+        - Partidas
+      parameters:
+        - name: idPartida
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Partida iniciada con éxito
+        '500':
+          description: Error al iniciar partida
+  /partida/siguienteFase:
+    put:
+      summary: Avanza a la siguiente fase de una partida
+      tags: 
+        - Partidas
+      parameters:
+        - name: idPartida
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Cambio de fase con éxito
+        '500':
+          description: Error al cambiar de fase
+  /partida/colocarTropas:
+    put:
+      summary: Coloca tropas en un territorio
+      tags: 
+        - Partidas
+      parameters:
+        - name: idPartida
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: territorio
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: numTropas
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Tropas colocadas con éxito
+        '500':
+          description: Error al colocar tropas
+  /partida/atacarTerritorio:
+    put:
+      summary: Ataca un territorio desde otro
+      tags: 
+        - Partidas
+      parameters:
+        - name: idPartida
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: territorioAtacante
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: territorioDefensor
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: numTropas
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Ataque realizado con éxito
+        '500':
+          description: Error al realizar ataque
+  /partida/realizarManiobra:
+    put:
+      summary: Realiza una maniobra de tropas
+      tags: 
+        - Partidas
+      parameters:
+        - name: idPartida
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: territorioOrigen
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: territorioDestino
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: numTropas
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Maniobra realizada con éxito
+        '500':
+          description: Error al realizar maniobra
+  /partida/utilizarCartas:
+    put:
+      summary: Utiliza cartas en una partida
+      tags: 
+        - Partidas
+      parameters:
+        - name: idPartida
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: carta1
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: carta2
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: carta3
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Cartas utilizadas con éxito
+        '500':
+          description: Error al utilizar cartas
+  /partida/salirPartida:
+    put:
+      summary: Sale de una partida
+      tags: 
+        - Partidas
+      parameters:
+        - name: idPartida
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Salida de partida exitosa
+        '500':
+          description: Error al salir de la partida
+  /perfil:
+      get:
+        tags:
+          - Perfil
+        summary: Obtiene el perfil del usuario
+        parameters:
+          - name: authorization
+            in: header
+            required: true
+            schema:
+              type: string
+              format: JWT
+        responses:
+          '200':
+            description: Perfil obtenido con éxito
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    nombre:
+                      type: string
+                    apellido:
+                      type: string
+                    email:
+                      type: string
+          '400':
+            description: Error al obtener el perfil
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+          '401':
+            description: Token no proporcionado o inválido
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    mensaje:
+                      type: string
+  /misSkins/obtenerTerreno/{id}:
+      get:
+        tags:
+          - MisSkins
+        summary: Obtiene el terreno del usuario
+        parameters:
+          - name: authorization
+            in: header
+            required: true
+            schema:
+              type: string
+              format: JWT
+          - name: id
+            in: path
+            required: true
+            schema:
+              type: string
+        responses:
+          '201':
+            description: Terreno obtenido con éxito
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    nombre:
+                      type: string
+                    descripcion:
+                      type: string
+          '400':
+            description: Error al obtener el terreno
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+          '401':
+            description: Token no proporcionado o inválido
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    mensaje:
+                      type: string
 servers:
   # Added by API Auto Mocking Plugin
   - description: SwaggerHub API Auto Mocking
