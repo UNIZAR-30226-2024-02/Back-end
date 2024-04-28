@@ -176,10 +176,11 @@ describe('Unir a partidas', () => {
             .send(credenciales)
             .set('Authorization', `${authTokenPig}`) // Incluye el token de acceso en la cabecera
             .set('Accept', 'application/json');
-        expect(created.status).toBe(200)
+        expect(joined.status).toBe(200)
+
         const loginCredentials = {
             id: 'a',
-            password: 'a'
+            password: 'ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb'
         };
 
         const response = await request
@@ -188,6 +189,7 @@ describe('Unir a partidas', () => {
             .set('Accept', 'application/json');
 
         expect(response.status).toBe(200);
+
         const token = response.body.token;
         const shouldfail = await request
             .put('/nuevaPartida/join')
