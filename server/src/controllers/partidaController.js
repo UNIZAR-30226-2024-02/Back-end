@@ -386,7 +386,7 @@ async function atacarTerritorio(partidaOID, usuarioID, territorioAtacante, terri
       partida.auxRobar = true
     } else { 
       // Quitar del territorio atacante las tropas perdidas en la batalla 
-      await actualizarTropasTerritorio(partida, territorioAtacante, -(numTropas - resultadoBatalla.tropasPerdidasAtacante))
+      await actualizarTropasTerritorio(partida, territorioAtacante, -(resultadoBatalla.tropasPerdidasAtacante))
     }
     partida.auxColocar = 0
     // Si tenemos un ganador, actualizamos la partida
