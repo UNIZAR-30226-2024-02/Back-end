@@ -11,6 +11,11 @@ function handleConnection(socket) {
     socket.on('joinGame', (body) => handleJoinGame(socket, body.gameId, body.user, clientIp));
     socket.on('inviteGame', (body) => handleInviteGame(socket, body.gameId, body.user_dest, body.user_from, clientIp));
     socket.on('gameStarted', (gameId) => handleGameStarted(socket, gameId, clientIp));
+    socket.on('actualizarEstado', (gameId) => handleActualizarEstado(socket, gameId, clientIp));
+    // Body {userOrigen, userDestino, dadosAtacante, dadosDefensor, tropasPerdidasAtacante, tropasPerdidasDefensor, conquistado}
+    socket.on('ataco', (body) => handleAtaco(socket, body.userOrigen, body.userDestino, body.dadosAtacante, body.dadosDefensor, 
+                                             body.tropasPerdidasAtacante, body.tropasPerdidasDefensor, body.conquistado, 
+                                             body.territorioOrigen, body.territorioDestino, clientIp));
     socket.on('disconnectGame', (body) => handleDisconnectGame(socket, body.gameId, body.user, clientIp));
     
     socket.on('joinChat', (chatId) => handleJoinChat(socket, chatId, clientIp));
@@ -44,6 +49,20 @@ function handleInviteGame(socket, gameId, user_dest, user_from, clientIp){
 function handleGameStarted(socket, gameId, clientIp){
     socket.to(gameId).emit('gameStarted', gameId);
     console.log(`Partida ${gameId} ha comenzado`);
+}
+
+function handleActualizarEstado(socket, gameId, clientIp){
+    socket.to(gameId).emit('cambioEstado', gameId);
+    console.log(`cambio de estado en la partida ${gameId}`);
+}
+
+function handleAtaco(socket, userOrigen, userDestino, dadosAtacante, dadosDefensor, 
+                    tropasPerdidasAtacante, tropasPerdidasDefensor, conquistado, territorioOrigen,
+                    territorioDestino, clientIp){
+    socket.to(userDestino).emit('ataqueRecibido', userOrigen, userDestino, dadosAtacante, dadosDefensor, 
+                            tropasPerdidasAtacante, tropasPerdidasDefensor, conquistado, territorioOrigen,
+                            territorioDestino);
+    console.log(`Usuario ${userOrigen} ha atacado a ${userDestino}`);
 }
 
 function handleDisconnectGame(socket, gameId, user, clientIp) {
@@ -115,12 +134,12 @@ function setupSocket(server) {
 
     setInterval(() => {
         notifyGame(io, 'caballo', 'caballo');
-    }, 15000);
+    }, 15000); 
 
     setInterval(() => {
-        notifyChat(io, 'chat123', '¡Bienvenidos al chat chat123!');
-        countParticipants(io, 'chat123');
-    }, 10000);*/
+        countParticipants(io, 'escandivas');
+        countParticipants(io, 'risketo');
+    }, 10);*/
 }
 
 module.exports = setupSocket;

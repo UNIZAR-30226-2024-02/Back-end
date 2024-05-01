@@ -4,7 +4,8 @@ const { getSkinsEquipadasByUsuario,
         getSkinsEnPropiedadByUsuario,
         setSkinEquipada, 
         obtenerAvatar,
-        obtenerTerreno
+        obtenerTerreno, 
+        obtenerSetFichas
       } = require('../controllers/usuarioController');
 const obtenerUsuarioDesdeToken = require('../auth/auth');
 
@@ -82,6 +83,21 @@ router.get('/obtenerTerreno/:id', async(req, res) => {
     userId = req.params.id
     const terreno = await obtenerTerreno(userId)
     res.status(201).json(terreno)
+  } catch (error) {
+    console.log(error.message)
+    res.status(400).json({ error: error.message })
+  }
+});
+
+router.get('/obtenerSetFichas/:id', async(req, res) => {
+  const token = req.headers['authorization'];
+  const user = obtenerUsuarioDesdeToken(token)
+  if(!user)
+    return res.status(401).json({ mensaje: 'Token no proporcionado o inválido' })
+  try {
+    userId = req.params.id
+    const setFichas = await obtenerSetFichas(userId)
+    res.status(201).json(setFichas)
   } catch (error) {
     console.log(error.message)
     res.status(400).json({ error: error.message })

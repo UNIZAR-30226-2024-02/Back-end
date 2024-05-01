@@ -337,6 +337,17 @@ async function obtenerTerreno(idUsuario){
     }
 }
 
+async function obtenerSetFichas(idUsuario){
+    try {
+        const usuario = await Usuario.findOne({ idUsuario });
+        const fichas = await Skin.findOne({ idSkin: new RegExp(usuario.setFichas.type, 'i') });
+        console.log('Fichas', fichas)
+        return fichas;
+    } catch (error) {
+        throw error;
+    }
+}
+
 module.exports = {
     crearUsuario,
     login,
@@ -351,5 +362,6 @@ module.exports = {
     getSolicitudes,
     getInvitaciones,
     obtenerAvatar,
-    obtenerTerreno
+    obtenerTerreno, 
+    obtenerSetFichas
 };
