@@ -519,6 +519,7 @@ async function siguienteFase(partidaOID, usuarioID) {
   }
 }
 
+// Lo que se pasa es el pais correspondiente a la carta
 async function utilizarCartas(partidaOID, usuarioID, carta1, carta2, carta3) {
   // Comprobar que la partida existe y leerla
   partida = await Partida.findById(partidaOID)
@@ -538,7 +539,14 @@ async function utilizarCartas(partidaOID, usuarioID, carta1, carta2, carta3) {
     return false;
   }
 
-  // Si es fase de colocacion y quedar tropas por colocar no se puede pasar de fase
+  // Comprobar que los territorios de las cartas pertenecen al jugador
+  if(!comprobarTerritorio(partida, jugador, carta1) || !comprobarTerritorio(partida, jugador, carta2)
+    || !comprobarTerritorio(partida, jugador, carta3)){
+    console.error("El territorio de alguna de las cartas no pertenece al jugador");
+    return false;
+  }
+
+  // Solo se pueden utlilizar cartas en la fase de colocacion o en la fase final de la partida
   if(partida.fase != Colocar && partida.fase != Fin){
     console.error("No se pueden utilizar cartas en esta fase");
     return false;
@@ -585,7 +593,7 @@ async function getPartida(partidaOID, UsuarioID){
     console.error("La partida no existe")
     return
   }
-
+  console.log(UsuarioID)
   // Buscar al jugador en la partida
   jugador = numJugador(partida, UsuarioID);
   if (jugador == - 1) {
@@ -614,14 +622,19 @@ async function calcularRefuerzos(partida, numJugador){
   console.log("Territorios", numTerritorios)
   if (numTerritorios < 12){
     refuerzos = 0;
-  } else if (numTerritorios >= 12 && numTerritorios <= 42) {
-    refuerzos = Math.abs(Math.ceil((numJugador - 11) / 3));
-    console.log('Refuerzos', refuerzos)
+  } else if (numTerritorios >= 12 && numTerritorios <= 35) {
+    refuerzos = Math.ceil((numTerritorios - 11) / 3);
+  } else if(numTerritorios >= 36 && numTerritorios <= 39) {
+    refuerzos = 9;
+  } else if(numTerritorios >= 40 && numTerritorios <= 42) {
+    refuerzos = 10;
   } else{
     console.error("Numero de territorio incongruente");
     refuerzos = -1;
     return refuerzos;
   }
+
+  console.log('Refuerzos', refuerzos)
 
   // Refuerzos por continente const Mapa = [NA, SA, EU, AF, AS, OC];
   if (controlaContinente(partida.jugadores[numJugador], partida.mapa[0])) {
@@ -667,9 +680,9 @@ function controlaContinente(jugador, continente) {
 
 async function actualizarTropasTerritorio(partida, nombreTerritorio, delta) {
   for (const continente of partida.mapa) {
-    const territorioEncontrado = continente.territorios.find(territorio => territorio.nombre === nombreTerritorio);
+    territorioEncontrado = continente.territorios.find(territorio => territorio.nombre === nombreTerritorio);
     if (territorioEncontrado) {
-        territorioEncontrado.tropas = Number(territorioEncontrado.tropas) + Number(delta);
+        territorioEncontrado.tropas += delta;
         partida.auxColocar -= delta;
         return territorioEncontrado.tropas;
     }
@@ -680,11 +693,12 @@ async function actualizarTropasTerritorio(partida, nombreTerritorio, delta) {
 
 // Dado un id de usuario devuelve su numero de jugador o -1 si no esta
 async function numJugador(partida, usuarioID){
-  for( let i = 0; i <= partida.jugadores.length; i++){
+  for( let i = 0; i < partida.jugadores.length; i++){
     if( partida.jugadores[i].usuario == usuarioID){
       return i;
     }
   }
+
   console.error("El usuario " + usuarioID + " no esta en la partida");
   return -1;
 }

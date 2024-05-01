@@ -19,13 +19,13 @@ const obtenerUsuarioDesdeToken = require('../auth/auth');
 router.put('/getPartida', async (req, res) => {
   console.log(req.body)
   try {
-    let { user, idPartida } = req.body
+    let idPartida = req.body.idPartida
     const token = req.headers['authorization'];
     const sender = obtenerUsuarioDesdeToken(token)
     if(!sender)
       return res.status(401).json({ mensaje: 'Token no proporcionado o inválido' })
 
-    partida = await getPartida(idPartida, user)
+    partida = await getPartida(idPartida, sender)
     if (partida) {
       res.status(200).json({ partida })
     } else {
