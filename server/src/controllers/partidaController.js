@@ -521,67 +521,72 @@ async function siguienteFase(partidaOID, usuarioID) {
 
 // Lo que se pasa es el pais correspondiente a la carta
 async function utilizarCartas(partidaOID, usuarioID, carta1, carta2, carta3) {
-  // Comprobar que la partida existe y leerla
-  partida = await Partida.findById(partidaOID)
-  if (!partida) {
-    console.error("La partida no existe")
-    return false
-  }
+  try{
+    // Comprobar que la partida existe y leerla
+    partida = await Partida.findById(partidaOID)
+    if (!partida) {
+      throw new Error("La partida no existe")
+      return false
+    }
 
-  // Buscar al jugador en la partida
-  jugador = numJugador(partida, usuarioID);
-  if(jugador == - 1){
-    return false;
-  }
+    // Buscar al jugador en la partida
+    jugador = await numJugador(partida, usuarioID);
+    if(jugador == - 1){
+      throw new Error("El jugador no está en la partida")
+    }
 
-  // Comprobar que sea el turno del jugador
-  if(!comprobarTurno(partida, jugador)){
-    return false;
-  }
+    // Comprobar que sea el turno del jugador
+    if(!await comprobarTurno(partida, jugador)){
+      throw new Error("No es tu turno")
+    }
 
-  // Comprobar que los territorios de las cartas pertenecen al jugador
-  if(!comprobarTerritorio(partida, jugador, carta1) || !comprobarTerritorio(partida, jugador, carta2)
-    || !comprobarTerritorio(partida, jugador, carta3)){
-    console.error("El territorio de alguna de las cartas no pertenece al jugador");
-    return false;
-  }
+    // Comprobar que los territorios de las cartas pertenecen al jugador
+    if(!await comprobarTerritorio(partida, jugador, carta1) || !await comprobarTerritorio(partida, jugador, carta2)
+      || !await comprobarTerritorio(partida, jugador, carta3)){
+      throw new Error("El territorio de alguna de las cartas no pertenece al jugador");
+      return false;
+    }
 
-  // Solo se pueden utlilizar cartas en la fase de colocacion o en la fase final de la partida
-  if(partida.fase != Colocar && partida.fase != Fin){
-    console.error("No se pueden utilizar cartas en esta fase");
-    return false;
-  }
-  
-  // Leer las cartas del jugador
-  cartasJugador = partida.jugadores[numJugador].cartas.map(carta => carta.territorio);
+    // Solo se pueden utlilizar cartas en la fase de colocacion o en la fase final de la partida
+    if(partida.fase != Colocar && partida.fase != Fin){
+      throw new Error("No se pueden utilizar cartas en esta fase");
+      return false;
+    }
+    
+    // Leer las cartas del jugador
+    cartasJugador = partida.jugadores[numJugador].cartas.map(carta => carta.territorio);
 
-  // Verificar si el jugador tiene las tres cartas
-  if (cartasJugador.includes(carta1) && cartasJugador.includes(carta2) && cartasJugador.includes(carta3)) {
-    // Obtener las cartas que se deben descartar
-    cartasDescartar = [carta1, carta2, carta3];
+    // Verificar si el jugador tiene las tres cartas
+    if (cartasJugador.includes(carta1) && cartasJugador.includes(carta2) && cartasJugador.includes(carta3)) {
+      // Obtener las cartas que se deben descartar
+      cartasDescartar = [carta1, carta2, carta3];
 
-    // Cartas que se queda el jugador despues
-    nuevasCartasJugador = jugador.cartas.filter(carta => !cartasDescartar.includes(carta.territorio));
+      // Cartas que se queda el jugador despues
+      nuevasCartasJugador = jugador.cartas.filter(carta => !cartasDescartar.includes(carta.territorio));
 
-    // Calcular el valor de tropas que suman las tres cartas
-    partida.auxColocar = partida.cartas
-      .filter(carta => cartasDescartar.includes(carta.territorio))
-      .reduce((total, carta) => total + carta.estrellas, 0);
+      // Calcular el valor de tropas que suman las tres cartas
+      partida.auxColocar = partida.cartas
+        .filter(carta => cartasDescartar.includes(carta.territorio))
+        .reduce((total, carta) => total + carta.estrellas, 0);
 
-    // Actualizar las cartas del jugador
-    jugador.cartas = nuevasCartasJugador;
+      // Actualizar las cartas del jugador
+      jugador.cartas = nuevasCartasJugador;
 
-    // Agregar las cartas al array de descartes de la partida
-    partida.descartes.push(...jugador.cartas.filter(carta => cartasDescartar.includes(carta.territorio)));
+      // Agregar las cartas al array de descartes de la partida
+      partida.descartes.push(...jugador.cartas.filter(carta => cartasDescartar.includes(carta.territorio)));
 
 
-    await partida.save();
-    console.log("Cartas utilizadas");
+      await partida.save();
+      console.log("Cartas utilizadas");
 
-    return true; // Indica que se han descartado las cartas
-  } else {
-      console.log("El jugador no dispone de las cartas que quiere utilizar")
-      return false; // Indica que el jugador no tiene las tres cartas
+      return {tropas: partida.auxColocar};
+    } else {
+        throw new Error("El jugador no dispone de las cartas que quiere utilizar")
+        return false; // Indica que el jugador no tiene las tres cartas
+    }
+  } catch (error) {
+    console.error("Error al utilizar cartas:", error);
+    throw error;
   }
 }
 
@@ -682,7 +687,7 @@ async function actualizarTropasTerritorio(partida, nombreTerritorio, delta) {
   for (const continente of partida.mapa) {
     territorioEncontrado = continente.territorios.find(territorio => territorio.nombre === nombreTerritorio);
     if (territorioEncontrado) {
-        territorioEncontrado.tropas += delta;
+        territorioEncontrado.tropas = Number(territorioEncontrado.tropas) + Number(delta);
         partida.auxColocar -= delta;
         return territorioEncontrado.tropas;
     }
@@ -1067,6 +1072,24 @@ async function getInfo(partidaID) {
   }
 }
 
+// dado el usuario, si está en alguna partida devuelve el id de la misma
+async function estoyEnPartida(idUsuario){
+  try{
+    // Obtengo todas las que hayan comenzado y no hayan terminado
+    const partidas = await Partida.find({ fechaInicio: { $ne: null }, fechaFin: { $eq: null } });
+    for(let partida of partidas){
+      for(let jugador of partida.jugadores){
+        if(jugador.usuario == idUsuario && !jugador.abandonado){
+          return partida._id;
+        }
+      }
+    }
+    return null;
+  } catch (error) {
+    throw error;
+  }
+}
+
 module.exports = {
   crearPartida, 
   getPartidasDisponibles,
@@ -1081,5 +1104,6 @@ module.exports = {
   realizarManiobra,
   utilizarCartas,
   getPartida,
-  getInfo
+  getInfo,
+  estoyEnPartida
 };

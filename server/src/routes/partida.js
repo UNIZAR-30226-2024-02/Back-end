@@ -12,7 +12,8 @@ const {   crearPartida,
   atacarTerritorio,
   realizarManiobra,
   utilizarCartas,
-  getPartida } = require('../controllers/partidaController');
+  getPartida,
+  estoyEnPartida } = require('../controllers/partidaController');
 const obtenerUsuarioDesdeToken = require('../auth/auth');
 
 // Debugged
@@ -155,9 +156,7 @@ router.put('/utilizarCartas', async (req, res) => {
 
     const succ = await utilizarCartas(idPartida, user, carta1, carta2, carta3);
     if (succ) {
-      res.status(200).json({ message: 'Cartas utilizadas' })
-    } else {
-      res.status(400).json({ message: 'Error al utilizar cartas' })
+      res.status(200).json({ message: 'Cartas utilizadas', tropas: succ.tropas })
     }
   } catch (error) {
     console.log(error.message)
@@ -177,6 +176,22 @@ router.put('/salirPartida', async (req, res) => {
     res.status(200).json({ message: 'Salida de partida exitosa' })
   }
   catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+});
+
+router.get('/estoyEnPartida', async (req, res) => {
+  try {
+    const token = req.headers['authorization'];
+    const user = obtenerUsuarioDesdeToken(token)
+    if(!user)
+    return res.status(401).json({ mensaje: 'Token no proporcionado o inválido' })
+    const partida = await estoyEnPartida(user)
+    if(partida)
+      res.status(200).json({ partida })
+    else
+      res.status(201).json({ message: 'El usuario no está en ninguna partida' })
+  } catch (error) {
     res.status(500).json({ error: error.message })
   }
 });
