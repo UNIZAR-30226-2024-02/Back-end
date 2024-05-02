@@ -26,7 +26,9 @@ const JugadorSchema = new mongoose.Schema({
     cartas: [{ type: CartaSchema }],
     skinFichas: {type: String, ref: 'Skin.idSkin'},
     color: {type: String},
-    abandonado: { type: Boolean, default: false}
+    abandonado: { type: Boolean, default: false}, 
+    eloGanado: {type: Number, default: 0},
+    dineroGanado: {type: Number, default: 0}
 });
 
 const PartidaSchema = new mongoose.Schema({
