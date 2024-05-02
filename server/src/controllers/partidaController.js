@@ -384,6 +384,10 @@ async function atacarTerritorio(partidaOID, usuarioID, territorioAtacante, terri
       await actualizarTropasTerritorio(partida, territorioAtacante, -numTropas)
       // Flag de robar carta
       partida.auxRobar = true
+      // si el jugador queda eliminado, lo marcamos como abandonado
+      if(await jugadorEliminado(partida, jugadorDefensor)){
+        partida.jugadores[jugadorDefensor].abandonado = true
+      }
     } else { 
       // Quitar del territorio atacante las tropas perdidas en la batalla 
       await actualizarTropasTerritorio(partida, territorioAtacante, -(resultadoBatalla.tropasPerdidasAtacante))
@@ -487,12 +491,20 @@ async function siguienteFase(partidaOID, usuarioID) {
     }
 
     // Pasar a la siguiente fase. Si era la ultima fase pasar de turno
-    partida.fase = (partida.fase + 1) % 5;
+    partida.fase = (partida.fase + 1) % 5; 
+    let siguienteJugador = jugador;
     if(partida.fase === Colocar){
-      partida.turno = partida.turno + 1;
+      // habrá que pasar al siguiente jugador que NO haya abandonado
+      for(let i = 0; i < partida.jugadores.length; i++){
+        if(partida.jugadores[i].abandonado){
+          partida.turno = (partida.turno + 1) % partida.jugadores.length;
+          siguienteJugador = (jugador + 1) % partida.jugadores.length;
+        } else {
+          break;
+        }
+      }
 
       // Inicializamos la variable de refuerzos del siguiente jugador
-      siguienteJugador = (jugador + 1) % partida.jugadores.length
       partida.auxColocar = await calcularRefuerzos(partida, siguienteJugador);
 
       // Si el mazo de cartas esta vacio y en la pila de descartes hay alguna carta
@@ -1046,12 +1058,31 @@ async function maniobraPosible(partida, numJugador, territorioOrigen, territorio
 
 // Ganamos si controlamos todos los territorios
 async function tenemosGanador(partida){
+  let abandonados = 0; let total = 0;
   for(let jugador of partida.jugadores){
     if(jugador.territorios.length == partida.mapa.flatMap(continent => continent.territorios).length){
       return jugador;
+    } 
+    if(jugador.abandonado) abandonados++;
+    total++;
+  }
+  if(abandonados == total - 1){
+    for(let jugador of partida.jugadores){
+      if(!jugador.abandonado){
+        return jugador;
+      }
     }
   }
+
   return null;
+}
+
+// true <-> el jugador ha sido eliminado, es decir, ya no dispone de territorios
+async function jugadorEliminado(partida, num){
+  if(partida.jugadores[num].territorios.length == 0){
+    return true;
+  }
+  return false;
 }
 
 // ----------------------------------------------------------------------------
