@@ -372,8 +372,12 @@ async function atacarTerritorio(partidaOID, usuarioID, territorioAtacante, terri
 
     resultadoBatalla = await resolverBatalla(dadosAtacante, dadosDefensor)
     defensoresRestantes = await actualizarTropasTerritorio(partida, territorioDefensor, -resultadoBatalla.tropasPerdidasDefensor)
+    dineroAtacante = 0; dineroDefensor = 0; 
+    eloAtacante = 0; eloDefensor = 0;
     if (defensoresRestantes === 0) {   // El defensor pierde el territorio // ES ====
       // Quitar el territorio al jugador que lo tenia
+      eloAtacante += 5; eloDefensor -= 5; 
+      dineroAtacante += 5;
       jugadorDefensor = await encontrarPropietario(partida, territorioDefensor)
       partida.jugadores[jugadorDefensor].territorios = partida.jugadores[jugadorDefensor].territorios.filter(territorio => territorio !== territorioDefensor)
       // Dar el territorio al jugador atacante
@@ -393,15 +397,28 @@ async function atacarTerritorio(partidaOID, usuarioID, territorioAtacante, terri
       await actualizarTropasTerritorio(partida, territorioAtacante, -(resultadoBatalla.tropasPerdidasAtacante))
     }
     partida.auxColocar = 0
+    eloAtacante += resultadoBatalla.tropasPerdidasDefensor; eloDefensor -= resultadoBatalla.tropasPerdidasDefensor;
+    eloDefensor += resultadoBatalla.tropasPerdidasAtacante; eloAtacante -= resultadoBatalla.tropasPerdidasAtacante;
+    dineroAtacante += resultadoBatalla.tropasPerdidasDefensor; 
+    dineroDefensor += resultadoBatalla.tropasPerdidasAtacante;
     // Si tenemos un ganador, actualizamos la partida
     let ganador = await tenemosGanador(partida)
     if(ganador){
       partida.fechaFin = new Date()
       partida.ganador = ganador.usuario
+      eloAtacante += 200; 
+      dineroAtacante += 200;
       console.log("Gana el jugador " + ganador)
     }
     await partida.save()
-    return {dadosAtacante: dadosAtacante, dadosDefensor: dadosDefensor, resultadoBatalla: resultadoBatalla, conquistado: defensoresRestantes === 0}
+    return {dadosAtacante: dadosAtacante, 
+            dadosDefensor: dadosDefensor, 
+            resultadoBatalla: resultadoBatalla, 
+            conquistado: defensoresRestantes === 0,
+            eloAtacante: eloAtacante,
+            eloDefensor: eloDefensor,
+            dineroAtacante: dineroAtacante,
+            dineroDefensor: dineroDefensor}
   } catch (error) {
     throw new Error(error.message)
   }

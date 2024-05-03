@@ -115,7 +115,11 @@ router.put('/atacarTerritorio', async (req, res) => {
                             dadosAtacante: succ.dadosAtacante, 
                             dadosDefensor: succ.dadosDefensor, 
                             resultadoBatalla: succ.resultadoBatalla, 
-                            conquistado: succ.conquistado 
+                            conquistado: succ.conquistado , 
+                            eloAtacante: succ.eloAtacante,
+                            eloDefensor: succ.eloDefensor, 
+                            dineroAtacante: succ.dineroAtacante,
+                            dineroDefensor: succ.dineroDefensor
                           })
     }
   } catch (error) {
