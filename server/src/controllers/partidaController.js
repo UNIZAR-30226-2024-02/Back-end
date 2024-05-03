@@ -538,10 +538,11 @@ async function siguienteFase(partidaOID, usuarioID) {
         partida.cartas = shuffle(partida.cartas);
       }
       
+      
       // Si el flag de robar esta activo y se puede robar una carta se roba
       if(partida.cartas.length >= 1 && partida.auxRobar == true){
         cartaRobada = partida.cartas.pop();
-        partida.jugadores[numJugador].cartas.push(cartaRobada);
+        partida.jugadores[jugador].cartas.push(cartaRobada);
         partida.auxRobar = false;
       }
     }
