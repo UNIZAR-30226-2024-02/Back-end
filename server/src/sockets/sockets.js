@@ -15,7 +15,8 @@ function handleConnection(socket) {
     // Body {userOrigen, userDestino, dadosAtacante, dadosDefensor, tropasPerdidasAtacante, tropasPerdidasDefensor, conquistado}
     socket.on('ataco', (body) => handleAtaco(socket, body.userOrigen, body.userDestino, body.dadosAtacante, body.dadosDefensor, 
                                              body.tropasPerdidasAtacante, body.tropasPerdidasDefensor, body.conquistado, 
-                                             body.territorioOrigen, body.territorioDestino, clientIp));
+                                             body.territorioOrigen, body.territorioDestino, body.eloAtacante, body.eloDefensor,
+                                             body.dineroAtacante, body.dineroDefensor, clientIp));
     socket.on('disconnectGame', (body) => handleDisconnectGame(socket, body.gameId, body.user, clientIp));
     
     socket.on('joinChat', (chatId) => handleJoinChat(socket, chatId, clientIp));
@@ -58,10 +59,10 @@ function handleActualizarEstado(socket, gameId, clientIp){
 
 function handleAtaco(socket, userOrigen, userDestino, dadosAtacante, dadosDefensor, 
                     tropasPerdidasAtacante, tropasPerdidasDefensor, conquistado, territorioOrigen,
-                    territorioDestino, clientIp){
+                    territorioDestino, eloAtacante, eloDefensor, dineroAtacante, dineroDefensor, clientIp){
     socket.to(userDestino).emit('ataqueRecibido', userOrigen, userDestino, dadosAtacante, dadosDefensor, 
                             tropasPerdidasAtacante, tropasPerdidasDefensor, conquistado, territorioOrigen,
-                            territorioDestino);
+                            territorioDestino, eloAtacante, eloDefensor, dineroAtacante, dineroDefensor);
     console.log(`Usuario ${userOrigen} ha atacado a ${userDestino}`);
 }
 

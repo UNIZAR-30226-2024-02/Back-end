@@ -373,12 +373,12 @@ async function atacarTerritorio(partidaOID, usuarioID, territorioAtacante, terri
     resultadoBatalla = await resolverBatalla(dadosAtacante, dadosDefensor)
     defensoresRestantes = await actualizarTropasTerritorio(partida, territorioDefensor, -resultadoBatalla.tropasPerdidasDefensor)
     dineroAtacante = 0; dineroDefensor = 0; 
-    eloAtacante = 0; eloDefensor = 0;
+    eloAtacante = 0; eloDefensor = 0; let jugadorDefensor = await encontrarPropietario(partida, territorioDefensor) 
     if (defensoresRestantes === 0) {   // El defensor pierde el territorio // ES ====
       // Quitar el territorio al jugador que lo tenia
       eloAtacante += 5; eloDefensor -= 5; 
       dineroAtacante += 5;
-      jugadorDefensor = await encontrarPropietario(partida, territorioDefensor)
+      //jugadorDefensor = await encontrarPropietario(partida, territorioDefensor)
       partida.jugadores[jugadorDefensor].territorios = partida.jugadores[jugadorDefensor].territorios.filter(territorio => territorio !== territorioDefensor)
       // Dar el territorio al jugador atacante
       partida.jugadores[jugador].territorios.push(territorioDefensor)
@@ -411,6 +411,12 @@ async function atacarTerritorio(partidaOID, usuarioID, territorioAtacante, terri
       console.log("Gana el jugador " + ganador)
     }
     await partida.save()
+    let user = await Usuario.findOne({idUsuario: usuarioID})
+    user.elo += eloAtacante; user.dinero += dineroAtacante;
+    await user.save()
+    user = await Usuario.findOne({idUsuario: partida.jugadores[jugadorDefensor].usuario})
+    user.elo += eloDefensor; user.dinero += dineroDefensor;
+    await user.save()
     return {dadosAtacante: dadosAtacante, 
             dadosDefensor: dadosDefensor, 
             resultadoBatalla: resultadoBatalla, 
