@@ -518,14 +518,14 @@ async function siguienteFase(partidaOID, usuarioID) {
     let siguienteJugador = jugador;
     if(partida.fase === Colocar){
       // habrá que pasar al siguiente jugador que NO haya abandonado
-      for(let i = 0; i < partida.jugadores.length; i++){
-        if(partida.jugadores[i].abandonado){
-          partida.turno = (partida.turno + 1) % partida.jugadores.length;
-          siguienteJugador = (jugador + 1) % partida.jugadores.length;
-        } else {
-          break;
-        }
+      console.log(partida.jugadores.length)
+      partida.turno = (partida.turno + 1) % partida.jugadores.length;
+      siguienteJugador = (jugador + 1) % partida.jugadores.length;
+      while(partida.jugadores[partida.turno].abandonado){
+        partida.turno = (partida.turno + 1) % partida.jugadores.length;
+        siguienteJugador = (jugador + 1) % partida.jugadores.length;
       }
+
 
       // Inicializamos la variable de refuerzos del siguiente jugador
       partida.auxColocar = await calcularRefuerzos(partida, siguienteJugador);
