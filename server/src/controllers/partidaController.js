@@ -111,6 +111,8 @@ async function join(user, idPartida, password) {
       const jugador = new Jugador({ usuario: user })
       partida.jugadores.push(jugador)
       await partida.save()
+      usuarioUnir.invitaciones.pull(idPartida)
+      await usuarioUnir.save()    
       return true
     }
 
@@ -155,7 +157,12 @@ async function salirPartida(usuarioID, partidaOID) {
         if (partida.fechaInicio === null) {
           partida.jugadores.splice(index, 1);
           if(partida.jugadores.length == 0){
+            const chatOID = partida.chat;
+            await Chat.deleteOne({ _id: chatOID });
+            partida.chat = null;
+            await partida.save();
             await Partida.deleteOne({ _id: partidaOID });
+
           } else {
             await partida.save();
           }
@@ -176,6 +183,9 @@ async function salirPartida(usuarioID, partidaOID) {
             }
             if(cnt == partida.jugadores.length){
               partida.fechaFin = new Date();
+              const chatOID = partida.chat;
+              await Chat.deleteOne({ _id: chatOID });
+              partida.chat = null;
               await partida.save();
             }
             console.log("Usuario marcado como abandonado en la partida", partida);
@@ -362,6 +372,7 @@ async function atacarTerritorio(partidaOID, usuarioID, territorioAtacante, terri
       dadosAtacante.push(Math.floor(Math.random() * 6) + 1)
     }
 
+
     // Calculamos el numero de dados del defensor y los tiramos
     tropasTerritorioDefensor = await actualizarTropasTerritorio(partida,territorioDefensor, 0)
     numDadosDefensor = Math.min(2, tropasTerritorioDefensor)
@@ -369,6 +380,9 @@ async function atacarTerritorio(partidaOID, usuarioID, territorioAtacante, terri
     for (let i = 0; i < numDadosDefensor; i++) {
       dadosDefensor.push(Math.floor(Math.random() * 6) + 1)
     }
+
+    dadosAtacante.sort((a, b) => b - a);
+    dadosDefensor.sort((a, b) => b - a);
 
     resultadoBatalla = await resolverBatalla(dadosAtacante, dadosDefensor)
     defensoresRestantes = await actualizarTropasTerritorio(partida, territorioDefensor, -resultadoBatalla.tropasPerdidasDefensor)
@@ -406,6 +420,9 @@ async function atacarTerritorio(partidaOID, usuarioID, territorioAtacante, terri
     if(ganador){
       partida.fechaFin = new Date()
       partida.ganador = ganador.usuario
+      const chatOID = partida.chat;
+      await Chat.deleteOne({ _id: chatOID });
+      partida.chat = null;
       eloAtacante += 200; 
       dineroAtacante += 200;
       console.log("Gana el jugador " + ganador)
@@ -864,7 +881,7 @@ async function inicializarEstado(partida) {
   const Argentina = new Territorio({ nombre: "ARGENTINA", frontera: ["PERU", "BRASIL"], tropas: 1 });
   const Brasil = new Territorio({ nombre: "BRASIL", frontera: ["ARGENTINA", "VENEZUELA", "PERU", "AFRICA NORTE"], tropas: 2 });
   const Peru = new Territorio({ nombre: "PERU", frontera: ["ARGENTINA", "VENEZUELA", "BRASIL"], tropas: 1 });
-  const Venezuela = new Territorio({ nombre: "VENEZUELA ", frontera: ["AMERICA CENTRAL", "PERU", "BRASIL"], tropas: 2 });
+  const Venezuela = new Territorio({ nombre: "VENEZUELA", frontera: ["AMERICA CENTRAL", "PERU", "BRASIL"], tropas: 2 });
   const GranBretana = new Territorio({ nombre: "GRAN BRETANA", frontera: ["EUROPA OCCIDENTAL", "EUROPA NORTE", "ESCANDINAVIA", "ISLANDIA"], tropas: 1 });
   const Islandia = new Territorio({ nombre: "ISLANDIA", frontera: ["GRAN BRETANA", "GROENLANDIA", "ESCANDINAVIA"], tropas: 2 });
   const EuropaNorte = new Territorio({ nombre: "EUROPA NORTE", frontera: ["EUROPA SUR", "EUROPA OCCIDENTAL", "RUSIA", "GRAN BRETANA", "ESCANDINAVIA"], tropas: 1 });
