@@ -674,22 +674,44 @@ async function getPartida(partidaOID, UsuarioID){
 // -------------------- FUNCIONES AUXILIARES ----------------------------------
 async function calcularRefuerzos(partida, numJugador){
   numTerritorios = partida.jugadores[numJugador].territorios.length;
-  let refuerzos;
+  // "siempre recibes al menos 3 tropas" (https://www.hasbro.com/common/documents/dad2886d1c4311ddbd0b0800200c9a66/ADE84A6E50569047F504839559C5FEBF.pdf)
+  let refuerzos = 3;
 
   // Refuerzos por numero de territorios
   console.log("Territorios", numTerritorios)
-  if (numTerritorios < 12){
-    refuerzos = 0;
-  } else if (numTerritorios >= 12 && numTerritorios <= 35) {
-    refuerzos = Math.ceil((numTerritorios - 11) / 3);
-  } else if(numTerritorios >= 36 && numTerritorios <= 39) {
-    refuerzos = 9;
-  } else if(numTerritorios >= 40 && numTerritorios <= 42) {
-    refuerzos = 10;
-  } else{
-    console.error("Numero de territorio incongruente");
-    refuerzos = -1;
-    return refuerzos;
+  switch(numTerritorios){
+    case numTerritorios >= 12 && numTerritorios <= 14:
+      refuerzos += 1;
+      break;
+    case numTerritorios >= 15 && numTerritorios <= 17:
+      refuerzos += 2;
+      break;
+    case numTerritorios >= 18 && numTerritorios <= 20:
+      refuerzos += 3;
+      break;
+    case numTerritorios >= 21 && numTerritorios <= 23:
+      refuerzos += 4;
+      break;
+    case numTerritorios >= 24 && numTerritorios <= 26:
+      refuerzos += 5;
+      break;
+    case numTerritorios >= 27 && numTerritorios <= 29:
+      refuerzos += 6;
+      break;
+    case numTerritorios >= 30 && numTerritorios <= 32:
+      refuerzos += 7;
+      break;
+    case numTerritorios >= 33 && numTerritorios <= 35:
+      refuerzos += 8;
+      break;
+    case numTerritorios >= 36 && numTerritorios <= 39:
+      refuerzos += 9;
+      break;
+    case numTerritorios >= 40 && numTerritorios <= 42:
+      refuerzos += 10;
+      break;
+    default:
+      refuerzos += 0;
   }
 
   console.log('Refuerzos', refuerzos)

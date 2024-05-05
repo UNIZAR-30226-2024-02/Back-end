@@ -13,7 +13,7 @@ router.post('/', async(req, res) => {
       await crearUsuario(idUsuario, password, correo)
       console.log('Usuario registrado exitosamente')
       const token = jwt.sign({ idUsuario: idUsuario }, 'claveSecreta', { expiresIn: '1h' });
-      res.status(201).json({ message: 'Usuario registrado exitosamente', token })
+      res.status(201).json({ message: 'Usuario registrado exitosamente', token,  idUsuario: idUsuario})
   } catch (error) {
       console.log(error.message)
       res.status(400).json({ error: error.message })
