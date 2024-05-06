@@ -159,7 +159,7 @@ async function salirPartida(usuarioID, partidaOID) {
           if(partida.jugadores.length == 0){
             const chatOID = partida.chat;
             await Chat.deleteOne({ _id: chatOID });
-            partida.chat = null;
+            partida.chat = {_id: chatOID, nombreChat: 'eliminado', mensajes: [], usuarios: []};
             await partida.save();
             await Partida.deleteOne({ _id: partidaOID });
 
@@ -185,7 +185,7 @@ async function salirPartida(usuarioID, partidaOID) {
               partida.fechaFin = new Date();
               const chatOID = partida.chat;
               await Chat.deleteOne({ _id: chatOID });
-              partida.chat = null;
+              partida.chat = {_id: chatOID, nombreChat: 'eliminado', mensajes: [], usuarios: []};
               await partida.save();
             } let posibleGanador = await tenemosGanador(partida);
             if(posibleGanador){ // cuando reciba esto, el estado de la partida se actualizará
@@ -194,7 +194,7 @@ async function salirPartida(usuarioID, partidaOID) {
               // que cogerán los sockets --> se enviará un mensaje a todos los jugadores, 
               // que será recibido mientras se actualiza el estado de la base de datos. 
               partida.fechaFin = new Date(); const chatOID = partida.chat;
-              await Chat.deleteOne({ _id: chatOID }); partida.chat = null;
+              await Chat.deleteOne({ _id: chatOID }); partida.chat = {_id: chatOID, nombreChat: 'eliminado', mensajes: [], usuarios: []};
               partida.ganador = posibleGanador.usuario;
               await partida.save(); 
             }
@@ -432,7 +432,7 @@ async function atacarTerritorio(partidaOID, usuarioID, territorioAtacante, terri
       partida.ganador = ganador.usuario
       const chatOID = partida.chat;
       await Chat.deleteOne({ _id: chatOID });
-      partida.chat = null;
+      partida.chat = {_id: chatOID, nombreChat: 'eliminado', mensajes: [], usuarios: []};
       eloAtacante += 200; 
       dineroAtacante += 200;
       console.log("Gana el jugador " + ganador)
@@ -556,6 +556,7 @@ async function siguienteFase(partidaOID, usuarioID) {
 
       // Inicializamos la variable de refuerzos del siguiente jugador
       partida.auxColocar = await calcularRefuerzos(partida, siguienteJugador);
+      console.log("auxcolocar", partida.auxColocar)
 
       // Si el mazo de cartas esta vacio y en la pila de descartes hay alguna carta
       // Barajeamos la pila de descartes en el mazo
@@ -684,44 +685,35 @@ async function getPartida(partidaOID, UsuarioID){
 // -------------------- FUNCIONES AUXILIARES ----------------------------------
 async function calcularRefuerzos(partida, numJugador){
   numTerritorios = partida.jugadores[numJugador].territorios.length;
+  console.log(numTerritorios)
   // "siempre recibes al menos 3 tropas" (https://www.hasbro.com/common/documents/dad2886d1c4311ddbd0b0800200c9a66/ADE84A6E50569047F504839559C5FEBF.pdf)
   let refuerzos = 3;
 
   // Refuerzos por numero de territorios
   console.log("Territorios", numTerritorios)
-  switch(numTerritorios){
-    case numTerritorios >= 12 && numTerritorios <= 14:
-      refuerzos += 1;
-      break;
-    case numTerritorios >= 15 && numTerritorios <= 17:
-      refuerzos += 2;
-      break;
-    case numTerritorios >= 18 && numTerritorios <= 20:
-      refuerzos += 3;
-      break;
-    case numTerritorios >= 21 && numTerritorios <= 23:
-      refuerzos += 4;
-      break;
-    case numTerritorios >= 24 && numTerritorios <= 26:
-      refuerzos += 5;
-      break;
-    case numTerritorios >= 27 && numTerritorios <= 29:
-      refuerzos += 6;
-      break;
-    case numTerritorios >= 30 && numTerritorios <= 32:
-      refuerzos += 7;
-      break;
-    case numTerritorios >= 33 && numTerritorios <= 35:
-      refuerzos += 8;
-      break;
-    case numTerritorios >= 36 && numTerritorios <= 39:
-      refuerzos += 9;
-      break;
-    case numTerritorios >= 40 && numTerritorios <= 42:
-      refuerzos += 10;
-      break;
-    default:
-      refuerzos += 0;
+  if (numTerritorios >= 12 && numTerritorios <= 14) {
+    refuerzos += 1;
+  } else if (numTerritorios >= 15 && numTerritorios <= 17) {
+    refuerzos += 2;
+  } else if (numTerritorios >= 18 && numTerritorios <= 20) {
+    refuerzos += 3;
+  } else if (numTerritorios >= 21 && numTerritorios <= 23) {
+    refuerzos += 4;
+  } else if (numTerritorios >= 24 && numTerritorios <= 26) {
+    refuerzos += 5;
+  } else if (numTerritorios >= 27 && numTerritorios <= 29) {
+    refuerzos += 6;
+  } else if (numTerritorios >= 30 && numTerritorios <= 32) {
+    refuerzos += 7;
+  } else if (numTerritorios >= 33 && numTerritorios <= 35) {
+    refuerzos += 8;
+  } else if (numTerritorios >= 36 && numTerritorios <= 39) {
+    refuerzos += 9;
+  } else if (numTerritorios >= 40 && numTerritorios <= 42) {
+    refuerzos += 10;
+  } else {
+    refuerzos += 0;
+    console.log("Caball")
   }
 
   console.log('Refuerzos', refuerzos)
@@ -1206,6 +1198,25 @@ async function estoyEnPartida(idUsuario){
   }
 }
 
+async function jugadoresEliminados(partidaID){
+  try {
+    let partida = await Partida.findById(partidaID);
+    if(!partida){
+      throw new Error("Partida no encontrada");
+    }
+    let eliminados = [];
+    for(let i = 0; i < partida.jugadores.length; i++){
+      if(partida.jugadores[i].abandonado){
+        eliminados.push(partida.jugadores[i].usuario);
+      }
+    }
+    return eliminados;
+  } catch (error) {
+    throw error;
+  }
+    
+}
+
 module.exports = {
   crearPartida, 
   getPartidasDisponibles,
@@ -1222,5 +1233,6 @@ module.exports = {
   getPartida,
   getInfo,
   estoyEnPartida,
-  existeGanador
+  existeGanador, 
+  jugadoresEliminados
 };

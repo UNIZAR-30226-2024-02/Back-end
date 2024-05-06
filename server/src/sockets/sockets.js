@@ -1,5 +1,5 @@
 const socketIO = require("socket.io");
-const {existeGanador} = require("../controllers/partidaController");
+const {existeGanador, jugadoresEliminados } = require("../controllers/partidaController");
 
 function handleConnection(socket) {
     const clientIp = socket.handshake.address;
@@ -56,6 +56,12 @@ function handleGameStarted(socket, gameId, clientIp){
 function handleActualizarEstado(socket, gameId, clientIp){
     socket.to(gameId).emit('cambioEstado', gameId);
     console.log(`cambio de estado en la partida ${gameId}`);
+   /* let eliminados = jugadoresEliminados(gameId);
+    if(eliminados.length > 0){
+        eliminados.forEach((eliminado) => {
+            socket.to(eliminado).emit('jugadorEliminado', eliminado);
+        });
+    }*/
 }
 
 function handleAtaco(socket, userOrigen, userDestino, dadosAtacante, dadosDefensor, 
