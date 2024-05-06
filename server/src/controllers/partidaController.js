@@ -187,6 +187,16 @@ async function salirPartida(usuarioID, partidaOID) {
               await Chat.deleteOne({ _id: chatOID });
               partida.chat = null;
               await partida.save();
+            } let posibleGanador = await tenemosGanador(partida);
+            if(posibleGanador){ // cuando reciba esto, el estado de la partida se actualizará
+              // pero no avisaré al front end, simplemente guardaré en la base de datos
+              // aquí es donde entra el socket -> el front end, a la vez, enviará un evento
+              // que cogerán los sockets --> se enviará un mensaje a todos los jugadores, 
+              // que será recibido mientras se actualiza el estado de la base de datos. 
+              partida.fechaFin = new Date(); const chatOID = partida.chat;
+              await Chat.deleteOne({ _id: chatOID }); partida.chat = null;
+              partida.ganador = posibleGanador.usuario;
+              await partida.save(); 
             }
             console.log("Usuario marcado como abandonado en la partida", partida);
           }
@@ -1119,6 +1129,18 @@ async function maniobraPosible(partida, numJugador, territorioOrigen, territorio
   return isFriendlyReachable(partida.mapa, territorio, territorioDestino, partida.jugadores[numJugador])
 }
 
+
+async function existeGanador(idPartida){
+  try{
+    let partida = await Partida.findById(idPartida);
+    if(!partida){
+      throw new Error("Partida no encontrada");
+    }
+    return await tenemosGanador(partida);
+  } catch (error) {
+    throw error;
+  }
+}
 // Ganamos si controlamos todos los territorios
 async function tenemosGanador(partida){
   let abandonados = 0; let total = 0;
@@ -1199,5 +1221,6 @@ module.exports = {
   utilizarCartas,
   getPartida,
   getInfo,
-  estoyEnPartida
+  estoyEnPartida,
+  existeGanador
 };

@@ -1,4 +1,5 @@
 const socketIO = require("socket.io");
+const {existeGanador} = require("../controllers/partidaController");
 
 function handleConnection(socket) {
     const clientIp = socket.handshake.address;
@@ -66,10 +67,20 @@ function handleAtaco(socket, userOrigen, userDestino, dadosAtacante, dadosDefens
     console.log(`Usuario ${userOrigen} ha atacado a ${userDestino}`);
 }
 
-function handleDisconnectGame(socket, gameId, user, clientIp) {
+async function handleDisconnectGame(socket, gameId, user, clientIp) {
     socket.leave(gameId);
     socket.to(gameId).emit('userDisconnected', user);
     console.log(`Usuario desconectado de la partida ${gameId}`);
+    // si tenemos ganador, avisamos a los fronts, pero no hacemos nada
+    // en la base de datos -> de esto no se encarga este módulo. 
+    try{
+        let posibleGanador = await existeGanador(gameId); 
+        if(posibleGanador){
+            socket.to(gameId).emit('gameOver', posibleGanador.usuario);
+        }
+    } catch (error) {
+        console.log(error.message)
+    }
 }
 
 // Chats
