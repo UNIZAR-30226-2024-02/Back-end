@@ -13,6 +13,7 @@ function handleConnection(socket) {
     socket.on('inviteGame', (body) => handleInviteGame(socket, body.gameId, body.user_dest, body.user_from, clientIp));
     socket.on('gameStarted', (gameId) => handleGameStarted(socket, gameId, clientIp));
     socket.on('actualizarEstado', (gameId) => handleActualizarEstado(socket, gameId, clientIp));
+    socket.on('pausoPartida', (gameId) => handlePausoPartida(socket, gameId, clientIp)); 
     // Body {userOrigen, userDestino, dadosAtacante, dadosDefensor, tropasPerdidasAtacante, tropasPerdidasDefensor, conquistado}
     socket.on('ataco', (body) => handleAtaco(socket, body.userOrigen, body.userDestino, body.dadosAtacante, body.dadosDefensor, 
                                              body.tropasPerdidasAtacante, body.tropasPerdidasDefensor, body.conquistado, 
@@ -63,6 +64,12 @@ function handleActualizarEstado(socket, gameId, clientIp){
         });
     }*/
 }
+
+function handlePausoPartida(socket, gameId, clientIp){
+    socket.to(gameId).emit('partidaPausada', gameId);
+    console.log(`Partida ${gameId} ha sido pausada`);
+}
+
 
 function handleAtaco(socket, userOrigen, userDestino, dadosAtacante, dadosDefensor, 
                     tropasPerdidasAtacante, tropasPerdidasDefensor, conquistado, territorioOrigen,
