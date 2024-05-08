@@ -51,7 +51,8 @@ const PartidaSchema = new mongoose.Schema({
     turno: { type: Number, default: 0 },
     fase: { type: Number, default: 0 },
     auxColocar: { type: Number, default: 0 },
-    auxRobar: { type: Boolean, default: false }
+    auxRobar: { type: Boolean, default: false },
+    paused: { type: Boolean, default: false }
 });
 
 module.exports = {

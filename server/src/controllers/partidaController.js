@@ -284,6 +284,10 @@ async function colocarTropas(partidaOID, usuarioID, nombreTerritorio, tropas) {
       return false;
     }
 
+    if(partida.paused){
+      throw new Error("La partida esta pausada");
+    }
+
     // Comprobar si el usuario esta en la partida y obtener numero de jugador
     jugador = await numJugador(partida, usuarioID);
     if(jugador == - 1){
@@ -332,6 +336,10 @@ async function atacarTerritorio(partidaOID, usuarioID, territorioAtacante, terri
     partida = await Partida.findById(partidaOID)
     if (!partida) {
       throw new Error("La partida no existe")
+    }
+
+    if(partida.paused){
+      throw new Error("La partida esta pausada");
     }
 
     // Comprobar si el usuario esta en la partida y obtener numero de jugador
@@ -465,6 +473,10 @@ async function realizarManiobra(partidaOID, usuarioID, territorioOrigen, territo
     return false
   }
 
+  if(partida.paused){
+    throw new Error("La partida esta pausada");
+  }
+
   // Buscar al jugador en la partida
   jugador = await numJugador(partida, usuarioID)
   if (jugador == -1) {
@@ -522,6 +534,10 @@ async function siguienteFase(partidaOID, usuarioID) {
     partida = await Partida.findById(partidaOID)
     if (!partida) {
       throw new Error("La partida no existe")
+    }
+
+    if(partida.paused){
+      throw new Error("La partida esta pausada");
     }
 
     // Buscar al jugador en la partida
@@ -591,6 +607,10 @@ async function utilizarCartas(partidaOID, usuarioID, carta1, carta2, carta3) {
     if (!partida) {
       throw new Error("La partida no existe")
       return false
+    }
+
+    if(partida.paused){
+      throw new Error("La partida esta pausada");
     }
 
     // Buscar al jugador en la partida
@@ -680,6 +700,30 @@ async function getPartida(partidaOID, UsuarioID){
   delete partida.cartas;
 
   return partida;
+}
+
+async function pausarPartida(user, idPartida){
+  try{
+    let partida = await Partida.findById(idPartida)
+    if(!partida){
+      throw new Error("La partida no existe")
+    }
+    jugador = await numJugador(partida, user);
+    if(jugador == - 1){
+      throw new Error("El jugador no está en la partida")
+    }
+    if(partida.paused){
+      partida.paused = false;
+      console.log("reanudada")
+    } else {
+      partida.paused = true;
+      console.log("pausada")
+    }
+    await partida.save();
+    return true;
+  } catch (error) {
+    throw new Error(error.message)
+  }
 }
 
 // -------------------- FUNCIONES AUXILIARES ----------------------------------
@@ -1234,5 +1278,6 @@ module.exports = {
   getInfo,
   estoyEnPartida,
   existeGanador, 
-  jugadoresEliminados
+  jugadoresEliminados,
+  pausarPartida
 };
