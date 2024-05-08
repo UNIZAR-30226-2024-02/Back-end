@@ -332,6 +332,18 @@ describe('Invitaciones a partidas', () => {
         expect(response.status).toBe(400)
     })
 
+    it('debería permitir listar las partidas de un usuario', async () => {
+        
+        const response = await request
+            .get('/partidas/invitaciones')
+            .set('Authorization', `${authTokenPig}`) // Incluye el token de acceso en la cabecera
+            .set('Accept', 'application/json');
+
+        expect(response.status).toBe(200)
+        expect(response.body).toHaveProperty('Partidas')
+        expect(response.body.Partidas).toHaveLength(1) // debería haber una partida en la lista pigdemon
+    })
+    
     it('debería permitir unirse a una partida invitada sin contraseña', async () => {
         const credenciales = {
             idPartida: partidaPrivada,
@@ -346,17 +358,6 @@ describe('Invitaciones a partidas', () => {
         expect(response.body).toHaveProperty('message', 'Unido correctamente')
     })
 
-    it('debería permitir listar las partidas de un usuario', async () => {
-        
-        const response = await request
-            .get('/partidas/invitaciones')
-            .set('Authorization', `${authTokenPig}`) // Incluye el token de acceso en la cabecera
-            .set('Accept', 'application/json');
-
-        expect(response.status).toBe(200)
-        expect(response.body).toHaveProperty('Partidas')
-        expect(response.body.Partidas).toHaveLength(1) // debería haber una partida en la lista pigdemon
-    })
 });
 
 // Se expandirá cuando se implemente el módulo de unirse a partida
