@@ -13,6 +13,7 @@ const perfilRouter = require('./routes/perfil')
 const cors = require('cors')
 const http = require('http')
 const setupSocket = require('./sockets/sockets')
+const partidaRouter = require('./routes/partida')
 
 const app = express();
 const server = http.createServer(app);
@@ -69,6 +70,7 @@ app.use('/tienda', tiendaRouter);
 app.use('/chats', chatRouter)
 app.use('/misSkins', misSkinsRouter)
 app.use('/perfil', perfilRouter);
+app.use('/partida', partidaRouter);
 
 // ruta prueba principal
 app.get('/', (req, res) => {

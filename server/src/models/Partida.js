@@ -26,7 +26,9 @@ const JugadorSchema = new mongoose.Schema({
     cartas: [{ type: CartaSchema }],
     skinFichas: {type: String, ref: 'Skin.idSkin'},
     color: {type: String},
-    abandonado: { type: Boolean, default: false}
+    abandonado: { type: Boolean, default: false}, 
+    eloGanado: {type: Number, default: 0},
+    dineroGanado: {type: Number, default: 0}
 });
 
 const PartidaSchema = new mongoose.Schema({
@@ -40,12 +42,16 @@ const PartidaSchema = new mongoose.Schema({
             type: String,
             default: null
     },
-    turno: { type: Number, required: true, default: 0 },
     jugadores: [{ type: JugadorSchema, default: []}],
     cartas: [{  type: CartaSchema , default: [] }],
     descartes: [{  type: CartaSchema , default: [] }],
     mapa: [{ type: ContinenteSchema, default: [] }], 
-    chat: { type: Chat.schema }
+    chat: { type: Chat.schema },
+
+    turno: { type: Number, default: 0 },
+    fase: { type: Number, default: 0 },
+    auxColocar: { type: Number, default: 0 },
+    auxRobar: { type: Boolean, default: false }
 });
 
 module.exports = {

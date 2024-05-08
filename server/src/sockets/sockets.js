@@ -1,4 +1,5 @@
 const socketIO = require("socket.io");
+const {existeGanador, jugadoresEliminados } = require("../controllers/partidaController");
 
 function handleConnection(socket) {
     const clientIp = socket.handshake.address;
@@ -11,6 +12,12 @@ function handleConnection(socket) {
     socket.on('joinGame', (body) => handleJoinGame(socket, body.gameId, body.user, clientIp));
     socket.on('inviteGame', (body) => handleInviteGame(socket, body.gameId, body.user_dest, body.user_from, clientIp));
     socket.on('gameStarted', (gameId) => handleGameStarted(socket, gameId, clientIp));
+    socket.on('actualizarEstado', (gameId) => handleActualizarEstado(socket, gameId, clientIp));
+    // Body {userOrigen, userDestino, dadosAtacante, dadosDefensor, tropasPerdidasAtacante, tropasPerdidasDefensor, conquistado}
+    socket.on('ataco', (body) => handleAtaco(socket, body.userOrigen, body.userDestino, body.dadosAtacante, body.dadosDefensor, 
+                                             body.tropasPerdidasAtacante, body.tropasPerdidasDefensor, body.conquistado, 
+                                             body.territorioOrigen, body.territorioDestino, body.eloAtacante, body.eloDefensor,
+                                             body.dineroAtacante, body.dineroDefensor, clientIp));
     socket.on('disconnectGame', (body) => handleDisconnectGame(socket, body.gameId, body.user, clientIp));
     
     socket.on('joinChat', (chatId) => handleJoinChat(socket, chatId, clientIp));
@@ -46,10 +53,40 @@ function handleGameStarted(socket, gameId, clientIp){
     console.log(`Partida ${gameId} ha comenzado`);
 }
 
-function handleDisconnectGame(socket, gameId, user, clientIp) {
+function handleActualizarEstado(socket, gameId, clientIp){
+    socket.to(gameId).emit('cambioEstado', gameId);
+    console.log(`cambio de estado en la partida ${gameId}`);
+   /* let eliminados = jugadoresEliminados(gameId);
+    if(eliminados.length > 0){
+        eliminados.forEach((eliminado) => {
+            socket.to(eliminado).emit('jugadorEliminado', eliminado);
+        });
+    }*/
+}
+
+function handleAtaco(socket, userOrigen, userDestino, dadosAtacante, dadosDefensor, 
+                    tropasPerdidasAtacante, tropasPerdidasDefensor, conquistado, territorioOrigen,
+                    territorioDestino, eloAtacante, eloDefensor, dineroAtacante, dineroDefensor, clientIp){
+    socket.to(userDestino).emit('ataqueRecibido', userOrigen, userDestino, dadosAtacante, dadosDefensor, 
+                            tropasPerdidasAtacante, tropasPerdidasDefensor, conquistado, territorioOrigen,
+                            territorioDestino, eloAtacante, eloDefensor, dineroAtacante, dineroDefensor);
+    console.log(`Usuario ${userOrigen} ha atacado a ${userDestino}`);
+}
+
+async function handleDisconnectGame(socket, gameId, user, clientIp) {
     socket.leave(gameId);
     socket.to(gameId).emit('userDisconnected', user);
     console.log(`Usuario desconectado de la partida ${gameId}`);
+    // si tenemos ganador, avisamos a los fronts, pero no hacemos nada
+    // en la base de datos -> de esto no se encarga este módulo. 
+    try{
+        let posibleGanador = await existeGanador(gameId); 
+        if(posibleGanador){
+            socket.to(gameId).emit('gameOver', posibleGanador.usuario);
+        }
+    } catch (error) {
+        console.log(error.message)
+    }
 }
 
 // Chats
@@ -115,12 +152,12 @@ function setupSocket(server) {
 
     setInterval(() => {
         notifyGame(io, 'caballo', 'caballo');
-    }, 15000);
+    }, 15000); 
 
     setInterval(() => {
-        notifyChat(io, 'chat123', '¡Bienvenidos al chat chat123!');
-        countParticipants(io, 'chat123');
-    }, 10000);*/
+        countParticipants(io, 'escandivas');
+        countParticipants(io, 'risketo');
+    }, 10);*/
 }
 
 module.exports = setupSocket;
