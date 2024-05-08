@@ -439,10 +439,10 @@ async function atacarTerritorio(partidaOID, usuarioID, territorioAtacante, terri
     }
     await partida.save()
     let user = await Usuario.findOne({idUsuario: usuarioID})
-    user.elo += eloAtacante; user.dinero += dineroAtacante;
+    user.elo += eloAtacante; user.puntos += dineroAtacante;
     await user.save()
     user = await Usuario.findOne({idUsuario: partida.jugadores[jugadorDefensor].usuario})
-    user.elo += eloDefensor; user.dinero += dineroDefensor;
+    user.elo += eloDefensor; user.puntos += dineroDefensor;
     await user.save()
     return {dadosAtacante: dadosAtacante, 
             dadosDefensor: dadosDefensor, 
