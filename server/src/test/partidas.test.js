@@ -333,7 +333,7 @@ describe('Invitaciones a partidas', () => {
     })
 
     it('debería permitir listar las partidas de un usuario', async () => {
-        
+        // se perdio el commit ?
         const response = await request
             .get('/partidas/invitaciones')
             .set('Authorization', `${authTokenPig}`) // Incluye el token de acceso en la cabecera
