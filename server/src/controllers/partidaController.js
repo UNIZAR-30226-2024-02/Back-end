@@ -1,4 +1,3 @@
-const { FindCursor } = require('mongodb');
 const {Partida, Jugador, Territorio, Carta, Continente} = require('../models/Partida');
 const { findById } = require('../models/Skin');
 const Usuario = require('../models/Usuario');
@@ -8,8 +7,7 @@ const Chat = require('../models/Chat');
 const Colocar = 0; // Aqui se pueden utilizar cartas
 const Atacar = 1;
 const Maniobrar = 2;
-const Robar = 3;
-const Fin = 4; // Para utilizar cartas
+const Fin = 3; // Para utilizar cartas, si tocaba robar aun no se roba
 
 async function crearPartida(user, nombre, password, numJugadores) {
   // Si existe una partida con el mismo nombre y la misma password, que no haya terminado -> no podrem
@@ -557,8 +555,7 @@ async function siguienteFase(partidaOID, usuarioID) {
     }
 
     // Pasar a la siguiente fase. Si era la ultima fase pasar de turno
-    partida.fase = (partida.fase + 1) % 5; 
-    let siguienteJugador = jugador;
+    partida.fase = (partida.fase + 1) % (Fin + 1);
     if(partida.fase === Colocar){
       // habrá que pasar al siguiente jugador que NO haya abandonado
       console.log(partida.jugadores.length)

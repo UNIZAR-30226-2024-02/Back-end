@@ -27,6 +27,8 @@ let token3;
 beforeAll(async () => {
     await startApp();
 
+    let response
+
     // --- Borrar los usuarios si ya existen ---
     await Usuario.deleteOne({ idUsuario: id1 });
     await Usuario.deleteOne({ idUsuario: id2 });
@@ -155,17 +157,14 @@ beforeAll(async () => {
         .set('Authorization', `${token3}`)
         .set('Accept', 'application/json')
     expect(response.status).toBe(200)
-})
 
-
-
-it('Inicializar Estado', async () => {
+    // Iniciar Partida
     credenciales = {
         idPartida: partidaOID,
         user: user1
     }
 
-    const response = await request
+    response = await request
         .put('/partida/iniciarPartida')
         .send(credenciales)
         .set('Authorization', `${token1}`)
@@ -175,7 +174,7 @@ it('Inicializar Estado', async () => {
 })
 
 
-it('Primera Ronda', async () => {
+it('Colocar tropas y pasar de fase', async () => {
     // Leer el estado de la partida
     credenciales = {
         idPartida: partidaOID
@@ -225,19 +224,10 @@ it('Primera Ronda', async () => {
     expect(response.status).toBe(200)
 
     // Leer otra vez el estado de la partida
-    credenciales = {
-        idPartida: partidaOID,
-        user: id1
-    }
+    partida = await getEstadoPartida(partidaOID, tokenJ1);
 
-    response = await request
-        .put('/partida/getPartida')
-        .send(credenciales)
-        .set('Authorization', `${tokenJ1}`)
-        .set('Accept', 'application/json')
-    expect(response.status).toBe(200)
-
-    partida = response.body.partida;
+    // Comprobar que auxColocar es 0
+    expect(partida.auxColocar).toBe(0)
 
     // Leer el numero nuevo de tropas
     for (const continente of partida.mapa) {
@@ -248,17 +238,216 @@ it('Primera Ronda', async () => {
         }
     }
 
-    // Comprobar que auxColocar es 0
-    expect(partida.auxColocar).toBe(0)
+
     
     // Comprobar que se han colocado las tropas
     expect(newTropas).toBe(oldTropas + oldAuxColocar)
 
+
+    // Pasar a fase de ataque
+    datos = {
+        idPartida: partidaOID,
+        user: id1
+    }
+    response = await request
+        .put('/partida/siguienteFase')
+        .send(datos)
+        .set('Authorization', `${tokenJ1}`)
+        .set('Accept', 'application/json')
+    expect(response.status).toBe(200)
+
+    paresAtacanteDefensor = await territoriosAtacanteDefensor(partida, 0);
+    expect(paresAtacanteDefensor.length).not.toBe(undefined)
+    let [atacante, defensor] = paresAtacanteDefensor[0]
+
+    console.log("Territorios jugador")
+    console.log(partida.jugadores[0].territorios)
+    console.log("Territorios atacante y defensor")
+    console.log(atacante)
+    console.log(defensor)
+
+    // Atacar
+    datos = {
+        idPartida: partidaOID,
+        territorioAtacante: atacante,
+        territorioDefensor: defensor,
+        numTropas: 1
+    }
+    response = await request
+        .put('/partida/atacarTerritorio')
+        .send(datos)
+        .set('Authorization', `${tokenJ1}`)
+        .set('Accept', 'application/json')
+    console.log(response.error)
+    expect(response.status).toBe(200)
+
+
+    // pasar a maniobrar
+    response = await request
+        .put('/partida/siguienteFase')
+        .send(datos)
+        .set('Authorization', `${tokenJ1}`)
+        .set('Accept', 'application/json')
+    console.log(response.error)
+    expect(response.status).toBe(200)
+
+    // pasar a Fin
+    response = await request
+        .put('/partida/siguienteFase')
+        .send(datos)
+        .set('Authorization', `${tokenJ1}`)
+        .set('Accept', 'application/json')
+    expect(response.status).toBe(200)
+
+    // Fin de turno
+    response = await request
+        .put('/partida/siguienteFase')
+        .send(datos)
+        .set('Authorization', `${tokenJ1}`)
+        .set('Accept', 'application/json')
+    expect(response.status).toBe(200)
     
+    // Leer estado de la partida
+    response = await request
+        .put('/partida/getPartida')
+        .send(datos)
+        .set('Authorization', `${tokenJ1}`)
+        .set('Accept', 'application/json')
+    expect(response.status).toBe(200)
 
+    partida = response.body.partida;
 
+    //Turno del siguiente jugador
+    expect(partida.turno).toBe(1);
+
+    // Deberia dar error
+    //response = await request
+    //    .put('/partida/siguienteFase')
+    //    .send(datos)
+    //    .set('Authorization', `${tokenJ1}`)
+    //    .set('Accept', 'application/json')
+    //expect(response.status).toBe(500)
 })
 
 afterAll((done) => {
     close().then(() => done());
 });
+
+
+
+// --- Funciones auxiliares para los tests ---
+async function getEstadoPartida(partidaOID, token) {
+    datos = {
+        idPartida: partidaOID,
+    }
+
+    response = await request
+        .put('/partida/getPartida')
+        .send(datos)
+        .set('Authorization', `${token}`)
+        .set('Accept', 'application/json')
+    expect(response.status).toBe(200)
+
+    return response.body.partida;
+}
+
+
+// Para buscar un territorio en el mapa dado su nombre
+async function buscarTerritorio(partida, nombreTerritorio) {
+    // Recorrer cada continente
+    for (let continente of partida.mapa) {
+        // Busca el territorio por su nombre en los territorios del continente actual
+        const territorioEncontrado = continente.territorios.find(territorio => territorio.nombre === nombreTerritorio);
+
+        // Si se encuentra el territorio devolverlo
+        if (territorioEncontrado) {
+            return territorioEncontrado;
+        }
+    }
+
+    // Si no se encuentra el territorio devolver null
+    return null;
+}
+
+async function getTropasTerritorio(partida, nombreTerritorio) {
+    let territorio = await buscarTerritorio(partida, nombreTerritorio);
+    console.log("Territorio devuelto por buscar")
+    console.log(territorio)
+    if(territorio){
+        return territorio.tropas;
+    } else {
+        return -1;
+    }
+}
+
+// Para comprobar si un territorio pertenece al jugador
+async function perteneceTerritorio(partida, numJugador, nombreTerritorio) { 
+    let jugador = partida.jugadores[numJugador];
+    if(jugador.territorios.includes(nombreTerritorio)){
+        return true;
+    }
+    return false
+};
+
+// Para buscar los territorios fronterizos al jugador pero que no le pertenecen
+async function territoriosFronterizosNoPropios(partida, numJugador) {
+    const territoriosFronterizosNoPropios = [];
+
+    // Obtener los territorios pertenecientes al jugador
+    const territoriosJugador = partida.jugadores[numJugador].territorios;
+
+    // Recorrer los territorios del jugador
+    for (let territorioNombre of territoriosJugador) {
+        // Buscar el territorio por su nombre
+        const territorio = await buscarTerritorio(partida, territorioNombre);
+
+        if (territorio) {
+            // Recorrer las fronteras del territorio
+            for (let fronteraNombre of territorio.frontera) {
+                // Verificar si la frontera pertenece al jugador pero no le pertenece
+                if (await perteneceTerritorio(partida, numJugador, fronteraNombre) && !territoriosJugador.includes(fronteraNombre)) {
+                    territoriosFronterizosNoPropios.push(fronteraNombre);
+                }
+            }
+        }
+    }
+
+    return territoriosFronterizosNoPropios;
+}
+
+
+
+async function territoriosAtacanteDefensor(partida, numJugador) {
+    const paresTerritorios = [];
+
+    // Obtener los territorios pertenecientes al jugador
+    const territoriosJugador = partida.jugadores[numJugador].territorios;
+    //console.log("Los territorios del jugador son estos")
+    //console.log(territoriosJugador)
+    // Recorrer los territorios del jugador
+    for (let territorioNombre of territoriosJugador) {
+        // Buscar el territorio por su nombre
+        const territorio = await buscarTerritorio(partida, territorioNombre);
+        //console.log("Territorio encontrado es esto")
+        //console.log(territorio)
+        if (territorio) {
+            // Recorrer las fronteras del territorio
+            for (let fronteraNombre of territorio.frontera) {
+                //console.log("Nombre territorio fronterizo este")
+                //console.log(fronteraNombre)
+                // Verificar si la frontera pertenece al jugador pero no le pertenece
+                const pertenece = await perteneceTerritorio(partida, numJugador, fronteraNombre);
+                //console.log("Pertenece")
+                //console.log(pertenece)
+                const tropas = territorio.tropas;
+                console.log("Tropas")
+                console.log(tropas)
+                if (!pertenece && tropas > 1) {
+                    paresTerritorios.push([territorioNombre, fronteraNombre]);
+                }
+            }
+        }
+    }
+
+    return paresTerritorios;
+}
