@@ -182,22 +182,6 @@ it('Calcular auxTropas y utilizar cartas', async () => {
     // venezuela 3 + 10 + 5 + 5 + 3 + 7 + 2 = 35
     expect(partida.auxColocar).toBe(35); // Fase de colocar
 
-
-    // CASO INCORRECTO: utilizar la misma carta 3 veces
-    datos = {
-        idPartida: partidaOID,
-        user: id1,
-        carta1: partida.jugadores[0].cartas[0].territorio,
-        carta2: partida.jugadores[0].cartas[0].territorio,
-        carta3: partida.jugadores[0].cartas[0].territorio,
-    }
-    response = await request
-        .put('/partida/utilizarCartas')
-        .send(datos)
-        .set('Authorization', `${token1}`)
-        .set('Accept', 'application/json')
-    expect(response.status).toBe(500);
-
     partida = await getEstadoPartida(partidaOID, token1);
     expect(partida.auxColocar).toBe(35);
 
@@ -206,9 +190,7 @@ it('Calcular auxTropas y utilizar cartas', async () => {
     datos = {
         idPartida: partidaOID,
         user: id1,
-        carta1: partida.jugadores[0].cartas[0].territorio,
-        carta2: partida.jugadores[0].cartas[1].territorio,
-        carta3: 'VENEZUELA',
+        carta1: 'VENEZUELA',
     }
     response = await request
         .put('/partida/utilizarCartas')
@@ -220,16 +202,13 @@ it('Calcular auxTropas y utilizar cartas', async () => {
     partida = await getEstadoPartida(partidaOID, token1);
     expect(partida.auxColocar).toBe(35);
 
-    tropasEsperadas = partida.auxColocar + partida.jugadores[0].cartas[0].estrellas 
-    + partida.jugadores[0].cartas[1].estrellas + partida.jugadores[0].cartas[2].estrellas
+    tropasEsperadas = partida.auxColocar + partida.jugadores[0].cartas[0].estrellas
 
     // CASO CORRECTO
     datos = {
         idPartida: partidaOID,
         user: id1,
         carta1: partida.jugadores[0].cartas[0].territorio,
-        carta2: partida.jugadores[0].cartas[1].territorio,
-        carta3: partida.jugadores[0].cartas[2].territorio,
     }
     response = await request
         .put('/partida/utilizarCartas')
@@ -242,7 +221,8 @@ it('Calcular auxTropas y utilizar cartas', async () => {
     partida = await getEstadoPartida(partidaOID, token1);
 
     expect(partida.auxColocar).toBe(tropasEsperadas);
-    expect(partida.jugadores[0].cartas.length).toBe(39);
+    expect(partida.jugadores[0].cartas.length).toBe(41);
+    expect(partida.descartes.length).toBe(1);
 
 
 }, 10000)

@@ -581,7 +581,7 @@ async function siguienteFase(partidaOID, usuarioID) {
 }
 
 // Lo que se pasa es el pais correspondiente a la carta
-async function utilizarCartas(partidaOID, usuarioID, carta1, carta2, carta3) {
+async function utilizarCartas(partidaOID, usuarioID, carta1) {
   try{
     // Comprobar que la partida existe y leerla
     partida = await Partida.findById(partidaOID)
@@ -602,23 +602,17 @@ async function utilizarCartas(partidaOID, usuarioID, carta1, carta2, carta3) {
     }
 
     // Comprobar que las cartas no sean null
-    if(carta1 == null || carta2 == null || carta2 == null){
+    if(carta1 == null){
       throw new Error("Las 3 cartas deben ser diferentes")
     }
 
     // Comprobar que las cartas no sean undefined
-    if(carta1 == undefined || carta2 == undefined || carta2 == undefined){
-      throw new Error("Las 3 cartas deben ser diferentes")
-    }
-
-    // Comprobar que las 3 cartas sean diferentes
-    if(carta1 == carta2 || carta2 == carta3 || carta2 == carta3){
+    if(carta1 == undefined){
       throw new Error("Las 3 cartas deben ser diferentes")
     }
 
     // Comprobar que los territorios de las cartas pertenecen al jugador
-    if(!await comprobarTerritorio(partida, jugador, carta1) || !await comprobarTerritorio(partida, jugador, carta2)
-      || !await comprobarTerritorio(partida, jugador, carta3)){
+    if(!await comprobarTerritorio(partida, jugador, carta1)){
       throw new Error("El territorio de alguna de las cartas no pertenece al jugador");
       return false;
     }
@@ -632,7 +626,7 @@ async function utilizarCartas(partidaOID, usuarioID, carta1, carta2, carta3) {
     const cartasJugador = partida.jugadores[jugador].cartas.map(carta => carta.territorio);
 
     // Verificar si el jugador tiene las tres cartas
-    const cartasDescartar = [carta1, carta2, carta3];
+    const cartasDescartar = [carta1];
     const todasLasCartasEncontradas = cartasDescartar.every(carta => cartasJugador.includes(carta));
     
     if (todasLasCartasEncontradas) {
@@ -651,7 +645,7 @@ async function utilizarCartas(partidaOID, usuarioID, carta1, carta2, carta3) {
       partida.jugadores[jugador].cartas = nuevasCartasJugador;
 
       // Agregar las cartas al array de descartes de la partida
-      partida.descartes.push(...partida.jugadores[jugador].cartas.filter(carta => cartasDescartar.includes(carta.territorio)));
+      partida.descartes.push(cartasDescartadas[0]);
 
 
       await partida.save();
