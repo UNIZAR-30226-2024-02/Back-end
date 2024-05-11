@@ -1,0 +1,809 @@
+{
+  "_id": "663f87e8a037685f155fc969",
+  "maxJugadores": 6,
+  "nombre": "Partidilla",
+  "fechaInicio": "2024-05-11T14:59:52.700Z",
+  "fechaFin": null,
+  "password": null,
+  "ganador": null,
+  "jugadores": [
+    {
+      "usuario": "tomas",
+      "territorios": [
+        "SUDESTE ASIATICO",
+        "VENEZUELA",
+        "AFGANISTAN",
+        "SUDAFRICA",
+        "AFRICA NORTE",
+        "RUSIA",
+        "AMERICA CENTRAL",
+        "INDONESIA",
+        "KAMCHATKA",
+        "SIBERIA",
+        "URAL",
+        "GRAN BRETANA",
+        "MADAGASCAR",
+        "ORIENTE MEDIO"
+      ],
+      "cartas": [],
+      "abandonado": false,
+      "eloGanado": 0,
+      "dineroGanado": 0,
+      "_id": "663f87e8a037685f155fc971",
+      "color": "verde"
+    },
+    {
+      "usuario": "juan",
+      "territorios": [
+        "ONTARIO",
+        "YAKUTSK",
+        "IRKUTSK",
+        "ESTADOS UNIDOS OESTE",
+        "AUSTRALIA ORIENTAL",
+        "AUSTRALIA OCCIDENTAL",
+        "ISLANDIA",
+        "TERRITORIOS DEL NOROESTE",
+        "EUROPA OCCIDENTAL",
+        "JAPON",
+        "GROENLANDIA",
+        "NUEVA GUINEA",
+        "ESTADOS UNIDOS ESTE",
+        "ALBERTA"
+      ],
+      "cartas": [],
+      "abandonado": false,
+      "eloGanado": 0,
+      "dineroGanado": 0,
+      "_id": "663f87e8a037685f155fc968",
+      "color": "morado"
+    },
+    {
+      "usuario": "martin",
+      "territorios": [
+        "CONGO",
+        "EUROPA NORTE",
+        "PERU",
+        "AFRICA ORIENTAL",
+        "INDIA",
+        "ALASKA",
+        "ESCANDINAVIA",
+        "MONGOLIA",
+        "EGIPTO",
+        "QUEBEC",
+        "BRASIL",
+        "CHINA",
+        "ARGENTINA",
+        "EUROPA SUR"
+      ],
+      "cartas": [],
+      "abandonado": false,
+      "eloGanado": 0,
+      "dineroGanado": 0,
+      "_id": "663f87e8a037685f155fc97c",
+      "color": "rosa"
+    }
+  ],
+  "chat": {
+    "nombreChat": "Partidilla",
+    "mensajes": [],
+    "usuarios": [
+      "juan",
+      "tomas",
+      "martin"
+    ],
+    "_id": "663f87e8a037685f155fc966",
+    "__v": 2
+  },
+  "turno": 1,
+  "fase": 0,
+  "auxColocar": 4,
+  "auxRobar": false,
+  "cartas": [
+    {
+      "territorio": "NUEVA GUINEA",
+      "estrellas": 2,
+      "_id": "663f87e8a037685f155fc9af"
+    },
+    {
+      "territorio": "AUSTRALIA OCCIDENTAL",
+      "estrellas": 2,
+      "_id": "663f87e8a037685f155fc9ad"
+    },
+    {
+      "territorio": "INDIA",
+      "estrellas": 1,
+      "_id": "663f87e8a037685f155fc9a2"
+    },
+    {
+      "territorio": "PERU",
+      "estrellas": 1,
+      "_id": "663f87e8a037685f155fc991"
+    },
+    {
+      "territorio": "JAPON",
+      "estrellas": 1,
+      "_id": "663f87e8a037685f155fc9a4"
+    },
+    {
+      "territorio": "INDONESIA",
+      "estrellas": 1,
+      "_id": "663f87e8a037685f155fc9ae"
+    },
+    {
+      "territorio": "ONTARIO",
+      "estrellas": 1,
+      "_id": "663f87e8a037685f155fc98c"
+    },
+    {
+      "territorio": "VENEZUELA",
+      "estrellas": 2,
+      "_id": "663f87e8a037685f155fc992"
+    },
+    {
+      "territorio": "URAL",
+      "estrellas": 1,
+      "_id": "663f87e8a037685f155fc9aa"
+    },
+    {
+      "territorio": "ARGENTINA",
+      "estrellas": 1,
+      "_id": "663f87e8a037685f155fc98f"
+    },
+    {
+      "territorio": "CHINA",
+      "estrellas": 2,
+      "_id": "663f87e8a037685f155fc9a1"
+    },
+    {
+      "territorio": "AMERICA CENTRAL",
+      "estrellas": 1,
+      "_id": "663f87e8a037685f155fc988"
+    },
+    {
+      "territorio": "TERRITORIOS DEL NOROESTE",
+      "estrellas": 2,
+      "_id": "663f87e8a037685f155fc98b"
+    },
+    {
+      "territorio": "YAKUTSK",
+      "estrellas": 2,
+      "_id": "663f87e8a037685f155fc9ab"
+    },
+    {
+      "territorio": "EUROPA OCCIDENTAL",
+      "estrellas": 1,
+      "_id": "663f87e8a037685f155fc999"
+    },
+    {
+      "territorio": "EGIPTO",
+      "estrellas": 1,
+      "_id": "663f87e8a037685f155fc99c"
+    },
+    {
+      "territorio": "GRAN BRETANA",
+      "estrellas": 1,
+      "_id": "663f87e8a037685f155fc993"
+    },
+    {
+      "territorio": "QUEBEC",
+      "estrellas": 2,
+      "_id": "663f87e8a037685f155fc98d"
+    },
+    {
+      "territorio": "ALASKA",
+      "estrellas": 1,
+      "_id": "663f87e8a037685f155fc986"
+    },
+    {
+      "territorio": "AFGANISTAN",
+      "estrellas": 1,
+      "_id": "663f87e8a037685f155fc9a0"
+    },
+    {
+      "territorio": "GROENLANDIA",
+      "estrellas": 1,
+      "_id": "663f87e8a037685f155fc98a"
+    },
+    {
+      "territorio": "ESTADOS UNIDOS OESTE",
+      "estrellas": 1,
+      "_id": "663f87e8a037685f155fc98e"
+    },
+    {
+      "territorio": "SIBERIA",
+      "estrellas": 2,
+      "_id": "663f87e8a037685f155fc9a9"
+    },
+    {
+      "territorio": "MONGOLIA",
+      "estrellas": 2,
+      "_id": "663f87e8a037685f155fc9a7"
+    },
+    {
+      "territorio": "AFRICA NORTE",
+      "estrellas": 2,
+      "_id": "663f87e8a037685f155fc99e"
+    },
+    {
+      "territorio": "RUSIA",
+      "estrellas": 1,
+      "_id": "663f87e8a037685f155fc998"
+    },
+    {
+      "territorio": "ESCANDINAVIA",
+      "estrellas": 1,
+      "_id": "663f87e8a037685f155fc996"
+    },
+    {
+      "territorio": "EUROPA NORTE",
+      "estrellas": 1,
+      "_id": "663f87e8a037685f155fc995"
+    },
+    {
+      "territorio": "IRKUTSK",
+      "estrellas": 2,
+      "_id": "663f87e8a037685f155fc9a3"
+    },
+    {
+      "territorio": "CONGO",
+      "estrellas": 1,
+      "_id": "663f87e8a037685f155fc99a"
+    },
+    {
+      "territorio": "BRASIL",
+      "estrellas": 2,
+      "_id": "663f87e8a037685f155fc990"
+    },
+    {
+      "territorio": "AFRICA ORIENTAL",
+      "estrellas": 2,
+      "_id": "663f87e8a037685f155fc99b"
+    },
+    {
+      "territorio": "KAMCHATKA",
+      "estrellas": 2,
+      "_id": "663f87e8a037685f155fc9a5"
+    },
+    {
+      "territorio": "EUROPA SUR",
+      "estrellas": 2,
+      "_id": "663f87e8a037685f155fc997"
+    },
+    {
+      "territorio": "ORIENTE MEDIO",
+      "estrellas": 1,
+      "_id": "663f87e8a037685f155fc9a6"
+    },
+    {
+      "territorio": "MADAGASCAR",
+      "estrellas": 1,
+      "_id": "663f87e8a037685f155fc99d"
+    },
+    {
+      "territorio": "ESTADOS UNIDOS ESTE",
+      "estrellas": 2,
+      "_id": "663f87e8a037685f155fc989"
+    },
+    {
+      "territorio": "SUDAFRICA",
+      "estrellas": 1,
+      "_id": "663f87e8a037685f155fc99f"
+    },
+    {
+      "territorio": "ISLANDIA",
+      "estrellas": 2,
+      "_id": "663f87e8a037685f155fc994"
+    },
+    {
+      "territorio": "ALBERTA",
+      "estrellas": 2,
+      "_id": "663f87e8a037685f155fc987"
+    },
+    {
+      "territorio": "AUSTRALIA ORIENTAL",
+      "estrellas": 1,
+      "_id": "663f87e8a037685f155fc9ac"
+    },
+    {
+      "territorio": "SUDESTE ASIATICO",
+      "estrellas": 1,
+      "_id": "663f87e8a037685f155fc9a8"
+    }
+  ],
+  "descartes": [],
+  "mapa": [
+    {
+      "territorios": [
+        {
+          "nombre": "ALASKA",
+          "frontera": [
+            "ALBERTA",
+            "TERRITORIOS DEL NOROESTE",
+            "KAMCHATKA"
+          ],
+          "tropas": 1,
+          "_id": "663f87e8a037685f155fc9b0"
+        },
+        {
+          "nombre": "ALBERTA",
+          "frontera": [
+            "ALASKA",
+            "ESTADOS UNIDOS OESTE",
+            "ONTARIO",
+            "TERRITORIOS DEL NOROESTE"
+          ],
+          "tropas": 2,
+          "_id": "663f87e8a037685f155fc9b1"
+        },
+        {
+          "nombre": "AMERICA CENTRAL",
+          "frontera": [
+            "ESTADOS UNIDOS ESTE",
+            "ESTADOS UNIDOS OESTE",
+            "VENEZUELA"
+          ],
+          "tropas": 1,
+          "_id": "663f87e8a037685f155fc9b2"
+        },
+        {
+          "nombre": "ESTADOS UNIDOS ESTE",
+          "frontera": [
+            "AMERICA CENTRAL",
+            "ESTADOS UNIDOS OESTE",
+            "ONTARIO",
+            "QUEBEC"
+          ],
+          "tropas": 2,
+          "_id": "663f87e8a037685f155fc9b3"
+        },
+        {
+          "nombre": "GROENLANDIA",
+          "frontera": [
+            "TERRITORIOS DEL NOROESTE",
+            "ONTARIO",
+            "QUEBEC",
+            "ISLANDIA"
+          ],
+          "tropas": 1,
+          "_id": "663f87e8a037685f155fc9b4"
+        },
+        {
+          "nombre": "TERRITORIOS DEL NOROESTE",
+          "frontera": [
+            "ALASKA",
+            "ALBERTA",
+            "ONTARIO",
+            "GROENLANDIA"
+          ],
+          "tropas": 2,
+          "_id": "663f87e8a037685f155fc9b5"
+        },
+        {
+          "nombre": "ONTARIO",
+          "frontera": [
+            "ALBERTA",
+            "TERRITORIOS DEL NOROESTE",
+            "QUEBEC",
+            "GROENLANDIA",
+            "ESTADOS UNIDOS OESTE",
+            "ESTADOS UNIDOS ESTE"
+          ],
+          "tropas": 1,
+          "_id": "663f87e8a037685f155fc9b6"
+        },
+        {
+          "nombre": "QUEBEC",
+          "frontera": [
+            "ONTARIO",
+            "ESTADOS UNIDOS ESTE",
+            "GROENLANDIA"
+          ],
+          "tropas": 2,
+          "_id": "663f87e8a037685f155fc9b7"
+        },
+        {
+          "nombre": "ESTADOS UNIDOS OESTE",
+          "frontera": [
+            "ALBERTA",
+            "ESTADOS UNIDOS ESTE",
+            "ONTARIO",
+            "AMERICA CENTRAL"
+          ],
+          "tropas": 1,
+          "_id": "663f87e8a037685f155fc9b8"
+        }
+      ],
+      "valor": 5,
+      "_id": "663f87e8a037685f155fc9da"
+    },
+    {
+      "territorios": [
+        {
+          "nombre": "ARGENTINA",
+          "frontera": [
+            "PERU",
+            "BRASIL"
+          ],
+          "tropas": 1,
+          "_id": "663f87e8a037685f155fc9b9"
+        },
+        {
+          "nombre": "BRASIL",
+          "frontera": [
+            "ARGENTINA",
+            "VENEZUELA",
+            "PERU",
+            "AFRICA NORTE"
+          ],
+          "tropas": 2,
+          "_id": "663f87e8a037685f155fc9ba"
+        },
+        {
+          "nombre": "PERU",
+          "frontera": [
+            "ARGENTINA",
+            "VENEZUELA",
+            "BRASIL"
+          ],
+          "tropas": 1,
+          "_id": "663f87e8a037685f155fc9bb"
+        },
+        {
+          "nombre": "VENEZUELA",
+          "frontera": [
+            "AMERICA CENTRAL",
+            "PERU",
+            "BRASIL"
+          ],
+          "tropas": 2,
+          "_id": "663f87e8a037685f155fc9bc"
+        }
+      ],
+      "valor": 2,
+      "_id": "663f87e8a037685f155fc9e4"
+    },
+    {
+      "territorios": [
+        {
+          "nombre": "GRAN BRETANA",
+          "frontera": [
+            "EUROPA OCCIDENTAL",
+            "EUROPA NORTE",
+            "ESCANDINAVIA",
+            "ISLANDIA"
+          ],
+          "tropas": 1,
+          "_id": "663f87e8a037685f155fc9bd"
+        },
+        {
+          "nombre": "ISLANDIA",
+          "frontera": [
+            "GRAN BRETANA",
+            "GROENLANDIA",
+            "ESCANDINAVIA"
+          ],
+          "tropas": 2,
+          "_id": "663f87e8a037685f155fc9be"
+        },
+        {
+          "nombre": "EUROPA NORTE",
+          "frontera": [
+            "EUROPA SUR",
+            "EUROPA OCCIDENTAL",
+            "RUSIA",
+            "GRAN BRETANA",
+            "ESCANDINAVIA"
+          ],
+          "tropas": 1,
+          "_id": "663f87e8a037685f155fc9bf"
+        },
+        {
+          "nombre": "ESCANDINAVIA",
+          "frontera": [
+            "RUSIA",
+            "EUROPA NORTE",
+            "GRAN BRETANA",
+            "ISLANDIA"
+          ],
+          "tropas": 1,
+          "_id": "663f87e8a037685f155fc9c0"
+        },
+        {
+          "nombre": "EUROPA SUR",
+          "frontera": [
+            "EUROPA OCCIDENTAL",
+            "EUROPA NORTE",
+            "RUSIA",
+            "AFRICA NORTE",
+            "EGIPTO",
+            "ORIENTE MEDIO"
+          ],
+          "tropas": 2,
+          "_id": "663f87e8a037685f155fc9c1"
+        },
+        {
+          "nombre": "RUSIA",
+          "frontera": [
+            "ESCANDINAVIA",
+            "EUROPA NORTE",
+            "EUROPA SUR",
+            "URAL",
+            "AFGANISTAN",
+            "ORIENTE MEDIO"
+          ],
+          "tropas": 1,
+          "_id": "663f87e8a037685f155fc9c2"
+        },
+        {
+          "nombre": "EUROPA OCCIDENTAL",
+          "frontera": [
+            "EUROPA NORTE",
+            "EUROPA SUR",
+            "AFRICA NORTE",
+            "GRAN BRETANA"
+          ],
+          "tropas": 1,
+          "_id": "663f87e8a037685f155fc9c3"
+        }
+      ],
+      "valor": 5,
+      "_id": "663f87e8a037685f155fc9e9"
+    },
+    {
+      "territorios": [
+        {
+          "nombre": "CONGO",
+          "frontera": [
+            "AFRICA ORIENTAL",
+            "SUDAFRICA",
+            "AFRICA NORTE"
+          ],
+          "tropas": 1,
+          "_id": "663f87e8a037685f155fc9c4"
+        },
+        {
+          "nombre": "AFRICA ORIENTAL",
+          "frontera": [
+            "EGIPTO",
+            "AFRICA NORTE",
+            "CONGO",
+            "SUDAFRICA",
+            "MADAGASCAR"
+          ],
+          "tropas": 2,
+          "_id": "663f87e8a037685f155fc9c5"
+        },
+        {
+          "nombre": "EGIPTO",
+          "frontera": [
+            "AFRICA NORTE",
+            "AFRICA ORIENTAL",
+            "EUROPA SUR",
+            "ORIENTE MEDIO"
+          ],
+          "tropas": 1,
+          "_id": "663f87e8a037685f155fc9c6"
+        },
+        {
+          "nombre": "MADAGASCAR",
+          "frontera": [
+            "AFRICA ORIENTAL",
+            "SUDAFRICA"
+          ],
+          "tropas": 1,
+          "_id": "663f87e8a037685f155fc9c7"
+        },
+        {
+          "nombre": "AFRICA NORTE",
+          "frontera": [
+            "EGIPTO",
+            "BRASIL",
+            "AFRICA ORIENTAL",
+            "CONGO"
+          ],
+          "tropas": 2,
+          "_id": "663f87e8a037685f155fc9c8"
+        },
+        {
+          "nombre": "SUDAFRICA",
+          "frontera": [
+            "MADAGASCAR",
+            "CONGO",
+            "AFRICA ORIENTAL"
+          ],
+          "tropas": 1,
+          "_id": "663f87e8a037685f155fc9c9"
+        }
+      ],
+      "valor": 3,
+      "_id": "663f87e8a037685f155fc9f1"
+    },
+    {
+      "territorios": [
+        {
+          "nombre": "AFGANISTAN",
+          "frontera": [
+            "RUSIA",
+            "URAL",
+            "INDIA",
+            "ORIENTE MEDIO",
+            "CHINA"
+          ],
+          "tropas": 1,
+          "_id": "663f87e8a037685f155fc9ca"
+        },
+        {
+          "nombre": "CHINA",
+          "frontera": [
+            "INDIA",
+            "SUDESTE ASIATICO",
+            "MONGOLIA",
+            "SIBERIA",
+            "URAL",
+            "AFGANISTAN"
+          ],
+          "tropas": 2,
+          "_id": "663f87e8a037685f155fc9cb"
+        },
+        {
+          "nombre": "INDIA",
+          "frontera": [
+            "CHINA",
+            "ORIENTE MEDIO",
+            "AFGANISTAN",
+            "SUDESTE ASIATICO"
+          ],
+          "tropas": 1,
+          "_id": "663f87e8a037685f155fc9cc"
+        },
+        {
+          "nombre": "IRKUTSK",
+          "frontera": [
+            "YAKUTSK",
+            "SIBERIA",
+            "MONGOLIA",
+            "KAMCHATKA"
+          ],
+          "tropas": 2,
+          "_id": "663f87e8a037685f155fc9cd"
+        },
+        {
+          "nombre": "JAPON",
+          "frontera": [
+            "KAMCHATKA",
+            "MONGOLIA"
+          ],
+          "tropas": 1,
+          "_id": "663f87e8a037685f155fc9ce"
+        },
+        {
+          "nombre": "KAMCHATKA",
+          "frontera": [
+            "ALASKA",
+            "YAKUTSK",
+            "IRKUTSK",
+            "MONGOLIA",
+            "JAPON"
+          ],
+          "tropas": 2,
+          "_id": "663f87e8a037685f155fc9cf"
+        },
+        {
+          "nombre": "ORIENTE MEDIO",
+          "frontera": [
+            "RUSIA",
+            "AFGANISTAN",
+            "INDIA",
+            "EGIPTO",
+            "EUROPA SUR"
+          ],
+          "tropas": 1,
+          "_id": "663f87e8a037685f155fc9d0"
+        },
+        {
+          "nombre": "MONGOLIA",
+          "frontera": [
+            "IRKUTSK",
+            "CHINA",
+            "JAPON",
+            "SIBERIA",
+            "KAMCHATKA"
+          ],
+          "tropas": 2,
+          "_id": "663f87e8a037685f155fc9d1"
+        },
+        {
+          "nombre": "SUDESTE ASIATICO",
+          "frontera": [
+            "CHINA",
+            "INDIA",
+            "INDONESIA"
+          ],
+          "tropas": 4,
+          "_id": "663f87e8a037685f155fc9d2"
+        },
+        {
+          "nombre": "SIBERIA",
+          "frontera": [
+            "IRKUTSK",
+            "YAKUTSK",
+            "MONGOLIA",
+            "CHINA",
+            "URAL"
+          ],
+          "tropas": 2,
+          "_id": "663f87e8a037685f155fc9d3"
+        },
+        {
+          "nombre": "URAL",
+          "frontera": [
+            "SIBERIA",
+            "RUSIA",
+            "AFGANISTAN",
+            "CHINA"
+          ],
+          "tropas": 1,
+          "_id": "663f87e8a037685f155fc9d4"
+        },
+        {
+          "nombre": "YAKUTSK",
+          "frontera": [
+            "IRKUTSK",
+            "KAMCHATKA",
+            "SIBERIA"
+          ],
+          "tropas": 2,
+          "_id": "663f87e8a037685f155fc9d5"
+        }
+      ],
+      "valor": 7,
+      "_id": "663f87e8a037685f155fc9f8"
+    },
+    {
+      "territorios": [
+        {
+          "nombre": "INDONESIA",
+          "frontera": [
+            "SUDESTE ASIATICO",
+            "NUEVA GUINEA",
+            "AUSTRALIA OCCIDENTAL"
+          ],
+          "tropas": 1,
+          "_id": "663f87e8a037685f155fc9d6"
+        },
+        {
+          "nombre": "NUEVA GUINEA",
+          "frontera": [
+            "AUSTRALIA OCCIDENTAL",
+            "AUSTRALIA ORIENTAL",
+            "INDONESIA"
+          ],
+          "tropas": 2,
+          "_id": "663f87e8a037685f155fc9d7"
+        },
+        {
+          "nombre": "AUSTRALIA OCCIDENTAL",
+          "frontera": [
+            "AUSTRALIA ORIENTAL",
+            "INDONESIA",
+            "NUEVA GUINEA"
+          ],
+          "tropas": 2,
+          "_id": "663f87e8a037685f155fc9d8"
+        },
+        {
+          "nombre": "AUSTRALIA ORIENTAL",
+          "frontera": [
+            "AUSTRALIA OCCIDENTAL",
+            "NUEVA GUINEA"
+          ],
+          "tropas": 1,
+          "_id": "663f87e8a037685f155fc9d9"
+        }
+      ],
+      "valor": 2,
+      "_id": "663f87e8a037685f155fca05"
+    }
+  ],
+  "__v": 3
+}
