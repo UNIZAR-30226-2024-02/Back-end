@@ -120,7 +120,7 @@ describe('Tienda', () => {
         const user = await Usuario.findOne({ idUsuario: "perro_sanxe" });
         const response = await request
             .post('/tienda/comprar')
-            .send({ idSkin: "exampleSkin787878" })
+            .send({ idSkin: "Soldado WW2" })
             .set('Authorization', `${authTokenPerro}`)
             .set('Accept', 'application/json');
 
