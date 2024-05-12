@@ -64,7 +64,7 @@ describe('GestionSkins', () => {
         const user = await Usuario.findOne({idUsuario: "perro_sanxe"})
         user.puntos = 10000; // le doy dinero para que pueda comprar una skin de prueba
         await user.save()
-        const peticionCompra = {idSkin : 'exampleSkin762'} // esto indirectamente prueba parte de la tienda  (compra de 1 skin que existe)
+        const peticionCompra = {idSkin : 'Caballo'} // esto indirectamente prueba parte de la tienda  (compra de 1 skin que existe)
         const response1 = await request
             .post('/tienda/comprar')
             .send(peticionCompra)
@@ -72,7 +72,7 @@ describe('GestionSkins', () => {
             .set('Accept', 'application/json');
         expect(response1.status).toBe(200);
 
-        const peticion = {skinAEquipar: 'exampleSkin762'}
+        const peticion = {skinAEquipar: 'Caballo'}
         const response = await request
             .post('/misSkins/equipar')
             .send(peticion)
@@ -92,7 +92,7 @@ describe('GestionSkins', () => {
         expect(response.status).toBe(201);
         
         const equipadas = response.body;
-        const contieneSkin = equipadas.avatar.idSkin === 'exampleSkin762'; // se que es de tipo avatar
+        const contieneSkin = equipadas.avatar.idSkin === 'Caballo'; // se que es de tipo avatar
         
         expect(contieneSkin).toBe(true);
 
@@ -103,7 +103,7 @@ describe('GestionSkins', () => {
       
       expect(response2.status).toBe(201);
       const enPropiedad = response2.body; 
-      const existeSkinDeseada = enPropiedad.some(e => e.idSkin === 'exampleSkin762');
+      const existeSkinDeseada = enPropiedad.some(e => e.idSkin === 'Caballo');
 
       expect(existeSkinDeseada).toBe(true);
     });
