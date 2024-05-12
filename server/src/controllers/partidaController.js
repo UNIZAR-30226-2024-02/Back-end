@@ -597,7 +597,7 @@ async function siguienteFase(partidaOID, usuarioID) {
 }
 
 // Lo que se pasa es el pais correspondiente a la carta
-async function utilizarCartas(partidaOID, usuarioID, carta1, carta2, carta3) {
+async function utilizarCartas(partidaOID, usuarioID, carta1) {
   try{
     // Comprobar que la partida existe y leerla
     partida = await Partida.findById(partidaOID)
@@ -621,9 +621,18 @@ async function utilizarCartas(partidaOID, usuarioID, carta1, carta2, carta3) {
       throw new Error("No es tu turno")
     }
 
+    // Comprobar que las cartas no sean null
+    if(carta1 == null){
+      throw new Error("Las 3 cartas deben ser diferentes")
+    }
+
+    // Comprobar que las cartas no sean undefined
+    if(carta1 == undefined){
+      throw new Error("Las 3 cartas deben ser diferentes")
+    }
+
     // Comprobar que los territorios de las cartas pertenecen al jugador
-    if(!await comprobarTerritorio(partida, jugador, carta1) || !await comprobarTerritorio(partida, jugador, carta2)
-      || !await comprobarTerritorio(partida, jugador, carta3)){
+    if(!await comprobarTerritorio(partida, jugador, carta1)){
       throw new Error("El territorio de alguna de las cartas no pertenece al jugador");
       return false;
     }
@@ -634,27 +643,29 @@ async function utilizarCartas(partidaOID, usuarioID, carta1, carta2, carta3) {
       return false;
     }
     
-    // Leer las cartas del jugador
-    cartasJugador = partida.jugadores[numJugador].cartas.map(carta => carta.territorio);
+    const cartasJugador = partida.jugadores[jugador].cartas.map(carta => carta.territorio);
 
     // Verificar si el jugador tiene las tres cartas
-    if (cartasJugador.includes(carta1) && cartasJugador.includes(carta2) && cartasJugador.includes(carta3)) {
+    const cartasDescartar = [carta1];
+    const todasLasCartasEncontradas = cartasDescartar.every(carta => cartasJugador.includes(carta));
+    
+    if (todasLasCartasEncontradas) {
       // Obtener las cartas que se deben descartar
-      cartasDescartar = [carta1, carta2, carta3];
+      const cartasDescartadas = partida.jugadores[jugador].cartas.filter(carta => cartasDescartar.includes(carta.territorio));
+    
+      // Calcular el valor de tropas que suman las tres cartas
+      const sumaEstrellas = cartasDescartadas.reduce((total, carta) => total + carta.estrellas, 0);
+    
+      partida.auxColocar = partida.auxColocar + sumaEstrellas;
 
       // Cartas que se queda el jugador despues
-      nuevasCartasJugador = jugador.cartas.filter(carta => !cartasDescartar.includes(carta.territorio));
-
-      // Calcular el valor de tropas que suman las tres cartas
-      partida.auxColocar = partida.cartas
-        .filter(carta => cartasDescartar.includes(carta.territorio))
-        .reduce((total, carta) => total + carta.estrellas, 0);
+      nuevasCartasJugador = partida.jugadores[jugador].cartas.filter(carta => !cartasDescartar.includes(carta.territorio));
 
       // Actualizar las cartas del jugador
-      jugador.cartas = nuevasCartasJugador;
+      partida.jugadores[jugador].cartas = nuevasCartasJugador;
 
       // Agregar las cartas al array de descartes de la partida
-      partida.descartes.push(...jugador.cartas.filter(carta => cartasDescartar.includes(carta.territorio)));
+      partida.descartes.push(cartasDescartadas[0]);
 
 
       await partida.save();

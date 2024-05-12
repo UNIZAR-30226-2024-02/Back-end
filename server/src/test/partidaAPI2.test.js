@@ -1,21 +1,21 @@
 const supertest = require('supertest');
 const { app, startApp, close } = require('../app');
 const Usuario = require('../models/Usuario'); 
-const { Partida } = require('../models/Partida'); 
-const Chat = require('../models/Chat')
-
+const { Partida } = require('../models/Partida');
 const request = supertest(app);
 
 let nombrePartida = 'Partidilla';
 
-let id1 = 'juan';
-let pass1 = 'passJuan'
-let mail1 = 'juan@gmail.com'
+
+
+let id1 = 'tomas';
+let pass1 = 'passTomas'
+let mail1 = 'tomas@gmail.com'
 let token1;
 
-let id2 = 'tomas';
-let pass2 = 'passTomas'
-let mail2 = 'tomas@gmail.com'
+let id2 = 'juan';
+let pass2 = 'passJuan'
+let mail2 = 'juan@gmail.com'
 let token2;
 
 let id3 = 'martin'
@@ -23,6 +23,13 @@ let pass3 = 'passMartin'
 let mail3 = 'martin@gmail.com'
 let token3;
 
+let partidaOID;
+
+// Partida con 3 jugadores en el turno del jugador 3 fase 0
+// El jugador 1 tiene todos los territorios menos 2 y todas las cartas
+// Los jugadores son en orden son tomas, juan y martin
+const filepath = './test/estados/partida1.json';
+const leerJson = require('../test/estados/leerJson.js');
 
 beforeAll(async () => {
     await startApp();
@@ -47,6 +54,7 @@ beforeAll(async () => {
         .set('Accept', 'application/json');
     console.log(response)
     expect(response.status).toBe(201);
+
     // --- Registro usuario 2 ---
     user2 = {
         idUsuario: id2,
@@ -123,211 +131,101 @@ beforeAll(async () => {
         await Partida.deleteMany({nombre: nombrePartida});
     }
 
-    const partida = {
-        nombre: nombrePartida,
-        password: null,
-        maxJugadores: 3
-    };
+    rawPartida = await leerJson(filepath);
+    console.log(rawPartida);
+    partida = new Partida(rawPartida);
+    await partida.save();
+    partidaOID = partida._id;
 
-    response = await request
-        .post('/nuevaPartida')
-        .send(partida)
-        .set('Authorization', `${token1}`)
-        .set('Accept', 'application/json');
-        expect(response.status).toBe(200)
+},100000)
 
-    partidaOID = response.body.idPartida;
 
-    // --- Unir a los otros 2 jugadores a la partida ---
-    credenciales = {
+it('Calcular auxTropas y utilizar cartas', async () => {
+    // Comprobar que estamos en la ultima fase del utlimo turno
+    partida = await getEstadoPartida(partidaOID, token1);
+    expect(partida.turno).toBe(2);
+    expect(partida.fase).toBe(3);
+
+    // CASO INCORRECTO: utilizar cartas fuera de turno
+    datos = {
         idPartida: partidaOID,
-        password: null
+        user: id1,
+        carta1: partida.jugadores[0].cartas[1].territorio,
+        carta2: partida.jugadores[0].cartas[2].territorio,
+        carta3: partida.jugadores[0].cartas[3].territorio,
     }
-
     response = await request
-        .put('/nuevaPartida/join')
-        .send(credenciales)
-        .set('Authorization', `${token2}`)
+        .put('/partida/utilizarCartas')
+        .send(datos)
+        .set('Authorization', `${token1}`)
         .set('Accept', 'application/json')
-    expect(response.status).toBe(200)
+    expect(response.status).toBe(500);
 
+    // Terminamos el turno del jugador 3
+    datos = {
+        idPartida: partidaOID,
+        user: id3
+    }
     response = await request
-        .put('/nuevaPartida/join')
-        .send(credenciales)
+        .put('/partida/siguienteFase')
+        .send(datos)
         .set('Authorization', `${token3}`)
         .set('Accept', 'application/json')
     expect(response.status).toBe(200)
 
-    // Iniciar Partida
-    credenciales = {
-        idPartida: partidaOID,
-        user: user1
-    }
+    // Leer y hacer comprobaciones sobre el estado acutal
+    partida = await getEstadoPartida(partidaOID, token1);
+    console.log(partida.auxColocar);
+    expect(partida.turno).toBe(0); // Turno del jugador 1
+    expect(partida.fase).toBe(0); // Fase de colocar
+    // Comprobamos el numero de refuerzos para todos los territorios menos peru y 
+    // venezuela 3 + 10 + 5 + 5 + 3 + 7 + 2 = 35
+    expect(partida.auxColocar).toBe(35); // Fase de colocar
 
+    partida = await getEstadoPartida(partidaOID, token1);
+    expect(partida.auxColocar).toBe(35);
+
+
+    // CASO INCORRECTO: utilizar cartas que no se tienen
+    datos = {
+        idPartida: partidaOID,
+        user: id1,
+        carta1: 'VENEZUELA',
+    }
     response = await request
-        .put('/partida/iniciarPartida')
-        .send(credenciales)
+        .put('/partida/utilizarCartas')
+        .send(datos)
         .set('Authorization', `${token1}`)
         .set('Accept', 'application/json')
-    expect(response.status).toBe(200)
-    expect(response.body).toHaveProperty('message', 'Partida iniciada')
-}, 20000)
+    expect(response.status).toBe(500);
 
+    partida = await getEstadoPartida(partidaOID, token1);
+    expect(partida.auxColocar).toBe(35);
 
-it('Colocar tropas y pasar de fase', async () => {
-    // Leer el estado de la partida
-    credenciales = {
-        idPartida: partidaOID
+    tropasEsperadas = partida.auxColocar + partida.jugadores[0].cartas[0].estrellas
+
+    // CASO CORRECTO
+    datos = {
+        idPartida: partidaOID,
+        user: id1,
+        carta1: partida.jugadores[0].cartas[0].territorio,
     }
-
     response = await request
-        .put('/partida/getPartida')
-        .send(credenciales)
+        .put('/partida/utilizarCartas')
+        .send(datos)
         .set('Authorization', `${token1}`)
         .set('Accept', 'application/json')
-    expect(response.status).toBe(200)
-
-    partida = response.body.partida;
-
-    // EMPIEZA EL JUGADOR 1
-    // Para saber quien es el jugador 1
-    if(partida.jugadores[0].usuario == "juan"){
-        tokenJ1 = token1;
-    } else if(partida.jugadores[0].usuario == "tomas") {
-        tokenJ1 = token2;
-    } else if(partida.jugadores[0].usuario == "martin") {
-        tokenJ1 = token3;
-    }
-
-    // colocar refuerzos, todos los refuerzos en el primer territorio
-    // Primero leer las tropas que tiene ese territorio
-    for (const continente of partida.mapa) {
-        const territorioEncontrado = continente.territorios.find(territorio => territorio.nombre === partida.jugadores[0].territorios[0]);
-        if (territorioEncontrado) {
-            oldTropas = territorioEncontrado.tropas;
-            break;
-        }
-    }
-
-    oldAuxColocar = partida.auxColocar;
-
-    datos = {
-        idPartida: partidaOID,
-        territorio: partida.jugadores[0].territorios[0],
-        numTropas: partida.auxColocar
-    }
-    response = await request
-        .put('/partida/colocarTropas')
-        .send(datos)
-        .set('Authorization', `${tokenJ1}`)
-        .set('Accept', 'application/json')
-    expect(response.status).toBe(200)
-
-    // Leer otra vez el estado de la partida
-    partida = await getEstadoPartida(partidaOID, tokenJ1);
-
-    // Comprobar que auxColocar es 0
-    expect(partida.auxColocar).toBe(0)
-
-    // Leer el numero nuevo de tropas
-    for (const continente of partida.mapa) {
-        const territorioEncontrado = continente.territorios.find(territorio => territorio.nombre === partida.jugadores[0].territorios[0]);
-        if (territorioEncontrado) {
-            newTropas = territorioEncontrado.tropas;
-            break;
-        }
-    }
+    expect(response.status).toBe(200);
 
 
-    
-    // Comprobar que se han colocado las tropas
-    expect(newTropas).toBe(oldTropas + oldAuxColocar)
+    partida = await getEstadoPartida(partidaOID, token1);
+
+    expect(partida.auxColocar).toBe(tropasEsperadas);
+    expect(partida.jugadores[0].cartas.length).toBe(41);
+    expect(partida.descartes.length).toBe(1);
 
 
-    // Pasar a fase de ataque
-    datos = {
-        idPartida: partidaOID,
-        user: id1
-    }
-    response = await request
-        .put('/partida/siguienteFase')
-        .send(datos)
-        .set('Authorization', `${tokenJ1}`)
-        .set('Accept', 'application/json')
-    expect(response.status).toBe(200)
-
-    paresAtacanteDefensor = await territoriosAtacanteDefensor(partida, 0);
-    expect(paresAtacanteDefensor.length).not.toBe(undefined)
-    let [atacante, defensor] = paresAtacanteDefensor[0]
-
-    console.log("Territorios jugador")
-    console.log(partida.jugadores[0].territorios)
-    console.log("Territorios atacante y defensor")
-    console.log(atacante)
-    console.log(defensor)
-
-    // Atacar
-    datos = {
-        idPartida: partidaOID,
-        territorioAtacante: atacante,
-        territorioDefensor: defensor,
-        numTropas: 1
-    }
-    response = await request
-        .put('/partida/atacarTerritorio')
-        .send(datos)
-        .set('Authorization', `${tokenJ1}`)
-        .set('Accept', 'application/json')
-    console.log(response.error)
-    expect(response.status).toBe(200)
-
-
-    // pasar a maniobrar
-    response = await request
-        .put('/partida/siguienteFase')
-        .send(datos)
-        .set('Authorization', `${tokenJ1}`)
-        .set('Accept', 'application/json')
-    console.log(response.error)
-    expect(response.status).toBe(200)
-
-    // pasar a Fin
-    response = await request
-        .put('/partida/siguienteFase')
-        .send(datos)
-        .set('Authorization', `${tokenJ1}`)
-        .set('Accept', 'application/json')
-    expect(response.status).toBe(200)
-
-    // Fin de turno
-    response = await request
-        .put('/partida/siguienteFase')
-        .send(datos)
-        .set('Authorization', `${tokenJ1}`)
-        .set('Accept', 'application/json')
-    expect(response.status).toBe(200)
-    
-    // Leer estado de la partida
-    response = await request
-        .put('/partida/getPartida')
-        .send(datos)
-        .set('Authorization', `${tokenJ1}`)
-        .set('Accept', 'application/json')
-    expect(response.status).toBe(200)
-
-    partida = response.body.partida;
-
-    //Turno del siguiente jugador
-    expect(partida.turno).toBe(1);
-
-    // Deberia dar error
-    //response = await request
-    //    .put('/partida/siguienteFase')
-    //    .send(datos)
-    //    .set('Authorization', `${tokenJ1}`)
-    //    .set('Accept', 'application/json')
-    //expect(response.status).toBe(500)
-}, 20000)
+}, 10000)
 
 afterAll((done) => {
     close().then(() => done());

@@ -153,13 +153,13 @@ router.put('/realizarManiobra', async (req, res) => {
 router.put('/utilizarCartas', async (req, res) => {
   console.log(req.body)
   try {
-    let { idPartida, carta1, carta2, carta3 } = req.body
+    let { idPartida, carta1 } = req.body
     const token = req.headers['authorization'];
     const user = obtenerUsuarioDesdeToken(token)
     if(!user)
       return res.status(401).json({ mensaje: 'Token no proporcionado o inválido' })
 
-    const succ = await utilizarCartas(idPartida, user, carta1, carta2, carta3);
+    const succ = await utilizarCartas(idPartida, user, carta1);
     if (succ) {
       res.status(200).json({ message: 'Cartas utilizadas', tropas: succ.tropas })
     }
