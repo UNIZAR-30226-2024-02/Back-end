@@ -132,7 +132,7 @@ describe('Tienda', () => {
         expect(updatedUser.puntos).toBe(user.puntos - 10); // 10 is skins price
 
         // check if the skin is equipped
-        expect(updatedUser.skins).toContain("exampleSkin787878");
+        expect(updatedUser.skins).toContain("Soldado WW2");
     });
 
     it('should return an error when trying to buy a non-existent skin', async () => {
