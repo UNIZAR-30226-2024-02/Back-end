@@ -49,8 +49,10 @@ const comprarSkin = async (skinId, userId) => {
   try {
     // obtengo el usuario y la skin
     const usuario = await UsuarioModel.findOne({ $or: [{ idUsuario: userId }, { correo: userId }] });
-    const tipoRegex = new RegExp(skinId, 'i');
+    const tipoRegex = new RegExp('^' + skinId, 'i');
     const skin = await SkinModel.findOne({ idSkin: tipoRegex });
+    console.log(skinId)
+    console.log(skin)
     // usuario y skin existen, y el usuario tiene $$ para comprarla (no prestamos dinero, no somos judíos #noalausura)
     if (usuario && skin && usuario.puntos >= skin.precio) {
       

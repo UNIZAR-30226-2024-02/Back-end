@@ -224,9 +224,9 @@ async function getSkinsEquipadasByUsuario(idUsuario) {
         if (!usuario) {
             throw new Error('Usuario no encontrado');
         }
-        const terreno = await Skin.findOne({ idSkin: new RegExp(usuario.terreno.type, 'i') });
-        const setFichas = await Skin.findOne({ idSkin: new RegExp(usuario.setFichas.type, 'i') });
-        const avatar = await Skin.findOne({ idSkin: new RegExp(usuario.avatar.type, 'i') });
+        const terreno = await Skin.findOne({ idSkin: new RegExp('^' + usuario.terreno.type, 'i') });
+        const setFichas = await Skin.findOne({ idSkin: new RegExp('^' + usuario.setFichas.type, 'i') });
+        const avatar = await Skin.findOne({ idSkin: new RegExp('^' + usuario.avatar.type, 'i') });
         
   
         return { terreno, setFichas, avatar };
@@ -257,7 +257,7 @@ async function getSkinsEnPropiedadByUsuario(idUsuario) {
 
         for (const idskin of idSkins) {
             try {
-                const tipoRegex = new RegExp(idskin, 'i');
+                const tipoRegex = new RegExp('^' + idskin, 'i');
                 const skin = await Skin.findOne({ idSkin: tipoRegex });
                 skinsEncontradas.push(skin);
             } catch (error) {
@@ -294,7 +294,7 @@ async function setSkinEquipada(idUsuario, idSkin) {
       if (!tieneSkin) {
         throw new Error('El usuario no tiene la skin especificada');
       }
-      const tipoRegex = new RegExp(idSkin, 'i');
+      const tipoRegex = new RegExp('^' + idSkin, 'i');
       const skin = await Skin.findOne({ idSkin: tipoRegex });
   
       if (!skin) { // esto no debería suceder nunca a menos que haya hackeado la abse de datos
@@ -421,7 +421,7 @@ async function obtenerAvatar(idUsuario){
     try {
         const usuario = await Usuario.findOne({ idUsuario });
         console.log(usuario.avatar.type)
-        const avatar = await Skin.findOne({ idSkin: new RegExp(usuario.avatar.type, 'i') });
+        const avatar = await Skin.findOne({ idSkin: new RegExp('^' + usuario.avatar.type, 'i') });
         console.log(avatar)
         return avatar;
     } catch (error) {
@@ -442,7 +442,7 @@ async function obtenerTerreno(idUsuario){
     try {
         const usuario = await Usuario.findOne({ idUsuario });
         console.log(usuario.terreno.type)
-        const terreno = await Skin.findOne({ idSkin: new RegExp(usuario.terreno.type, 'i') });
+        const terreno = await Skin.findOne({ idSkin: new RegExp('^' + usuario.terreno.type, 'i') });
         console.log(terreno)
         return terreno;
     } catch (error) {
@@ -462,7 +462,7 @@ async function obtenerTerreno(idUsuario){
 async function getPerfil(idUsuario) {
     try {
         const usuario = await Usuario.findOne({ idUsuario }).select("idUsuario avatar puntos elo")
-        const avatar = await Skin.findOne({ idSkin: new RegExp(usuario.avatar.type, 'i') })
+        const avatar = await Skin.findOne({ idSkin: new RegExp('^' + usuario.avatar.type, 'i') })
         return { nombre: usuario.idUsuario, avatar, puntos: usuario.puntos, elo: usuario.elo }
     } catch (error) {
         console.error("Error al obtener usuarios por ranking:", error);
@@ -481,7 +481,7 @@ async function getPerfil(idUsuario) {
 async function obtenerSetFichas(idUsuario){
     try {
         const usuario = await Usuario.findOne({ idUsuario });
-        const fichas = await Skin.findOne({ idSkin: new RegExp(usuario.setFichas.type, 'i') });
+        const fichas = await Skin.findOne({ idSkin: new RegExp('^' + usuario.setFichas.type, 'i') });
         console.log('Fichas', fichas)
         return fichas;
     } catch (error) {
