@@ -2,11 +2,15 @@ const SkinModel = require('../models/Skin');
 const UsuarioModel = require('../models/Usuario');
 
 
-/*
- * Obtiene la lista de skins, permitiendo filtrar/ordenar según opciones. 
- * Parámetro sortBy -> Permite ordenar por precio 
- * Paráemtros precioMin y precioMax -> Permiten filtrar por precio. precioMin, precioMax IN [0, 10000000]
- * Parámetro tipo -> Permite filtrar por tipo de skin. tipo IN {'avatar', 'skin', 'terreno'}
+/**
+ * Obtiene la lista de skins, permitiendo filtrar/ordenar según opciones.
+ * @param {Object} options - Las opciones para filtrar y ordenar los skins.
+ * @param {string} options.sortBy - Permite ordenar por precio.
+ * @param {number} options.precioMin - Permite filtrar por precio mínimo.
+ * @param {number} options.precioMax - Permite filtrar por precio máximo.
+ * @param {string} options.tipo - Permite filtrar por tipo de skin. tipo IN {'avatar', 'skin', 'terreno'}.
+ * @returns {Promise<Array>} La lista de skins.
+ * @throws {Error} Si ocurre un error al obtener los skins.
  */
 const obtenerTodo = async (options = {}) => {
   try {
@@ -42,9 +46,13 @@ const obtenerTodo = async (options = {}) => {
   }
 };
 
-// skinId -> nombre de la skin
-// userId -> identificador del usuario
-// devuelve true <-> se pudo comprar la skin (usuario & skin existen, usuario tiene dinero suficiente)
+/**
+ * Compra una skin.
+ * @param {string} skinId - El nombre de la skin.
+ * @param {string} userId - El identificador del usuario.
+ * @returns {Promise<boolean>} Devuelve true si se pudo comprar la skin (usuario & skin existen, usuario tiene dinero suficiente).
+ * @throws {Error} Si ocurre un error al comprar la skin.
+ */
 const comprarSkin = async (skinId, userId) => {
   try {
     // obtengo el usuario y la skin

@@ -9,6 +9,15 @@ const Atacar = 1;
 const Maniobrar = 2;
 const Fin = 3; // Para utilizar cartas, si tocaba robar aun no se roba
 
+/**
+ * Crea una nueva partida.
+ * @param {string} user - El ID del usuario que crea la partida.
+ * @param {string} nombre - El nombre de la partida.
+ * @param {string} password - La contraseña de la partida.
+ * @param {number} numJugadores - El número máximo de jugadores en la partida.
+ * @returns {Promise<string>} El ID de la partida creada.
+ * @throws {Error} Si ya existe una partida con el mismo nombre y contraseña, o si el número de jugadores no es válido.
+ */
 async function crearPartida(user, nombre, password, numJugadores) {
   // Si existe una partida con el mismo nombre y la misma password, que no haya terminado -> no podrem
   const partidaExistente = await Partida.findOne({ nombre: nombre, fechaFin: null });
@@ -36,7 +45,13 @@ async function crearPartida(user, nombre, password, numJugadores) {
   return nuevaPartida._id
 }
 
-// Invita al usuario a la partida
+/**
+ * Invita a un usuario a una partida.
+ * @param {string} user - El ID del usuario a invitar.
+ * @param {string} idPartida - El ID de la partida a la que invitar al usuario.
+ * @returns {Promise<boolean>} Devuelve true si la invitación fue exitosa.
+ * @throws {Error} Si la partida no existe, el usuario ya está en la partida, ya está invitado, o ocurre otro error.
+ */
 async function invite(user, idPartida) {
   try {
     partida = await Partida.findById(idPartida)
@@ -70,7 +85,14 @@ async function invite(user, idPartida) {
   }
 }
 
-// Une el usuario a la partida
+/**
+ * Une a un usuario a una partida.
+ * @param {string} user - El ID del usuario a unir.
+ * @param {string} idPartida - El ID de la partida a la que unir al usuario.
+ * @param {string} password - La contraseña de la partida.
+ * @returns {Promise<boolean>} Devuelve true si la unión fue exitosa.
+ * @throws {Error} Si la partida no existe, ya ha comenzado, está llena, el usuario ya está en la partida, la contraseña es incorrecta, o ocurre otro error.
+ */
 async function join(user, idPartida, password) {
   try {
     var usuarioUnir = await Usuario.findOne({ idUsuario: user })
@@ -136,6 +158,12 @@ async function join(user, idPartida, password) {
   }
 }
 
+/**
+ * Permite a un usuario salir de una partida.
+ * @param {string} usuarioID - El ID del usuario que sale de la partida.
+ * @param {string} partidaOID - El ID de la partida de la que sale el usuario.
+ * @throws {Error} Si la partida no existe, el usuario no está en la partida, o ocurre otro error.
+ */
 async function salirPartida(usuarioID, partidaOID) {
   try {
     const partida = await Partida.findById(partidaOID);
@@ -213,8 +241,11 @@ async function salirPartida(usuarioID, partidaOID) {
   }
 }
 
-// Devuelve las partidas públicas que no han empezado ni terminado
-// (es decir, están en espera de jugadores)
+/**
+ * Obtiene las partidas públicas que no han empezado ni terminado (es decir, están en espera de jugadores).
+ * @returns {Promise<Array>} La lista de partidas disponibles.
+ * @throws {Error} Si ocurre un error al obtener las partidas disponibles.
+ */
 async function getPartidasDisponibles() {
   try {
     const partidasDisponibles = await Partida.find({ fechaInicio: null, fechaFin: null, password: null });
@@ -226,7 +257,12 @@ async function getPartidasDisponibles() {
   }
 }
 
-// Obtiene las partidas terminadas por usuario
+/**
+ * Obtiene las partidas terminadas por usuario.
+ * @param {string} user - El ID del usuario.
+ * @returns {Promise<Array>} La lista de partidas terminadas por el usuario.
+ * @throws {Error} Si ocurre un error al obtener las partidas terminadas.
+ */
 async function getHistorico(user) {
   try {
     // Query arrays: https://www.mongodb.com/docs/manual/tutorial/query-array-of-documents/
@@ -240,7 +276,14 @@ async function getHistorico(user) {
   }
 }
 
-// Dado el object id de una partida (id unico de la bdd) inicia esta.
+/**
+ * Inicia una partida dado el object id de una partida (id único de la bdd).
+ *
+ * @param {string} partidaOID - El ID de la partida.
+ * @param {string} usuarioID - El ID del usuario.
+ * @returns {Promise<boolean>} Retorna true si la partida se inicia correctamente, false en caso contrario.
+ * @throws {Error} Si la partida no existe o el número de jugadores es insuficiente.
+ */
 async function iniciarPartida(partidaOID, usuarioID) {
   try {
     const partida = await Partida.findById(partidaOID);
@@ -273,6 +316,16 @@ async function iniciarPartida(partidaOID, usuarioID) {
   }
 }
 
+/**
+ * Coloca tropas en un territorio durante una partida.
+ *
+ * @param {string} partidaOID - El ID de la partida.
+ * @param {string} usuarioID - El ID del usuario.
+ * @param {string} nombreTerritorio - El nombre del territorio.
+ * @param {number} tropas - El número de tropas a colocar.
+ * @returns {Promise<boolean>} Retorna true si las tropas se colocan correctamente, false en caso contrario.
+ * @throws {Error} Si la partida no existe, está pausada, el usuario no está en la partida, no es su turno, no está en la fase de colocación de tropas, el territorio no le pertenece o no tiene suficientes refuerzos por colocar.
+ */
 async function colocarTropas(partidaOID, usuarioID, nombreTerritorio, tropas) {
   try {
     // Comprobar que la partida existe y leerla
@@ -327,7 +380,17 @@ async function colocarTropas(partidaOID, usuarioID, nombreTerritorio, tropas) {
 }
 
 
-// Debugged, falta integrar en el front
+/**
+ * Ataca un territorio durante una partida.
+ *
+ * @param {string} partidaOID - El ID de la partida.
+ * @param {string} usuarioID - El ID del usuario.
+ * @param {string} territorioAtacante - El nombre del territorio atacante.
+ * @param {string} territorioDefensor - El nombre del territorio defensor.
+ * @param {number} numTropas - El número de tropas que atacan.
+ * @returns {Promise<Object>} Retorna un objeto con los resultados del ataque.
+ * @throws {Error} Si la partida no existe, está pausada, el usuario no está en la partida, no es su turno, no está en la fase de atacar, el territorio atacante no le pertenece, no tiene suficientes tropas para atacar, el número de tropas atacantes es inválido, el territorio defensor le pertenece o los territorios no son fronterizos.
+ */
 async function atacarTerritorio(partidaOID, usuarioID, territorioAtacante, territorioDefensor, numTropas) {
   try {
     // Comprobar que la partida existe y leerla
@@ -463,6 +526,17 @@ async function atacarTerritorio(partidaOID, usuarioID, territorioAtacante, terri
   }
 }
 
+/**
+ * Realiza una maniobra durante una partida.
+ *
+ * @param {string} partidaOID - El ID de la partida.
+ * @param {string} usuarioID - El ID del usuario.
+ * @param {string} territorioOrigen - El nombre del territorio origen.
+ * @param {string} territorioDestino - El nombre del territorio destino.
+ * @param {number} numTropas - El número de tropas a mover.
+ * @returns {Promise<boolean>} Retorna true si la maniobra se realiza correctamente, false en caso contrario.
+ * @throws {Error} Si la partida no existe, está pausada, el usuario no está en la partida, no es su turno, no está en la fase de maniobrar, los territorios no le pertenecen, no hay ruta posible entre los territorios o el número de tropas es insuficiente.
+ */
 async function realizarManiobra(partidaOID, usuarioID, territorioOrigen, territorioDestino, numTropas) {
   // Comprobar que la partida existe y leerla
   partida = await Partida.findById(partidaOID)
@@ -525,7 +599,14 @@ async function realizarManiobra(partidaOID, usuarioID, territorioOrigen, territo
   return true
 }
 
-// Funcion para cambiar de fase / pasar de turno
+/**
+ * Cambia de fase o pasa de turno durante una partida.
+ *
+ * @param {string} partidaOID - El ID de la partida.
+ * @param {string} usuarioID - El ID del usuario.
+ * @returns {Promise<Object>} Retorna un objeto con la nueva fase, el nuevo turno, los refuerzos y si se puede robar una carta.
+ * @throws {Error} Si la partida no existe, está pausada, el usuario no está en la partida, no es su turno, no se han terminado de colocar las tropas o ocurre otro error.
+ */
 async function siguienteFase(partidaOID, usuarioID) {
   try {
     // Comprobar que la partida existe y leerla
@@ -596,7 +677,15 @@ async function siguienteFase(partidaOID, usuarioID) {
   }
 }
 
-// Lo que se pasa es el pais correspondiente a la carta
+/**
+ * Utiliza una carta durante una partida.
+ *
+ * @param {string} partidaOID - El ID de la partida.
+ * @param {string} usuarioID - El ID del usuario.
+ * @param {string} carta1 - El nombre del territorio correspondiente a la carta.
+ * @returns {Promise<Object>} Retorna un objeto con el número de tropas que se añaden al jugador.
+ * @throws {Error} Si la partida no existe, está pausada, el usuario no está en la partida, no es su turno, las cartas son null o undefined, los territorios de las cartas no pertenecen al jugador, no se pueden utilizar cartas en la fase actual o el jugador no dispone de las cartas que quiere utilizar.
+ */
 async function utilizarCartas(partidaOID, usuarioID, carta1) {
   try{
     // Comprobar que la partida existe y leerla
@@ -682,7 +771,13 @@ async function utilizarCartas(partidaOID, usuarioID, carta1) {
   }
 }
 
-// Funcion para pasar el estado de la partida al front
+/**
+ * Pasa el estado de la partida al front.
+ * @param {string} partidaOID - El ID de la partida.
+ * @param {string} UsuarioID - El ID del usuario.
+ * @returns {Promise<Object>} La partida con la información del estado.
+ * @throws {Error} Si la partida no existe o el usuario no está en la partida.
+ */
 async function getPartida(partidaOID, UsuarioID){
   // Comprobar que la partida existe y leerla
   partida = await Partida.findById(partidaOID)
@@ -710,6 +805,13 @@ async function getPartida(partidaOID, UsuarioID){
   return partida;
 }
 
+/**
+ * Pausa o reanuda una partida.
+ * @param {string} user - El ID del usuario.
+ * @param {string} idPartida - El ID de la partida.
+ * @returns {Promise<boolean>} Devuelve true si la operación fue exitosa.
+ * @throws {Error} Si la partida no existe, el usuario no está en la partida, o ocurre otro error.
+ */
 async function pausarPartida(user, idPartida){
   try{
     let partida = await Partida.findById(idPartida)

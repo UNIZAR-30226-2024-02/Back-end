@@ -4,9 +4,14 @@ const Mensaje = require('../models/Mensaje');
 const {Partida, Jugador} = require('../models/Partida');
 
 
-// nombreChat -> Nombre del chat
-// idUsuario -> Usuario que crea el chat 
-// usuarios -> usuarios que se añadirán al chat si es creado con éxito
+/**
+ * Crea un nuevo chat.
+ * @param {string} nombreChat - El nombre del chat.
+ * @param {string} idUsuario - El ID del usuario que crea el chat.
+ * @param {Array<string>} usuarios - Los usuarios que se añadirán al chat si se crea con éxito.
+ * @returns {Promise<Object>} El nuevo chat creado y un mensaje indicando el resultado de la operación.
+ * @throws {Error} Si ya existe un chat con ese nombre y al menos uno de los usuarios.
+ */
 async function crearChat(nombreChat, idUsuario, usuarios) {
     try {
 
@@ -79,7 +84,12 @@ async function crearChat(nombreChat, idUsuario, usuarios) {
       }
 }
 
-// El usuario idUsuario abandonará el chat OIDChat (chat_id)
+/**
+ * Permite a un usuario abandonar un chat.
+ * @param {string} OIDChat - El ID del chat a abandonar.
+ * @param {string} idUsuario - El ID del usuario que abandona el chat.
+ * @throws {Error} Si el chat no existe o el usuario no está en el chat.
+ */
 async function salirDeChat(OIDChat, idUsuario) {
   try {
 
@@ -119,10 +129,13 @@ async function salirDeChat(OIDChat, idUsuario) {
   }
 }
 
-// El usuario idUsuario envía un Mensaje al chat OID
-// idUsuario: idUsuario del usuario que envía el mensaje
-// textoMensaje: el mensaje, en texto plano 
-// OID: OID del chat destino 
+/**
+ * Envía un mensaje a un chat.
+ * @param {string} idUsuario - El ID del usuario que envía el mensaje.
+ * @param {string} OIDChat - El ID del chat al que se está enviando el mensaje.
+ * @param {string} textoMensaje - El mensaje, en texto plano.
+ * @throws {Error} Si el usuario o el chat no existen, o el usuario no tiene acceso al chat.
+ */
 async function enviarMensaje(idUsuario, OIDChat, textoMensaje) {
   try {
     const usuario = await Usuario.findOne({ idUsuario }); // obtengo usuario y su OID
@@ -164,6 +177,12 @@ async function enviarMensaje(idUsuario, OIDChat, textoMensaje) {
   }
 }
 
+/**
+ * Lista todos los chats de un usuario.
+ * @param {string} idUsuario - El ID del usuario.
+ * @returns {Promise<Array<Object>>} Los nombres y IDs de los chats.
+ * @throws {Error} Si el usuario no existe.
+ */
 async function listarChats(idUsuario) {
   try {
     const usuario = await Usuario.findOne({ idUsuario }); // obtengo usuario y su OID
@@ -188,7 +207,13 @@ async function listarChats(idUsuario) {
   }
 }
 
-// chatId es el OID 
+/**
+ * Obtiene todos los mensajes de un chat.
+ * @param {string} idUsuario - El ID del usuario.
+ * @param {string} chatId - El ID del chat.
+ * @returns {Promise<Array<Object>>} Los mensajes del chat.
+ * @throws {Error} Si el chat no existe.
+ */
 async function getMensajes(idUsuario, chatId){
   try {
     const chat = await Chat.findById(chatId).populate('mensajes');
@@ -204,7 +229,12 @@ async function getMensajes(idUsuario, chatId){
   
 }
 
-// Obtiene todos los participantes de un chat
+/**
+ * Obtiene todos los participantes de un chat.
+ * @param {string} chatId - El ID del chat.
+ * @returns {Promise<Array<string>>} Los participantes del chat.
+ * @throws {Error} Si el chat no existe.
+ */
 async function getParticipantes(chatId){
   try {
     const chat = await Chat.findById(chatId);
