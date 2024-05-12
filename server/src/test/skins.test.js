@@ -141,6 +141,6 @@ describe('GET /obtenerAvatar/:id', () => {
   
       expect(response.status).toBe(201);
       const skin = response.body.idSkin;
-      expect(skin).toEqual('exampleSkin762');
+      expect(skin).toEqual('Caballo');
     });
   });
