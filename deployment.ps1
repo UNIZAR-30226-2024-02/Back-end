@@ -33,14 +33,14 @@ git clone https://github.com/UNIZAR-30226-2024-02/Front-end-web
 
 ########################################################
 ##### CÓDIGO DE PRODUCCIÓN, DEBERÁ SER ELIMINADO ##### #
-Set-Location -Path .\Back-end
-git fetch origin
-git checkout -b logicaPartida origin/logicaPartida
-Set-Location -Path ..
-Set-Location -Path .\Front-end-web
-git fetch origin
-git checkout -b 31-mapa origin/31-mapa
-Set-Location -Path ..
+#Set-Location -Path .\Back-end
+#git fetch origin
+#git checkout -b logicaPartida origin/logicaPartida
+#Set-Location -Path ..
+#Set-Location -Path .\Front-end-web
+#git fetch origin
+#git checkout -b 31-mapa origin/31-mapa
+#Set-Location -Path ..
 ##### FIN CÓDIGO DE PRODUCCIÓN #####                   #
 ########################################################
 
