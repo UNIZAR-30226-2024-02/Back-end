@@ -127,7 +127,7 @@ describe('Tienda', () => {
         expect(response.status).toBe(200);
         expect(response.body).toHaveProperty('mensaje', 'Skin adquirida correctamente!');
 
-        // check if the user's points have been decremented by the price of the skin
+        // check if the user's points have been decremented by the price of the skin.
         const updatedUser = await Usuario.findOne({ idUsuario: "perro_sanxe" });
         expect(updatedUser.puntos).toBe(user.puntos - 10); // 10 is skins price
 
