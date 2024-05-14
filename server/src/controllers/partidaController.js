@@ -413,6 +413,8 @@ async function atacarTerritorio(partidaOID, usuarioID, territorioAtacante, terri
       // si el jugador queda eliminado, lo marcamos como abandonado
       if(await jugadorEliminado(partida, jugadorDefensor)){
         partida.jugadores[jugadorDefensor].abandonado = true
+        partida.jugadores[jugador].cartas.concat(partida.jugadores[jugadorDefensor].cartas)
+        partida.jugadores[jugadorDefensor].cartas = []
       }
     } else { 
       // Quitar del territorio atacante las tropas perdidas en la batalla 
