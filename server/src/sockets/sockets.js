@@ -19,6 +19,10 @@ function handleConnection(socket) {
                                              body.tropasPerdidasAtacante, body.tropasPerdidasDefensor, body.conquistado, 
                                              body.territorioOrigen, body.territorioDestino, body.eloAtacante, body.eloDefensor,
                                              body.dineroAtacante, body.dineroDefensor, clientIp));
+    socket.on('atacoGrupal', (body) => handleAtacoGrupal(socket, body.gameId, body.userOrigen, body.userDestino, body.dadosAtacante, body.dadosDefensor, 
+                                             body.tropasPerdidasAtacante, body.tropasPerdidasDefensor, body.conquistado, 
+                                             body.territorioOrigen, body.territorioDestino, body.eloAtacante, body.eloDefensor,
+                                             body.dineroAtacante, body.dineroDefensor, clientIp));
     socket.on('disconnectGame', (body) => handleDisconnectGame(socket, body.gameId, body.user, clientIp));
     
     socket.on('joinChat', (chatId) => handleJoinChat(socket, chatId, clientIp));
@@ -77,7 +81,22 @@ function handleAtaco(socket, userOrigen, userDestino, dadosAtacante, dadosDefens
     socket.to(userDestino).emit('ataqueRecibido', userOrigen, userDestino, dadosAtacante, dadosDefensor, 
                             tropasPerdidasAtacante, tropasPerdidasDefensor, conquistado, territorioOrigen,
                             territorioDestino, eloAtacante, eloDefensor, dineroAtacante, dineroDefensor);
-    console.log(`Usuario ${userOrigen} ha atacado a ${userDestino}`);
+    console.log(`Socket info: Usuario ${userOrigen} ha atacado a ${userDestino}`);
+    console.log(userOrigen, userDestino, dadosAtacante, dadosDefensor, 
+        tropasPerdidasAtacante, tropasPerdidasDefensor, conquistado, territorioOrigen,
+        territorioDestino, eloAtacante, eloDefensor, dineroAtacante, dineroDefensor)
+}
+
+function handleAtacoGrupal(socket, gameId, userOrigen, userDestino, dadosAtacante, dadosDefensor, 
+    tropasPerdidasAtacante, tropasPerdidasDefensor, conquistado, territorioOrigen,
+    territorioDestino, eloAtacante, eloDefensor, dineroAtacante, dineroDefensor, clientIp){
+    socket.to(gameId).emit('ataqueRecibidoGrupal', userOrigen, userDestino, dadosAtacante, dadosDefensor, 
+                tropasPerdidasAtacante, tropasPerdidasDefensor, conquistado, territorioOrigen,
+                territorioDestino, eloAtacante, eloDefensor, dineroAtacante, dineroDefensor);
+    console.log(`Socket info grupal: Usuario ${userOrigen} ha atacado a ${userDestino}`);
+    console.log(userOrigen, userDestino, dadosAtacante, dadosDefensor, 
+    tropasPerdidasAtacante, tropasPerdidasDefensor, conquistado, territorioOrigen,
+    territorioDestino, eloAtacante, eloDefensor, dineroAtacante, dineroDefensor)
 }
 
 async function handleDisconnectGame(socket, gameId, user, clientIp) {

@@ -661,7 +661,7 @@ async function siguienteFase(partidaOID, usuarioID) {
     }
 
     // Pasar a la siguiente fase. Si era la ultima fase pasar de turno
-    partida.fase = (partida.fase + 1) % (Fin + 1);
+    partida.fase = (partida.fase + 1) % (Fin);
     if(partida.fase === Colocar){
       // habrá que pasar al siguiente jugador que NO haya abandonado
       console.log(partida.jugadores.length)
