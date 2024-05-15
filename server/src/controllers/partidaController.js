@@ -198,6 +198,13 @@ async function salirPartida(usuarioID, partidaOID) {
           const jugador = partida.jugadores[index];
           if(!jugador.abandonado){
             jugador.abandonado = true;
+            // si es su turno, pasar al siguiente jugador
+            if(partida.turno == index){
+              partida.turno = (partida.turno + 1) % partida.jugadores.length;
+              while(partida.jugadores[partida.turno].abandonado){
+                partida.turno = (partida.turno + 1) % partida.jugadores.length;
+              }
+            }
             await partida.save();
             let cnt = 0;
             for(let player of partida.jugadores){
