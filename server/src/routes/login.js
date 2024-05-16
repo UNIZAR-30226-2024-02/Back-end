@@ -20,6 +20,7 @@ router.post('/', async (req, res) => {
       const succ = await login(idUsuario, password, correo)
       if (succ.valid) {
         const token = jwt.sign({ idUsuario: succ.idUsuario }, 'claveSecreta', { expiresIn: '1h' });
+        console.log(succ)
         res.status(200).json({ message: 'Login correcto', token, idUsuario: succ.idUsuario})
       } else {
         res.status(403).json({ error: 'Credenciales incorrectas' })

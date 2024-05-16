@@ -9,9 +9,9 @@ router.post('/', async(req, res) => {
   console.log('El registro tira')
   console.log(req.body)
   try {
-      const { idUsuario, password, correo } = req.body
+      let { idUsuario, password, correo } = req.body
       await crearUsuario(idUsuario, password, correo)
-      console.log('Usuario registrado exitosamente')
+      idUsuario = idUsuario.toLowerCase()
       const token = jwt.sign({ idUsuario: idUsuario }, 'claveSecreta', { expiresIn: '1h' });
       res.status(201).json({ message: 'Usuario registrado exitosamente', token,  idUsuario: idUsuario})
   } catch (error) {
